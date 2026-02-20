@@ -53,11 +53,21 @@ class UserController extends Controller
      */
     public function store(UserRequest $request)
     {
-        $user = User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => bcrypt($request->password),
-        ]);
+        // Build base user data
+        $userData = [
+            'name'          => $request->name,
+            'email'         => $request->email,
+            'nik'           => $request->nik,
+            'phone_number'  => $request->phone_number,
+            'login_method'  => $request->login_method,
+        ];
+
+        // Only set password if login method is password or both
+        if (in_array($request->login_method, ['password', 'both']) && $request->filled('password')) {
+            $userData['password'] = bcrypt($request->password);
+        }
+
+        $user = User::create($userData);
 
         // Assign roles safely (only if roles are provided)
         if ($request->filled('roles')) {

@@ -18,6 +18,8 @@ class UserRequest extends FormRequest
         $routeUser = $this->route('user');
         $userId = $routeUser instanceof User ? $routeUser->id : ($routeUser ?? null);
 
+        $loginMethod = $this->input('login_method', 'password'); // default to password
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -26,13 +28,30 @@ class UserRequest extends FormRequest
                 'max:255',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
+
+            'nik' => [
+                'nullable', // allow empty if not mandatory
+                'string',
+                'size:16', // exactly 16 characters
+                Rule::unique('users', 'nik')->ignore($userId),
+            ],
+
+            'phone_number' => [
+                'nullable',
+                'string',
+                'max:20', // adjust based on your format
+            ],
+
+            'login_method' => ['required', Rule::in(['password', 'magic_link', 'both'])],
+
             'password' => [
-                $this->isMethod('post') ? 'required' : 'nullable',
+                // Required only if login method is password or both
+                in_array($loginMethod, ['password', 'both']) ? 'required' : 'nullable',
                 'string',
                 'min:8',
-                $this->isMethod('post') ? 'confirmed' : '',
+                in_array($loginMethod, ['password', 'both']) ? 'confirmed' : '',
             ],
-            // Require roles and ensure at least one is selected
+
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', Rule::exists('roles', 'name')],
         ];
@@ -59,6 +78,17 @@ class UserRequest extends FormRequest
             'roles.min'      => 'You must select at least one role.',
             'roles.*.string' => 'Each role must be a valid string.',
             'roles.*.exists' => 'One or more roles do not exist.',
+
+            'login_method.required' => 'Please select a login method.',
+            'login_method.in'       => 'Login method must be either password, magic_link, or both.',
+
+            'nik.string' => 'NIK must be a valid string.',
+            'nik.size'   => 'NIK must be exactly 16 digits.',
+            'nik.unique' => 'This NIK is already registered.',
+
+            'phone_number.string' => 'Phone number must be a valid string.',
+            'phone_number.max'    => 'Phone number may not be greater than 20 characters.',
+
         ];
     }
 }

@@ -19,6 +19,15 @@ import { useState } from 'react';
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import RolesGroup from '@/components/RolesGroup';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { login } from '@/routes';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -33,9 +42,12 @@ export default function Create({ roles }) {
 
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
+        nik: '',
+        phone_number: '',
         email: '',
         password: '',
         password_confirmation: '',
+        login_method: '',
         roles: []
     });
 
@@ -90,6 +102,37 @@ export default function Create({ roles }) {
 
                                             <FieldGroup>
                                                 <Field>
+                                                    <FieldLabel htmlFor="input-nik">NIK</FieldLabel>
+                                                    <Input
+                                                        id="input-nik"
+                                                        placeholder="Enter NIK (16 digits)"
+                                                        value={data.nik}
+                                                        onChange={(e) => setData('nik', e.target.value)}
+                                                        maxLength={16}
+                                                        pattern="\d{16}" // ensures only digits
+                                                        required
+                                                    />
+                                                    {errors.nik && <p className="text-red-500 text-sm">{errors.nik}</p>}
+                                                </Field>
+                                            </FieldGroup>
+
+                                            <FieldGroup>
+                                                <Field>
+                                                    <FieldLabel htmlFor="input-phone">Phone Number</FieldLabel>
+                                                    <Input
+                                                        id="input-phone"
+                                                        placeholder="Enter phone number"
+                                                        value={data.phone_number}
+                                                        onChange={(e) => setData('phone_number', e.target.value)}
+                                                        type="tel"
+                                                        required
+                                                    />
+                                                    {errors.phone_number && <p className="text-red-500 text-sm">{errors.phone_number}</p>}
+                                                </Field>
+                                            </FieldGroup>
+
+                                            <FieldGroup>
+                                                <Field>
                                                     <FieldLabel htmlFor="input-email">Email</FieldLabel>
                                                     <Input
                                                         id="input-email"
@@ -100,66 +143,103 @@ export default function Create({ roles }) {
                                                     {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                                                 </Field>
                                             </FieldGroup>
-
-                                            <FieldGroup>
-                                                <Field>
-                                                    <FieldLabel htmlFor="input-password">Password</FieldLabel>
-                                                    <div className="relative">
-                                                        <Input
-                                                            id="input-password"
-                                                            placeholder="Enter password"
-                                                            type={showPassword ? "text" : "password"}
-                                                            value={data.password}
-                                                            onChange={(e) => setData('password', e.target.value)}
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2"
-                                                            onClick={() => setShowPassword(!showPassword)}
-                                                        >
-                                                            {showPassword ? (
-                                                                <EyeOff className="h-4 w-4" />
-                                                            ) : (
-                                                                <Eye className="h-4 w-4" />
-                                                            )}
-                                                        </Button>
-                                                    </div>
-                                                    {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-                                                </Field>
-                                            </FieldGroup>
-
-                                            <FieldGroup>
-                                                <Field>
-                                                    <FieldLabel htmlFor="input-re-password">Retype Password</FieldLabel>
-                                                    <div className="relative">
-                                                        <Input
-                                                            id="input-re-password"
-                                                            placeholder="Enter password"
-                                                            type={showRePassword ? "text" : "password"}
-                                                            value={data.password_confirmation}
-                                                            onChange={(e) => setData('password_confirmation', e.target.value)}
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2"
-                                                            onClick={() => setShowRePassword(!showRePassword)}
-                                                        >
-                                                            {showRePassword ? (
-                                                                <EyeOff className="h-4 w-4" />
-                                                            ) : (
-                                                                <Eye className="h-4 w-4" />
-                                                            )}
-                                                        </Button>
-                                                    </div>
-                                                </Field>
-                                            </FieldGroup>
                                         </div>
 
                                         <div className="w-full md:w-1/2 space-y-4">
+                                            <Field>
+                                                <FieldLabel>Authentication</FieldLabel>
+                                                <div className="relative">
+                                                    <FieldGroup>
+                                                        <Field>
+                                                            <FieldLabel htmlFor="login-method">Login Method</FieldLabel>
+                                                            <Select
+                                                                value={data.login_method}
+                                                                onValueChange={(value) => setData("login_method", value)}
+                                                            >
+                                                                <SelectTrigger id="login-method" className="w-full">
+                                                                    <SelectValue placeholder="Choose login method" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="password">Password</SelectItem>
+                                                                    <SelectItem value="magic_link">Magic Link</SelectItem>
+                                                                    <SelectItem value="both">Both</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {errors.login_method && (
+                                                                <p className="text-red-500 text-sm">{errors.login_method}</p>
+                                                            )}
+                                                        </Field>
+                                                    </FieldGroup>
+
+                                                    {/* Show password fields only if login_method is "password" or "both" */}
+                                                    {["password", "both"].includes(data.login_method) && (
+                                                        <>
+                                                            <FieldGroup className="mt-4">
+                                                                <Field>
+                                                                    <FieldLabel htmlFor="input-password">Password</FieldLabel>
+                                                                    <div className="relative">
+                                                                        <Input
+                                                                            id="input-password"
+                                                                            placeholder="Enter password"
+                                                                            type={showPassword ? "text" : "password"}
+                                                                            value={data.password}
+                                                                            onChange={(e) => setData("password", e.target.value)}
+                                                                        />
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="absolute right-2 top-1/2 -translate-y-1/2"
+                                                                            onClick={() => setShowPassword(!showPassword)}
+                                                                        >
+                                                                            {showPassword ? (
+                                                                                <EyeOff className="h-4 w-4" />
+                                                                            ) : (
+                                                                                <Eye className="h-4 w-4" />
+                                                                            )}
+                                                                        </Button>
+                                                                    </div>
+                                                                    {errors.password && (
+                                                                        <p className="text-red-500 text-sm">{errors.password}</p>
+                                                                    )}
+                                                                </Field>
+                                                            </FieldGroup>
+
+                                                            <FieldGroup className="mt-4">
+                                                                <Field>
+                                                                    <FieldLabel htmlFor="input-re-password">Retype Password</FieldLabel>
+                                                                    <div className="relative">
+                                                                        <Input
+                                                                            id="input-re-password"
+                                                                            placeholder="Retype password"
+                                                                            type={showRePassword ? "text" : "password"}
+                                                                            value={data.password_confirmation}
+                                                                            onChange={(e) => setData("password_confirmation", e.target.value)}
+                                                                        />
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="absolute right-2 top-1/2 -translate-y-1/2"
+                                                                            onClick={() => setShowRePassword(!showRePassword)}
+                                                                        >
+                                                                            {showRePassword ? (
+                                                                                <EyeOff className="h-4 w-4" />
+                                                                            ) : (
+                                                                                <Eye className="h-4 w-4" />
+                                                                            )}
+                                                                        </Button>
+                                                                    </div>
+                                                                    {errors.password_confirmation && (
+                                                                        <p className="text-red-500 text-sm">{errors.password_confirmation}</p>
+                                                                    )}
+                                                                </Field>
+                                                            </FieldGroup>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </Field>
+
                                             <Field>
                                                 <FieldLabel>Roles</FieldLabel>
                                                 <div className="relative">

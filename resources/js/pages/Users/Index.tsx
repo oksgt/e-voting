@@ -83,6 +83,10 @@ export default function User({ users, authUserId }) {
                 accessorKey: "name",
             },
             {
+                header: "Phone Number",
+                accessorKey: "phone_number",
+            },
+            {   
                 header: "Email",
                 accessorKey: "email",
             },
