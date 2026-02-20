@@ -12,6 +12,8 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/check-phone/{phone}', [UserController::class, 'checkPhoneNumber']);
+
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('dashboard', function () {
@@ -23,6 +25,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     //roles permissions
     Route::resource('roles', RoleController::class);
+
+
 });
 
 require __DIR__ . '/settings.php';

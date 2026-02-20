@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
 use App\Models\User;
+use App\Rules\ValidPhoneNumber;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
@@ -72,6 +75,13 @@ class UserController extends Controller
         // Assign roles safely (only if roles are provided)
         if ($request->filled('roles')) {
             $user->syncRoles($request->roles);
+        }
+
+        // Update whatsapp_active based on validation result
+        if ($request->phone_number) {
+            $rule = new \App\Rules\ValidPhoneNumber;
+            $rule->validate('phone_number', $request->phone_number, function() {});
+            $user->update(['whatsapp_active' => $rule->isRegistered ? 1 : 0]);
         }
 
         return redirect()
@@ -166,4 +176,48 @@ class UserController extends Controller
             ->route('users.index')
             ->with('success', 'User deleted successfully.');
     }
+
+    public function checkPhoneNumber(Request $request, string $phone)
+    {
+        // Fetch token from settings table
+        $token = DB::table('settings')
+            ->where('key', 'fonnte_token')
+            ->value('value');
+
+        if (!$token) {
+            $fail("Fonnte token is not configured in settings.");
+            return;
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => $token,
+        ])->post('https://api.fonnte.com/validate', [
+            'target'      => $phone,
+            'countryCode' => '62',
+        ]);
+
+        dd($response->json());
+        // $rule = new ValidPhoneNumber();
+
+        // // Run validation manually
+        // $errors = [];
+        // $rule->validate('phone_number', $phone, function ($message) use (&$errors) {
+        //     $errors[] = $message;
+        // });
+
+        // if (!empty($errors)) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'errors' => $errors,
+        //         'whatsapp_active' => 0,
+        //     ], 422);
+        // }
+
+        // return response()->json([
+        //     'status' => true,
+        //     'message' => 'Phone number is valid and registered.',
+        //     'whatsapp_active' => $rule->isRegistered ? 1 : 0,
+        // ]);
+    }
+
 }
