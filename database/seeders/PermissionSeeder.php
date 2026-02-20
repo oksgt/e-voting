@@ -14,15 +14,41 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+            // User & Role Management (Admin)
             "users.view",
-            "users.delete",
-            "users.update",
             "users.create",
+            "users.update",
+            "users.delete",
             "roles.view",
-            "roles.delete",
-            "roles.update",
             "roles.create",
+            "roles.update",
+            "roles.delete",
+
+            // Election Management (Admin)
+            "elections.view",
+            "elections.create",
+            "elections.update",
+            "elections.delete",
+            "elections.publish",
+            "elections.close",
+
+            // Candidate Permissions
+            "candidates.view",
+            "candidates.register",
+            "candidates.update",
+            "candidates.delete", // only admin should have this
+
+            // Voter Permissions
+            "voters.view",
+            "voters.register",
+            "voters.update",
+            "voters.delete", // only admin should have this
+
+            // Voting Actions
+            "votes.cast",
+            "votes.view_results",
         ];
+
 
         foreach ($permissions as $key => $value) {
             Permission::create(['name' => $value]);

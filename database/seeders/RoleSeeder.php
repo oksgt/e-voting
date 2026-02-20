@@ -14,16 +14,27 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $adminRole = Role::firstOrCreate(['name' => 'Admin']);
-        $userRole  = Role::firstOrCreate(['name' => 'User']);
+        $adminRole    = Role::firstOrCreate(['name' => 'Admin']);
+        $candidateRole = Role::firstOrCreate(['name' => 'Candidate']);
+        $voterRole     = Role::firstOrCreate(['name' => 'Voter']);
 
         // Assign all permissions to Admin
         $adminRole->syncPermissions(Permission::all());
 
-        // Assign limited permissions to User
-        $userRole->syncPermissions([
-            'users.view',
-            'roles.view',
+        // Candidate permissions
+        $candidateRole->syncPermissions([
+            'candidates.view',
+            'candidates.register',
+            'candidates.update',
+            'votes.view_results',
+        ]);
+
+        // Voter permissions
+        $voterRole->syncPermissions([
+            'voters.register',
+            'voters.update',
+            'votes.cast',
+            'votes.view_results',
         ]);
     }
 }

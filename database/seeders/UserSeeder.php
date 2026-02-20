@@ -14,8 +14,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Fetch roles (must exist from RoleSeeder)
-        $adminRole = Role::where('name', 'Admin')->first();
-        $userRole  = Role::where('name', 'User')->first();
+        $adminRole    = Role::where('name', 'Admin')->first();
+        $candidateRole = Role::where('name', 'Candidate')->first();
+        $voterRole     = Role::where('name', 'Voter')->first();
 
         // Create Admin user
         $admin = User::firstOrCreate(
@@ -27,14 +28,24 @@ class UserSeeder extends Seeder
         );
         $admin->assignRole($adminRole);
 
-        // Create normal User
-        $user = User::firstOrCreate(
-            ['email' => 'user@example.com'],
+        // Create Candidate user
+        $candidate = User::firstOrCreate(
+            ['email' => 'candidate@example.com'],
             [
-                'name' => 'Default User',
+                'name' => 'Default Candidate',
                 'password' => bcrypt('password'), // change this in production!
             ]
         );
-        $user->assignRole($userRole);
+        $candidate->assignRole($candidateRole);
+
+        // Create Voter user
+        $voter = User::firstOrCreate(
+            ['email' => 'voter@example.com'],
+            [
+                'name' => 'Default Voter',
+                'password' => bcrypt('password'), // change this in production!
+            ]
+        );
+        $voter->assignRole($voterRole);
     }
 }
