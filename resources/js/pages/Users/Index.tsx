@@ -28,7 +28,7 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { ButtonGroup } from '@/components/ui/button-group';
-import { Edit3, LucideUserPlus, Trash2Icon } from 'lucide-react';
+import { BadgeCheck, Edit3, LucideUserPlus, Trash2Icon } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -45,7 +45,7 @@ import { router } from '@inertiajs/react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import {can} from "@/lib/can";
+import { can } from "@/lib/can";
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'User', href: route('users.index') },
@@ -64,12 +64,22 @@ export default function User({ users, authUserId }) {
         const list = users?.data ?? users ?? [];
 
         if (!search) return list;
-        return list.filter(
-            (u) =>
-                u.name.toLowerCase().includes(search.toLowerCase()) ||
-                u.email.toLowerCase().includes(search.toLowerCase())
-        );
+
+        return list.filter((u) => {
+            const name = (u.name ?? "").toLowerCase();
+            const email = (u.email ?? "").toLowerCase();
+            const phone = (u.phone_number ?? "").toLowerCase();
+            const nik = (u.nik ?? "").toLowerCase();
+
+            return (
+                name.includes(search.toLowerCase()) ||
+                email.includes(search.toLowerCase()) ||
+                phone.includes(search.toLowerCase()) ||
+                nik.includes(search.toLowerCase())
+            );
+        });
     }, [users, search]);
+
 
     // Define columns
     const columns = useMemo(
@@ -83,10 +93,30 @@ export default function User({ users, authUserId }) {
                 accessorKey: "name",
             },
             {
-                header: "Phone Number",
-                accessorKey: "phone_number",
+                header: "NIK",
+                accessorKey: "nik",
             },
-            {   
+            {
+                header: "Phone Number",
+                cell: ({ row }) => {
+                    const phone = row.original.phone_number ?? "-";
+                    const active = Number(row.original.whatsapp_active); // 0 or 1
+
+                    return (
+                        <div className="flex flex-col">
+                            <span>{phone}</span>
+                            {active === 1 ? (
+                                <Badge className="bg-green-500 text-white mt-1 flex items-center gap-1">
+                                    <BadgeCheck data-icon="inline-start" />Registered on WA
+                                </Badge>
+                            ) : (
+                                <span className="text-gray-500 text-sm mt-1">Not registered</span>
+                            )}
+                        </div>
+                    );
+                },
+            },
+            {
                 header: "Email",
                 accessorKey: "email",
             },
@@ -131,39 +161,26 @@ export default function User({ users, authUserId }) {
                     }),
             },
             {
-                header: "Last Update",
-                accessorKey: "updated_at",
-                cell: ({ getValue }) =>
-                    new Date(getValue()).toLocaleDateString("id-ID", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-
-                    }),
-            },
-            {
                 header: "Actions",
                 cell: ({ row }) => {
                     const user = row.original;
                     return (
                         <ButtonGroup>
-                            { can("users.update") &&
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="outline" size="icon">
-                                            <Link href={route("users.edit", user.id)}>
-                                                <Edit3 className="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Edit item</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            {can("users.update") &&
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="outline" size="icon">
+                                                <Link href={route("users.edit", user.id)}>
+                                                    <Edit3 className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Edit item</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             }
 
                             {user.id !== authUserId && can("users.delete") && (
@@ -244,15 +261,15 @@ export default function User({ users, authUserId }) {
                             </CardDescription>
                         </div>
                         {can("users.create") &&
-                        <Button variant="default" size="sm" asChild>
-                            <Link
-                                href={route("users.create")}
-                                className="flex items-center gap-2"
-                            >
-                                <LucideUserPlus className="h-4 w-4" />
-                                <span>Add New User</span>
-                            </Link>
-                        </Button>
+                            <Button variant="default" size="sm" asChild>
+                                <Link
+                                    href={route("users.create")}
+                                    className="flex items-center gap-2"
+                                >
+                                    <LucideUserPlus className="h-4 w-4" />
+                                    <span>Add New User</span>
+                                </Link>
+                            </Button>
                         }
                     </CardHeader>
 
@@ -261,7 +278,7 @@ export default function User({ users, authUserId }) {
                         <div className="flex items-center justify-between mb-4">
                             <Input
                                 type="text"
-                                placeholder="Search by name or email..."
+                                placeholder="Search by name, nik, phone number or email..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="w-1/3"
