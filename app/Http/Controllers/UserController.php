@@ -8,6 +8,8 @@ use App\Rules\ValidPhoneNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
@@ -37,10 +39,9 @@ class UserController extends Controller
             'filters'    => [
                 'search' => $search,
             ],
+            'csrfToken' => csrf_token(),
         ]);
     }
-
-
     /**
      * Show the form for creating a new resource.
      */
@@ -80,7 +81,7 @@ class UserController extends Controller
         // Update whatsapp_active based on validation result
         if ($request->phone_number) {
             $rule = new \App\Rules\ValidPhoneNumber;
-            $rule->validate('phone_number', $request->phone_number, function() {});
+            $rule->validate('phone_number', $request->phone_number, function () {});
             $user->update(['whatsapp_active' => $rule->isRegistered ? 1 : 0]);
         }
 
@@ -197,27 +198,132 @@ class UserController extends Controller
         ]);
 
         dd($response->json());
-        // $rule = new ValidPhoneNumber();
+    }
 
-        // // Run validation manually
-        // $errors = [];
-        // $rule->validate('phone_number', $phone, function ($message) use (&$errors) {
-        //     $errors[] = $message;
-        // });
+    public function importCsv(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:csv,txt|max:2048',
+        ]);
 
-        // if (!empty($errors)) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'errors' => $errors,
-        //         'whatsapp_active' => 0,
-        //     ], 422);
-        // }
+        $file = $request->file('file');
+        $handle = fopen($file->getRealPath(), 'r');
 
-        // return response()->json([
-        //     'status' => true,
-        //     'message' => 'Phone number is valid and registered.',
-        //     'whatsapp_active' => $rule->isRegistered ? 1 : 0,
-        // ]);
+        // Detect delimiter dynamically from the first line
+        $firstLine = fgets($handle);
+        $delimiter = strpos($firstLine, ';') !== false ? ';' : ',';
+
+        // Reset pointer and parse header
+        rewind($handle);
+        $header = fgetcsv($handle, 0, $delimiter);
+
+        $header = array_map(function ($h) {
+            // Remove BOM, trim spaces, lowercase
+            return strtolower(preg_replace('/^\xEF\xBB\xBF/', '', trim($h)));
+        }, $header);
+
+        $imported = 0;
+        $errors = [];
+        $rowNumber = 1; // start counting after header
+
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            $rowNumber++;
+
+            $row = array_map(function ($value) {
+                return preg_replace('/^\xEF\xBB\xBF/', '', trim($value));
+            }, $row);
+
+            // Safeguard: skip rows with mismatched column count
+            if (count($row) !== count($header)) {
+                $errors[] = [
+                    'row_number' => $rowNumber,
+                    'row' => $row,
+                    'messages' => [
+                        "Row has " . count($row) . " values, expected " . count($header)
+                    ],
+                ];
+                continue;
+            }
+
+            $data = array_combine($header, $row);
+
+            // Basic validation
+            $validator = Validator::make($data, [
+                'nik' => [
+                    'nullable',
+                    'string',
+                    'max:16',
+                    Rule::unique('users', 'nik')->whereNull('deleted_at'),
+                ],
+                'name' => 'required|string|max:255',
+                'phone_number' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                    Rule::unique('users', 'phone_number')->whereNull('deleted_at'),
+                ],
+                'email' => [
+                    'required',
+                    'email',
+                    Rule::unique('users', 'email')->whereNull('deleted_at'),
+                ],
+            ], [
+                'nik.unique'          => 'NIK already exists in the system.',
+                'name.required'       => 'Name is required.',
+                'phone_number.unique' => 'Phone number is already registered.',
+                'email.unique'        => 'Email address is already registered.',
+                'email.required'      => 'Email is required.',
+                'email.email'         => 'Email must be a valid format.',
+            ]);
+
+            if ($validator->fails()) {
+                $errors[] = [
+                    'row_number' => $rowNumber,
+                    'row' => $row,
+                    'messages' => $validator->errors()->all(),
+                ];
+                continue;
+            }
+
+
+            // Build base user data
+            $userData = [
+                'nik'          => $data['nik'] ?? null,
+                'name'         => $data['name'],
+                'phone_number' => $data['phone_number'] ?? null,
+                'email'        => $data['email'],
+                'login_method' => 'magic_link', // default
+            ];
+
+            $user = User::create($userData);
+            $user->syncRoles('Voter');
+
+            // Run ValidPhoneNumber rule to update whatsapp_active
+            if (!empty($data['phone_number'])) {
+                $rule = new \App\Rules\ValidPhoneNumber;
+                $rule->validate('phone_number', $data['phone_number'], function () {});
+                $user->update(['whatsapp_active' => $rule->isRegistered ? 1 : 0]);
+            }
+
+            $imported++;
+        }
+
+        fclose($handle);
+
+        if ($imported > 0) {
+            return response()->json([
+                'success' => true,
+                'message' => "Imported {$imported} users successfully.",
+                'errors'  => $errors,
+                'data'    => $data
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No users imported.',
+            'errors'  => $errors,
+        ], 422);
     }
 
 }

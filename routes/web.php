@@ -22,6 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Route::resource('users', UserController::class);
     Route::resource('users', UserController::class);
+    Route::post('/users/import', [UserController::class, 'importCsv']) ->name('users.import');
 
     //roles permissions
     Route::resource('roles', RoleController::class);

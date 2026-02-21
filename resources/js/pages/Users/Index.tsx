@@ -28,7 +28,7 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { ButtonGroup } from '@/components/ui/button-group';
-import { BadgeCheck, Edit3, LucideUserPlus, Trash2Icon } from 'lucide-react';
+import { BadgeCheck, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, Trash2Icon } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -46,12 +46,30 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { can } from "@/lib/can";
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Field, FieldGroup } from '@/components/ui/field';
+import { Label } from '@radix-ui/react-label';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'User', href: route('users.index') },
 ];
 
-export default function User({ users, authUserId }) {
+export default function User({ users, authUserId, csrfToken }) {
+
+    const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [open, setOpen] = useState(false);
     const [sorting, setSorting] = useState([]);
     const [pagination, setPagination] = useState({
         pageIndex: 0,
@@ -215,7 +233,7 @@ export default function User({ users, authUserId }) {
                                                 onClick={() =>
                                                     router.delete(route("users.destroy", user.id), {
                                                         onSuccess: () => {
-                                                            toast.success("Role deleted successfully!", {
+                                                            toast.success("User deleted successfully!", {
                                                                 style: { backgroundColor: "green", color: "white" },
                                                             });
                                                         },
@@ -248,6 +266,56 @@ export default function User({ users, authUserId }) {
         getPaginationRowModel: getPaginationRowModel(),
     });
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrorMsg("");
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        try {
+            const response = await fetch(route("users.import"), {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+            });
+
+            const result = await response.json().catch(() => null);
+
+            if (!response.ok || !result?.success) {
+                // Laravel validation or custom error
+                if (result?.errors) {
+                    setErrorMsg(
+                        result.errors
+                            .map(
+                                (err) =>
+                                    `Row ${err.row_number ?? "?"}: ${err.messages.join(", ")}`
+                            )
+                            .join("\n")
+                    );
+                    toast.error(result.message || "Validation failed");
+                } else {
+                    setErrorMsg(result?.message || `Server error: ${response.status}`);
+                    toast.error(result?.message || "Import failed");
+                }
+            } else {
+                // Success case
+                toast.success(result.message); // use backend message
+                router.reload();
+                setOpen(false);
+            }
+        } catch (err) {
+            setErrorMsg(err.message);
+            toast.error(`Network error: ${err.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="User" />
@@ -261,15 +329,100 @@ export default function User({ users, authUserId }) {
                             </CardDescription>
                         </div>
                         {can("users.create") &&
-                            <Button variant="default" size="sm" asChild>
-                                <Link
-                                    href={route("users.create")}
-                                    className="flex items-center gap-2"
-                                >
-                                    <LucideUserPlus className="h-4 w-4" />
-                                    <span>Add New User</span>
-                                </Link>
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button variant="default" size="sm" asChild>
+                                    <Link
+                                        href={route("users.create")}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <LucideUserPlus className="h-4 w-4" />
+                                        <span>Add New User</span>
+                                    </Link>
+                                </Button>
+                                <Dialog open={open} onOpenChange={setOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="flex items-center gap-2">
+                                            <LucideFileUp className="h-4 w-4" />
+                                            <span>Import from file</span>
+                                        </Button>
+                                    </DialogTrigger>
+
+                                    <DialogContent className="sm:max-w-sm">
+                                        <DialogHeader>
+                                            <DialogTitle>Import From File</DialogTitle>
+                                            <DialogDescription>
+                                                Import new user data using CSV. Use the CSV template below as a basic template.
+                                            </DialogDescription>
+                                        </DialogHeader>
+
+                                        {/* Form lives inside DialogContent */}
+                                        <form onSubmit={handleSubmit} encType="multipart/form-data">
+                                            <FieldGroup>
+                                                {/* CSV Template Download */}
+                                                <Field>
+                                                    <Label htmlFor="csv-template">CSV template</Label>
+                                                    <Button
+                                                        id="csv-template"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="mt-2 flex items-center gap-2"
+                                                        asChild
+                                                    >
+                                                        <a href="/templates/users.csv" download>
+                                                            <LucideDownload className="h-4 w-4" />
+                                                            <span>Download Template</span>
+                                                        </a>
+                                                    </Button>
+                                                </Field>
+
+                                                {/* File Upload */}
+                                                <Field>
+                                                    <Label htmlFor="csv-upload">File Upload</Label>
+                                                    <input
+                                                        id="csv-upload"
+                                                        name="file"
+                                                        type="file"
+                                                        accept=".csv"
+                                                        className="mt-2 block w-auto text-xs text-gray-500
+                                                        file:mr-2 file:py-1 file:px-2
+                                                        file:rounded-md file:border-0
+                                                        file:text-xs file:font-medium
+                                                        file:bg-gray-100 file:text-gray-700
+                                                        hover:file:bg-gray-200"
+                                                        onChange={(e) => setSelectedFile(e.target.files[0])}
+                                                    />
+                                                    {selectedFile && (
+                                                        <div className="mt-1 text-xs text-gray-600">{selectedFile.name}</div>
+                                                    )}
+                                                    {errorMsg && (
+                                                        <div className="mt-1 text-xs text-red-600">{errorMsg}</div>
+                                                    )}
+                                                </Field>
+                                            </FieldGroup>
+
+                                            <DialogFooter>
+                                                <DialogClose asChild>
+                                                    <Button variant="outline" size="sm">Cancel</Button>
+                                                </DialogClose>
+                                                <Button type="submit" size="sm" className="flex items-center gap-2" disabled={loading}>
+                                                    {loading ? (
+                                                        <>
+                                                            <LoaderCircle className="h-4 w-4 animate-spin" />
+                                                            <span>Processing</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <LucideUpload className="h-4 w-4" />
+                                                            <span>Upload</span>
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+
                         }
                     </CardHeader>
 
