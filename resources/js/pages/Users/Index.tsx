@@ -28,7 +28,7 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { ButtonGroup } from '@/components/ui/button-group';
-import { BadgeCheck, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, Trash2Icon } from 'lucide-react';
+import { BadgeCheck, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, Trash2Icon, WandSparkles } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -201,6 +201,50 @@ export default function User({ users, authUserId, csrfToken }) {
                                 </TooltipProvider>
                             }
 
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => {
+                                                fetch(route("magic-links.generate", user.phone_number), {
+                                                    method: "GET",
+                                                    headers: {
+                                                        "Accept": "application/json",
+                                                    },
+                                                })
+                                                    .then(async (res) => {
+                                                        if (!res.ok) {
+                                                            const error = await res.json();
+                                                            throw new Error(error.message || "Failed to generate magic link");
+                                                        }
+                                                        return res.json();
+                                                    })
+                                                    .then((data) => {
+                                                        // Copy the magic link URL to clipboard
+                                                        navigator.clipboard.writeText(data.url)
+                                                            .then(() => {
+                                                                toast.success("Magic link copied to clipboard!");
+                                                            })
+                                                            .catch(() => {
+                                                                toast.error("Failed to copy link to clipboard.");
+                                                            });
+                                                    })
+                                                    .catch((err) => {
+                                                        toast.error(err.message);
+                                                    });
+                                            }}
+                                        >
+                                            <WandSparkles className="h-4 w-4" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Magic Link</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
                             {user.id !== authUserId && can("users.delete") && (
 
                                 <AlertDialog>
@@ -368,7 +412,7 @@ export default function User({ users, authUserId, csrfToken }) {
                                                         className="mt-2 flex items-center gap-2"
                                                         asChild
                                                     >
-                                                        <a href="/templates/users.csv" download>
+                                                        <a href={route('download.user-template')}>
                                                             <LucideDownload className="h-4 w-4" />
                                                             <span>Download Template</span>
                                                         </a>

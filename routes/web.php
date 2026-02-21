@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\MagicLinksController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Response as FacadesResponse;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Response;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -13,6 +16,23 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/check-phone/{phone}', [UserController::class, 'checkPhoneNumber']);
+
+Route::get('/download/user-template', function () {
+    $path = public_path('storage/csv-template/user-template.csv');
+
+    if (!file_exists($path)) {
+        abort(404, 'Template file not found.');
+    }
+
+    return FacadesResponse::download($path, 'user-template.csv', [
+        'Content-Type' => 'text/csv',
+    ]);
+})->name('download.user-template');
+
+Route::get('/magic-links/generate/{phone_number}', [MagicLinksController::class, 'generateMagicLinks'])
+    ->name('magic-links.generate');
+
+Route::get('/magic-login/{token}', [MagicLinksController::class, 'verifyMagicLink'])->name('magic.verify');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -26,7 +46,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     //roles permissions
     Route::resource('roles', RoleController::class);
-
 
 });
 
