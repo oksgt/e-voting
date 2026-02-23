@@ -23,13 +23,23 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    // {
+    //     title: 'Users',
+    //     href: route('users.index'),
+    //     icon: UsersRound,
+    // },
     {
-        title: 'Users',
-        href: route('users.index'),
+        title: 'Voter/Pemilih',
+        href: route('voters.index'),
         icon: UsersRound,
     },
     {
-        title: 'Roles',
+        title: 'Kandidat',
+        href: '#',
+        icon: UsersRound,
+    },
+    {
+        title: 'User Roles',
         href: route('roles.index'),
         icon: Notebook,
     }

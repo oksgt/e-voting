@@ -3,6 +3,7 @@
 use App\Http\Controllers\MagicLinksController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VoterController;
 use Illuminate\Support\Facades\Response as FacadesResponse;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -42,11 +43,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Route::resource('users', UserController::class);
     Route::resource('users', UserController::class);
-    Route::post('/users/import', [UserController::class, 'importCsv']) ->name('users.import');
+    Route::post('/users/import', [UserController::class, 'importCsv'])->name('users.import');
+
+    Route::resource('voters', VoterController::class);
+    Route::post('/voters/import', [UserController::class, 'importCsv'])->name('voters.import');
 
     //roles permissions
     Route::resource('roles', RoleController::class);
-
 });
 
 require __DIR__ . '/settings.php';

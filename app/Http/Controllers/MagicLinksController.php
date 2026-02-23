@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class MagicLinksController extends Controller
 {
@@ -48,7 +49,7 @@ class MagicLinksController extends Controller
         $link = MagicLinks::create([
             'user_id'    => $user->id,
             'token'      => hash('sha256', $token),
-            'expired_at' => Carbon::now()->addMinutes(15),
+            'expired_at' => Carbon::now()->addMinutes(2),
         ]);
 
         $url = url("/magic-login/{$token}");
@@ -69,7 +70,8 @@ class MagicLinksController extends Controller
             ->first();
 
         if (! $link) {
-            return redirect('/login')->with('error', 'Link tidak valid atau sudah expired.');
+            // return redirect('/login')->with('error', 'Link tidak valid atau sudah expired.');
+            return Inertia::render('auth/magic-link-expired');
         }
 
         // Get the user directly by ID
