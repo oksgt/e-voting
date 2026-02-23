@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Notebook, User2Icon, Users2, UserSquare2, UsersRound } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Notebook, Tags, User2Icon, Users2, UserSquare2, UsersRound } from 'lucide-react';
 import AppLogo from './app-logo';
 import { route } from 'ziggy-js';
 
@@ -34,9 +34,9 @@ const mainNavItems: NavItem[] = [
         icon: UsersRound,
     },
     {
-        title: 'Kandidat',
-        href: '#',
-        icon: UsersRound,
+        title: 'Posisi',
+        href: route('positions.index'),
+        icon: Tags,
     },
     {
         title: 'User Roles',

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MagicLinksController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VoterController;
@@ -47,6 +48,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('voters', VoterController::class);
     Route::post('/voters/import', [UserController::class, 'importCsv'])->name('voters.import');
+
+    Route::resource('positions', PositionController::class);
 
     //roles permissions
     Route::resource('roles', RoleController::class);

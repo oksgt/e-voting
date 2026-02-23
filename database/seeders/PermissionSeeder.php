@@ -46,6 +46,12 @@ class PermissionSeeder extends Seeder
             // Voting Actions
             "votes.cast",
             "votes.view_results",
+
+            // Position Permissions
+            "positions.view",
+            "positions.create",
+            "positions.update",
+            "positions.delete",
         ];
 
 

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -45,11 +46,15 @@ class MagicLinksController extends Controller
         // Generate new token
         $token = Str::random(40);
 
+        $expiration = (int) DB::table('settings')
+            ->where('key', 'magic_link_expiration')
+            ->value('value');
+
         // Create magic link record tied to user_id
         $link = MagicLinks::create([
             'user_id'    => $user->id,
             'token'      => hash('sha256', $token),
-            'expired_at' => Carbon::now()->addMinutes(2),
+            'expired_at' => Carbon::now()->addMinutes($expiration),
         ]);
 
         $url = url("/magic-login/{$token}");
