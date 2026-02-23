@@ -28,7 +28,7 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { ButtonGroup } from '@/components/ui/button-group';
-import { BadgeCheck, BadgeX, CheckCircle, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, Trash2Icon, WandSparkles, XCircle } from 'lucide-react';
+import { BadgeCheck, BadgeX, CheckCircle, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, Tag, Trash2Icon, WandSparkles, XCircle } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -242,7 +242,7 @@ export default function User({ positions, authUserId, csrfToken }) {
                                         href={route("positions.create")}
                                         className="flex items-center gap-2"
                                     >
-                                        <LucideUserPlus className="h-4 w-4" />
+                                        <Tag className="h-4 w-4" />
                                         <span>Add New Position</span>
                                     </Link>
                                 </Button>

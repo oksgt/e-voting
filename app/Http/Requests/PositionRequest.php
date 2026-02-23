@@ -26,7 +26,8 @@ class PositionRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
-                Rule::unique('positions', 'name')->ignore($this->position->id),
+                Rule::unique('positions', 'name')
+                    ->ignore($this->route('position')?->id), // safe for both store & update
             ],
             'description' => 'nullable|string|max:500',
         ];
