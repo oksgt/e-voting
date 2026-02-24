@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Notebook, Tags, User2Icon, Users2, UserSquare2, UsersRound } from 'lucide-react';
+import { BookOpen, BookOpenCheck, Folder, LayoutGrid, Notebook, Tags, User2Icon, Users2, UserSquare2, UsersRound } from 'lucide-react';
 import AppLogo from './app-logo';
 import { route } from 'ziggy-js';
 
@@ -22,6 +22,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Events',
+        href: route('events.index'),
+        icon: BookOpenCheck,
     },
     // {
     //     title: 'Users',
