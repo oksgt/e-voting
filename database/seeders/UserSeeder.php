@@ -29,23 +29,23 @@ class UserSeeder extends Seeder
         $admin->assignRole($adminRole);
 
         // Create Candidate user
-        $candidate = User::firstOrCreate(
-            ['email' => 'candidate@example.com'],
-            [
-                'name' => 'Default Candidate',
-                'password' => bcrypt('password'), // change this in production!
-            ]
-        );
-        $candidate->assignRole($candidateRole);
+        // $candidate = User::firstOrCreate(
+        //     ['email' => 'candidate@example.com'],
+        //     [
+        //         'name' => 'Default Candidate',
+        //         'password' => bcrypt('password'), // change this in production!
+        //     ]
+        // );
+        // $candidate->assignRole($candidateRole);
 
         // Create Voter user
-        $voter = User::firstOrCreate(
-            ['email' => 'voter@example.com'],
-            [
-                'name' => 'Default Voter',
-                'password' => bcrypt('password'), // change this in production!
-            ]
-        );
-        $voter->assignRole($voterRole);
+        // $voter = User::firstOrCreate(
+        //     ['email' => 'voter@example.com'],
+        //     [
+        //         'name' => 'Default Voter',
+        //         'password' => bcrypt('password'), // change this in production!
+        //     ]
+        // );
+        // $voter->assignRole($voterRole);
     }
 }
