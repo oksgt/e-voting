@@ -54,6 +54,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('events', ElectionEventController::class);
 
+    Route::get('/events/{event}/control', [ElectionEventController::class, 'eventControl'])
+    ->name('events.control');
+
     //roles permissions
     Route::resource('roles', RoleController::class);
 });

@@ -28,7 +28,7 @@ import {
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import { ButtonGroup } from '@/components/ui/button-group';
-import { BadgeCheck, BadgeX, Calendar, CheckCircle, Clock, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, PlayCircle, Plus, PlusCircle, Tag, Trash2Icon, WandSparkles, XCircle } from 'lucide-react';
+import { BadgeCheck, BadgeX, Calendar, CheckCircle, CirclePlay, Clock, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, PlayCircle, Plus, PlusCircle, Tag, Trash2Icon, WandSparkles, XCircle } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -189,6 +189,28 @@ export default function User({ events, authUserId, csrfToken }) {
                     const user = row.original;
                     return (
                         <ButtonGroup>
+
+                            {can("elections.publish") &&
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="default"
+                                                size="icon"
+                                                className="bg-green-600 hover:bg-green-700 text-white"
+                                            >
+                                                <Link href={route("events.control", user.id)}>
+                                                    <CirclePlay className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Run Event</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            }
+
                             {can("elections.update") &&
                                 <TooltipProvider>
                                     <Tooltip>

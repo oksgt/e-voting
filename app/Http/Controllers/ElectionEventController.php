@@ -120,12 +120,19 @@ class ElectionEventController extends Controller
      */
     public function destroy(ElectionEvent $event)
     {
-
         // Soft delete other users
         $event->delete();
 
         return redirect()
             ->route('events.index')
             ->with('success', 'Event deleted successfully.');
+    }
+
+    public function eventControl(ElectionEvent $event)
+    {
+        // Kirim data event ke view inertia/react edit form
+        return Inertia::render('Events/Running', [
+            'event' => $event
+        ]);
     }
 }
