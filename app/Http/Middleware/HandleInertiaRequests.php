@@ -44,6 +44,9 @@ class HandleInertiaRequests extends Middleware
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth'  => [
                 'user'        => $request->user(),
+                'roles'       => $request->user()
+                    ? $request->user()->roles->pluck('name')->toArray()
+                    : [],
                 'permissions' => fn () => $request->user()?->getAllPermissions()->pluck('name') ?? [],
             ],
             // 'ziggy' => fn (): array => [
