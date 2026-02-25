@@ -26,6 +26,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { finished } from 'stream';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -39,7 +40,8 @@ export default function Create() {
         name: '',
         keyword: '',
         description: '',
-        start_date: '',
+        started_at: '',
+        finished_at: '',
         duration: '',
         is_autorun: false,
         status: 'pending',
@@ -111,35 +113,21 @@ export default function Create() {
                                                 <Input
                                                     type="datetime-local"
                                                     id="input-start-date"
-                                                    value={data.start_date}
-                                                    onChange={(e) => setData('start_date', e.target.value)}
+                                                    value={data.started_at}
+                                                    onChange={(e) => setData('started_at', e.target.value)}
                                                 />
-                                                {errors.start_date && <p className="text-red-500 text-sm">{errors.start_date}</p>}
+                                                {errors.started_at && <p className="text-red-500 text-sm">{errors.started_at}</p>}
                                             </Field>
 
-                                            {/* Duration */}
                                             <Field>
-                                                <FieldLabel htmlFor="input-duration">Duration (minutes)</FieldLabel>
+                                                <FieldLabel htmlFor="input-finish-date">Finish Date</FieldLabel>
                                                 <Input
-                                                    type="number"
-                                                    id="input-duration"
-                                                    value={data.duration}
-                                                    onChange={(e) => setData('duration', e.target.value)}
+                                                    type="datetime-local"
+                                                    id="input-finish-date"
+                                                    value={data.finished_at}
+                                                    onChange={(e) => setData('finished_at', e.target.value)}
                                                 />
-                                                {errors.duration && <p className="text-red-500 text-sm">{errors.duration}</p>}
-                                            </Field>
-
-                                            {/* Autorun Switch */}
-                                            <Field>
-                                                <FieldLabel htmlFor="autorun-switch">Autorun</FieldLabel>
-                                                <div className="flex items-center gap-2">
-                                                    <Switch
-                                                        id="autorun-switch"
-                                                        checked={data.is_autorun}
-                                                        onCheckedChange={(checked) => setData("is_autorun", checked)}
-                                                    />
-                                                    <span>{data.is_autorun ? "Enabled" : "Disabled"}</span>
-                                                </div>
+                                                {errors.finished_at && <p className="text-red-500 text-sm">{errors.finished_at}</p>}
                                             </Field>
 
 

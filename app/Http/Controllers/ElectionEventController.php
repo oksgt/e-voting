@@ -127,13 +127,11 @@ class ElectionEventController extends Controller
             'name'        => $request->name,
             'keyword'     => $request->keyword,
             'description' => $request->description,
-            'start_date'  => $request->start_date,
-            'duration'    => $request->duration,
+            'started_at'  => $request->started_at,
+            'finished_at'  => $request->finished_at,
             'is_autorun'  => $request->boolean('is_autorun'),
             'status'      => 'scheduled',
             'is_running'  => 0, // default saat create
-            'started_at'  => null,
-            'finished_at' => null,
         ];
 
         $event = ElectionEvent::create($eventData);
@@ -172,7 +170,8 @@ class ElectionEventController extends Controller
             'name'        => $request->name,
             'keyword'     => $request->keyword,
             'description' => $request->description,
-            'start_date'  => $request->start_date,
+            'started_at'  => $request->start_date,
+            'finishe_at'  => $request->start_date,
             'duration'    => $request->duration,
             'is_autorun'  => $request->boolean('is_autorun'),
             'status'      => $request->status,

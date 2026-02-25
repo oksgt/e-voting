@@ -110,7 +110,23 @@ export default function User({ events, authUserId, csrfToken }) {
             },
             {
                 header: "Start at",
-                accessorKey: "start_date",
+                accessorKey: "started_at",
+                cell: ({ getValue }) => {
+                    const value = getValue()
+                    if (!value) return "-"
+
+                    return new Date(value).toLocaleString("id-ID", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })
+                },
+            },
+            {
+                header: "Finished at",
+                accessorKey: "finished_at",
                 cell: ({ getValue }) => {
                     const value = getValue()
                     if (!value) return "-"
@@ -189,27 +205,6 @@ export default function User({ events, authUserId, csrfToken }) {
                     const user = row.original;
                     return (
                         <ButtonGroup>
-
-                            {can("elections.publish") &&
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="default"
-                                                size="icon"
-                                                className="bg-green-600 hover:bg-green-700 text-white"
-                                            >
-                                                <Link href={route("events.control", user.id)}>
-                                                    <CirclePlay className="h-4 w-4" />
-                                                </Link>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Run Event</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            }
 
                             {can("elections.update") &&
                                 <TooltipProvider>

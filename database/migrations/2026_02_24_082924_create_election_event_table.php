@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('election_events', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->dateTime('start_date'); // waktu mulai event
-            $table->integer('duration'); // durasi dalam menit
+            $table->dateTime('start_date')->nullable(); // waktu mulai event
+            $table->integer('duration')->nullable();; // durasi dalam menit
             $table->boolean('is_autorun')->default(false);
             $table->enum('status', ['pending', 'scheduled', 'running', 'finished', 'cancelled'])
                 ->default('pending');

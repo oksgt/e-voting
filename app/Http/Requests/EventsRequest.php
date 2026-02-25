@@ -30,6 +30,8 @@ class EventsRequest extends FormRequest
                     ->ignore($this->route('event')), // safe untuk store & update
             ],
             'keyword'     => 'required|string|max:50',
+            'started_at'  => 'required|date',
+            'finished_at' => 'required|date',
             'start_date'  => 'nullable|date',
             'duration'    => 'nullable|integer|min:1',
             'is_autorun'  => 'boolean',
