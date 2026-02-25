@@ -10,6 +10,10 @@ export function UserInfo({
     showEmail?: boolean;
 }) {
     const getInitials = useInitials();
+    console.log(user.phone_number);
+
+    const roles = user?.roles || [];
+    const roleName: string | undefined = roles.map((r: { name: string }) => r.name).at(0);
 
     return (
         <>
@@ -21,9 +25,13 @@ export function UserInfo({
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                {showEmail && (
+                {showEmail && roleName === "Admin" ? (
                     <span className="truncate text-xs text-muted-foreground">
                         {user.email}
+                    </span>
+                ) : (
+                    <span className="truncate text-xs text-muted-foreground">
+                        {user.phone_number}
                     </span>
                 )}
             </div>

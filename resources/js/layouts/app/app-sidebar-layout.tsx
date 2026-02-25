@@ -17,8 +17,6 @@ export default function AppSidebarLayout({
     const { auth } = usePage().props as { auth?: { roles?: string[] } };
     const roles = auth?.roles || [];
 
-    console.log("Roles from backend:", roles);
-
     // gunakan toLowerCase agar aman terhadap case-sensitive
     const canSeeSidebar = roles.some(
         (role) => role.toLowerCase() === "admin"

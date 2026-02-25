@@ -14,9 +14,18 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user()->load('roles');
-        return Inertia::render('dashboard', [
-            'user' => $user,
-            'roles' => $user->roles->pluck('name'), // kirim hanya nama role
+
+        // ambil role pertama dengan aman
+        $user_role = $user->roles->pluck('name')->first();
+
+        $view = 'dashboard';
+        if ($user_role === 'Voter') {
+            $view = 'dashboard-voter';
+        }
+
+        return Inertia::render($view, [
+            'user'  => $user,
+            'roles' => $user->roles->pluck('name'), // kirim array nama role
         ]);
 
     }
