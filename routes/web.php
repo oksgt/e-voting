@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ElectionEventController;
+use App\Http\Controllers\ElectionEventLogController;
 use App\Http\Controllers\MagicLinksController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\RoleController;
@@ -55,6 +56,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/events/{event}/control', [ElectionEventController::class, 'eventControl'])
     ->name('events.control');
+
+    Route::post('/election-event-logs', [ElectionEventLogController::class, 'store']);
 
     //roles permissions
     Route::resource('roles', RoleController::class);

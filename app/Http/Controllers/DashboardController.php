@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ElectionEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -17,6 +18,7 @@ class DashboardController extends Controller
 
         // ambil role pertama dengan aman
         $user_role = $user->roles->pluck('name')->first();
+        $runningEvent = ElectionEvent::where('is_running', 1)->first();
 
         $view = 'dashboard';
         if ($user_role === 'Voter') {
@@ -24,10 +26,30 @@ class DashboardController extends Controller
         }
 
         return Inertia::render($view, [
-            'user'  => $user,
-            'roles' => $user->roles->pluck('name'), // kirim array nama role
+            'user'         => $user,
+            'roles'        => $user->roles->pluck('name'),
+            'runningEvent' => $runningEvent
         ]);
 
+    }
+
+    public function getRunningEvent(Request $request)
+    {
+        $runningEvent = ElectionEvent::where('is_running', 1)->first();
+
+        if (!$runningEvent) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada event yang sedang berlangsung',
+                'data'    => null
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'List Data Products',
+            'data'    => $runningEvent
+        ]);
     }
 
     /**

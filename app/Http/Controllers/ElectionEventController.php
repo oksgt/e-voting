@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EventsRequest;
 use App\Models\ElectionEvent;
+use App\Models\Position;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -34,6 +36,77 @@ class ElectionEventController extends Controller
                 'search' => $search,
             ],
             'csrfToken' => csrf_token(),
+        ]);
+    }
+
+    public function getRunningEvent(Request $request)
+    {
+        $runningEvent = ElectionEvent::where('is_running', 1)->first();
+
+        if (!$runningEvent) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada event yang sedang berlangsung',
+                'data'    => null
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'List Data Products',
+            'data'    => $runningEvent
+        ]);
+    }
+
+    public function getActivePosition(Request $request)
+    {
+        $position = Position::where('status', 1)
+        ->orderBy('number', 'asc')
+        ->get();
+
+        if (!$position) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data posisi',
+                'data'    => null
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'List Data Position',
+            'data'    => $position
+        ]);
+    }
+
+    public function getVoterList(Request $request){
+
+        $search = $request->input('search');
+
+        $voter = User::with('roles')
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'Voter');
+            })
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name', 'asc')
+            ->get();
+
+        if (!$voter) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada data',
+                'data'    => null
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'List Data Voter',
+            'data'    => $voter
         ]);
     }
 
