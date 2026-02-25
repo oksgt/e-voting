@@ -2,24 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ElectionEvent;
 use Illuminate\Http\Request;
 use App\Models\ElectionEventLog;
+use App\Models\Position;
 use Carbon\Carbon;
 
 class ElectionEventLogController extends Controller
 {
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'event_id'   => 'required|integer|exists:election_events,id',
-            'user_id'    => 'required|integer|exists:users,id',
-            'positions'  => 'required|array',
-            'positions.*.position_id' => 'required|integer|exists:positions,id',
-            'positions.*.voted_by'    => 'required|integer|exists:users,id',
-        ]);
+        try {
+            $validated = $request->validate([
+                'event_id'   => 'required|integer|exists:election_events,id',
+                'user_id'    => 'required|integer|exists:users,id',
+                'positions'  => 'required|array',
+                'positions.*.position_id' => 'required|integer|exists:positions,id',
+                'positions.*.voted_by'    => 'required|integer|exists:users,id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Override default 422 → kirim 200 dengan payload error
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors'  => $e->errors(),
+            ], 200);
+        }
 
+        // Step 1: cek status event & tanggal
+        $event = ElectionEvent::findOrFail($validated['event_id']);
+
+        if ($event->status !== 'running') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Event tidak sedang berjalan',
+            ], 200);
+        }
+
+        $now = Carbon::now();
+        if (!($now->between($event->started_at, $event->finished_at))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Event sudah berakhir atau belum dimulai',
+            ], 200);
+        }
+
+        // Step 2: cegah user update jika sudah submit semua posisi aktif
+        $submittedCount = ElectionEventLog::where('event_id', $validated['event_id'])
+            ->where('user_id', $validated['user_id'])
+            ->count();
+
+        $totalPositions = Position::where('status', 1)->count();
+
+        if ($submittedCount >= $totalPositions) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah mengisi semua posisi aktif, tidak bisa memilih lagi',
+            ], 200);
+        }
+
+        // Jika lolos validasi, simpan log
         $logs = [];
-
         foreach ($validated['positions'] as $pos) {
             $log = ElectionEventLog::updateOrCreate(
                 [
@@ -42,4 +85,45 @@ class ElectionEventLogController extends Controller
             'data'    => $logs,
         ]);
     }
+
+    public function checkParticipation(Request $request)
+    {
+        $validated = $request->validate([
+            'event_id' => 'required|integer|exists:election_events,id',
+            'user_id'  => 'required|integer|exists:users,id',
+        ]);
+
+        $event = ElectionEvent::findOrFail($validated['event_id']);
+        $now   = Carbon::now();
+
+        // Pastikan event masih aktif
+        // if ($event->status !== 'running' || !$now->between($event->started_at, $event->finished_at)) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Event tidak aktif',
+        //         'participated' => false,
+        //     ], 200);
+        // }
+
+        // Hitung posisi aktif
+        $totalPositions = Position::where('status', 1)->count();
+
+        // Hitung posisi yang sudah diisi user
+        $submittedCount = ElectionEventLog::where('event_id', $validated['event_id'])
+            ->where('user_id', $validated['user_id'])
+            ->count();
+
+        $participatedFully = $submittedCount >= $totalPositions;
+
+        return response()->json([
+            'success' => true,
+            'message' => $participatedFully
+                ? 'User sudah berpartisipasi penuh'
+                : 'User belum berpartisipasi penuh',
+            'participated' => $participatedFully,
+            'submittedCount' => $submittedCount,
+            'totalPositions' => $totalPositions,
+        ], 200);
+    }
+
 }

@@ -18,7 +18,7 @@ class DashboardController extends Controller
 
         // ambil role pertama dengan aman
         $user_role = $user->roles->pluck('name')->first();
-        $runningEvent = ElectionEvent::where('is_running', 1)->first();
+        $runningEvent = ElectionEvent::where('status', 'running')->first();
 
         $view = 'dashboard';
         if ($user_role === 'Voter') {

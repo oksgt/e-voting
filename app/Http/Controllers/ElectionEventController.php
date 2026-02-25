@@ -41,7 +41,7 @@ class ElectionEventController extends Controller
 
     public function getRunningEvent(Request $request)
     {
-        $runningEvent = ElectionEvent::where('is_running', 1)->first();
+        $runningEvent = ElectionEvent::where('status', 'running')->first();
 
         if (!$runningEvent) {
             return response()->json([
@@ -128,7 +128,7 @@ class ElectionEventController extends Controller
             'keyword'     => $request->keyword,
             'description' => $request->description,
             'started_at'  => $request->started_at,
-            'finished_at'  => $request->finished_at,
+            'finished_at' => $request->finished_at,
             'is_autorun'  => $request->boolean('is_autorun'),
             'status'      => 'scheduled',
             'is_running'  => 0, // default saat create
@@ -170,8 +170,8 @@ class ElectionEventController extends Controller
             'name'        => $request->name,
             'keyword'     => $request->keyword,
             'description' => $request->description,
-            'started_at'  => $request->start_date,
-            'finishe_at'  => $request->start_date,
+            'started_at'  => $request->started_at,
+            'finished_at' => $request->finished_at,
             'duration'    => $request->duration,
             'is_autorun'  => $request->boolean('is_autorun'),
             'status'      => $request->status,

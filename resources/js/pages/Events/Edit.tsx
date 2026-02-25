@@ -33,13 +33,12 @@ type EditEventProps = {
     name: string
     keyword: string | null
     description: string | null
-    start_date: string // biasanya format ISO datetime
+    started_at: string // biasanya format ISO datetime
+    finished_at: string // biasanya format ISO datetime
     duration: number   // integer (menit)
     is_autorun: boolean
     status: "pending" | "scheduled" | "running" | "finished" | "cancelled"
     is_running: boolean // tinyint(1) → boolean
-    started_at?: string | null
-    finished_at?: string | null
   }
 }
 
@@ -50,13 +49,21 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+// helper untuk format datetime ke input datetime-local
+function toDatetimeLocal(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  // ambil bagian YYYY-MM-DDTHH:MM
+  return date.toISOString().slice(0,16);
+}
 export default function Edit({ event }: EditEventProps) {
     console.log(event);
     const { data, setData, put, processing, errors, reset } = useForm({
         name: event.name || '',
         keyword: event.keyword || '',
         description: event.description || '',
-        start_date: event.start_date || '',
+        started_at: event.started_at || '',
+        finished_at: event.finished_at || '',
         duration: event.duration || '',
         is_autorun: event.is_autorun || false,
         status: event.status || 'pending',
@@ -72,6 +79,7 @@ export default function Edit({ event }: EditEventProps) {
             },
         })
     }
+
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -125,35 +133,21 @@ export default function Edit({ event }: EditEventProps) {
                                                 <Input
                                                     type="datetime-local"
                                                     id="input-start-date"
-                                                    value={data.start_date}
-                                                    onChange={(e) => setData('start_date', e.target.value)}
+                                                    value={toDatetimeLocal(data.started_at)}
+                                                    onChange={(e) => setData('started_at', e.target.value)}
                                                 />
-                                                {errors.start_date && <p className="text-red-500 text-sm">{errors.start_date}</p>}
+                                                {errors.started_at && <p className="text-red-500 text-sm">{errors.started_at}</p>}
                                             </Field>
 
-                                            {/* Duration */}
                                             <Field>
-                                                <FieldLabel htmlFor="input-duration">Duration (minutes)</FieldLabel>
+                                                <FieldLabel htmlFor="input-start-date">Finish Date</FieldLabel>
                                                 <Input
-                                                    type="number"
-                                                    id="input-duration"
-                                                    value={data.duration}
-                                                    onChange={(e) => setData('duration', e.target.value)}
+                                                    type="datetime-local"
+                                                    id="input-finish-date"
+                                                    value={toDatetimeLocal(data.finished_at)}
+                                                    onChange={(e) => setData('finished_at', e.target.value)}
                                                 />
-                                                {errors.duration && <p className="text-red-500 text-sm">{errors.duration}</p>}
-                                            </Field>
-
-                                            {/* Autorun Switch */}
-                                            <Field>
-                                                <FieldLabel htmlFor="autorun-switch">Autorun</FieldLabel>
-                                                <div className="flex items-center gap-2">
-                                                    <Switch
-                                                        id="autorun-switch"
-                                                        checked={data.is_autorun}
-                                                        onCheckedChange={(checked) => setData("is_autorun", checked)}
-                                                    />
-                                                    <span>{data.is_autorun ? "Enabled" : "Disabled"}</span>
-                                                </div>
+                                                {errors.finished_at && <p className="text-red-500 text-sm">{errors.finished_at}</p>}
                                             </Field>
 
                                             {/* Status Select */}

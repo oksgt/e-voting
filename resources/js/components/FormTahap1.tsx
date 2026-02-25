@@ -5,7 +5,7 @@ import {
     ItemMedia,
     ItemTitle,
 } from "@/components/ui/item";
-import { UserIcon } from "lucide-react";
+import { CheckCircle2, CheckCircle2Icon, UserIcon, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
@@ -30,6 +30,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { usePage } from "@inertiajs/react";
 import { SharedData } from "@/types";
 import { Button } from "./ui/button";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 export function FormTahap1({ event }: any) {
     const [positions, setPositions] = useState<any[]>([]);
@@ -42,17 +43,65 @@ export function FormTahap1({ event }: any) {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [errorOpen, setErrorOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [openAlertSubmit, setOpenAlertSubmit] = useState(false);
+    const [dialogContent, setDialogContent] = useState(null);
+    const [participation, setParticipation] = useState(null);
 
-    console.log('event', event.id);
-    console.log('auth', auth.user.id);
+    console.log('event', event);
 
     useEffect(() => {
-        axios.get("/api/election-events/job-positions").then((res) => {
-            if (res.data.success) {
-                setPositions(res.data.data);
+        const checkParticipation = async () => {
+            try {
+                const res = await axios.post("/api/election-events/check-participation", {
+                    event_id: event.id,
+                    user_id: auth.user.id,
+                });
+
+                if (res.data.success) {
+                    if (res.data.participated) {
+                        setDialogContent({
+                            type: "success",
+                            title: "Sudah Berpartisipasi",
+                            message: "Terima kasih atas partisapasi Anda dalam tahap ini",
+                        });
+                        setOpenAlertSubmit(true);
+                    } else {
+                        setOpenAlertSubmit(false);
+                        axios.get("/api/election-events/job-positions").then((res) => {
+                            if (res.data.success) {
+                                setPositions(res.data.data);
+                            }
+                        });
+                        // setDialogContent({
+                        //     type: "error",
+                        //     title: "Belum Lengkap",
+                        //     message: "Anda belum mengisi semua posisi.",
+                        // });
+                    }
+
+                    setParticipation(res.data.participated);
+                }
+            } catch (err) {
+                setDialogContent({
+                    type: "error",
+                    title: "Error",
+                    message: "Terjadi kesalahan saat memeriksa partisipasi: " + err,
+                });
+                setOpenAlertSubmit(true);
             }
-        });
-    }, []);
+        };
+
+        checkParticipation();
+    }, [event.id, auth.user.id]);
+
+
+    // useEffect(() => {
+    //     // axios.get("/api/election-events/job-positions").then((res) => {
+    //     //     if (res.data.success) {
+    //     //         setPositions(res.data.data);
+    //     //     }
+    //     // });
+    // }, []);
 
     const fetchVoters = (posId: number, search: string) => {
         if (search.length > 0) {
@@ -89,10 +138,19 @@ export function FormTahap1({ event }: any) {
 
         if (emptyPositions.length > 0) {
             setErrorMessage(
-                <span>
-                    Masih ada posisi yang belum diisi:{" "}
-                    <strong>{emptyPositions.map((p) => p.name).join(", ")}</strong>
-                </span>
+                <div className="space-y-2">
+                    <span className="text-neutral-700 dark:text-neutral-300 font-medium">
+                        Masih ada posisi yang belum diisi:
+                    </span>
+
+                    <ul className="list-disc list-inside text-neutral-700 dark:text-neutral-300 text-sm space-y-1">
+                        {emptyPositions.map((p) => (
+                            <li key={p.id} className="font-semibold">
+                                {p.name}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             );
             setErrorOpen(true);
             return;
@@ -101,16 +159,35 @@ export function FormTahap1({ event }: any) {
         try {
             const res = await axios.post("/api/election-event-logs", payload);
             if (res.data.success) {
-                console.log("Data berhasil dikirim:", res.data);
+                setDialogContent({
+                    type: "success",
+                    title: "Sukses",
+                    message: "Data berhasil dikirim.",
+                });
+                setOpenAlertSubmit(true);
+                setParticipation(true);
             } else {
-                console.error("Gagal kirim:", res.data);
+                setDialogContent({
+                    type: "error",
+                    title: "Gagal",
+                    message: res.data.message,
+                });
+                setOpenAlertSubmit(true);
+
             }
         } catch (err) {
             console.error("Error kirim payload:", err);
+            setDialogContent({
+                type: "error",
+                title: "Error",
+                message: "Terjadi kesalahan saat mengirim data. " + err,
+            });
+            setOpenAlertSubmit(true);
+
         }
     };
 
-    console.log("Payload ready to send:", payload);
+    // console.log("Payload ready to send:", payload);
 
     return (
         <>
@@ -164,10 +241,7 @@ export function FormTahap1({ event }: any) {
                                                     ...prev,
                                                     [pos.id]: voter,
                                                 }));
-                                                console.log(
-                                                    `Posisi ${pos.name} (${pos.id}) memilih voter:`,
-                                                    voter
-                                                );
+
                                             }
                                         }}
                                     >
@@ -217,40 +291,59 @@ export function FormTahap1({ event }: any) {
                         </Item>
                     ))
                 ) : (
-                    <Item variant="outline" size="sm">
-                        <ItemMedia variant="icon">
-                            <UserIcon />
-                        </ItemMedia>
-                        <ItemContent>
-                            <ItemTitle>Posisi belum tersedia</ItemTitle>
-                            <ItemDescription>Data tidak ditemukan</ItemDescription>
-                        </ItemContent>
-                    </Item>
+                    <>
+                        {participation ? (
+                            <Alert className="max-w-md border border-green-400 bg-green-50 text-green-700">
+                                <CheckCircle2Icon className="h-5 w-5 text-green-500" />
+                                <AlertTitle className="font-semibold">Terima kasih</AlertTitle>
+                                <AlertDescription>
+                                    Anda telah berpartisipasi dalam tahap ini
+                                </AlertDescription>
+                            </Alert>
+                        ) : (
+                            <>
+                                <Item variant="outline" size="sm">
+                                    <ItemMedia variant="icon">
+                                        <UserIcon className="h-5 w-5 text-neutral-500" />
+                                    </ItemMedia>
+                                    <ItemContent>
+                                        <ItemTitle className="font-medium">Posisi belum tersedia</ItemTitle>
+                                        <ItemDescription className="text-neutral-600">
+                                            Data tidak ditemukan
+                                        </ItemDescription>
+                                    </ItemContent>
+                                </Item>
+                            </>
+                        )}
+                    </>
                 )}
             </div>
 
             {/* Tombol submit dengan konfirmasi */}
-            <div className="mt-4 flex justify-center mb-4">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button size="lg">Kirim Pilihan</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Konfirmasi</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Apakah Anda yakin ingin mengirim pilihan ini?
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleSubmit}>
-                                OK
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-            </div>
+            { !participation ? (
+                <div className="mt-4 flex justify-center mb-4">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button size="lg">Kirim Pilihan</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Konfirmasi</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Apakah Anda yakin ingin mengirim pilihan ini?
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleSubmit}>
+                                    OK
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            ) : null}
+
 
 
             {/* AlertDialog shadcn */}
@@ -281,6 +374,42 @@ export function FormTahap1({ event }: any) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <AlertDialog open={openAlertSubmit} onOpenChange={setOpenAlertSubmit}>
+                <AlertDialogContent className="rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 w-full max-w-sm transition-transform duration-300 ease-out flex flex-col items-center text-center">
+
+                    {/* Header dengan ikon */}
+                    <AlertDialogHeader className="flex flex-col items-center space-y-3">
+                        {dialogContent?.type === "success" ? (
+                            <CheckCircle2 className="h-10 w-10 text-green-500" />
+                        ) : (
+                            <XCircle className="h-10 w-10 text-red-500" />
+                        )}
+                        <AlertDialogTitle className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-100">
+                            {dialogContent?.title}
+                        </AlertDialogTitle>
+                    </AlertDialogHeader>
+
+                    {/* Deskripsi */}
+                    <AlertDialogDescription className="text-neutral-600 dark:text-neutral-400 mt-4 text-base leading-relaxed">
+                        {dialogContent?.message}
+                    </AlertDialogDescription>
+
+                    {/* Tombol Aksi */}
+                    <div className="mt-6">
+                        <button
+                            onClick={() => setOpenAlertSubmit(false)}
+                            className={`px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition-colors ${dialogContent?.type === "success"
+                                ? "bg-green-500 text-white hover:bg-green-600"
+                                : "bg-red-500 text-white hover:bg-red-600"
+                                }`}
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                </AlertDialogContent>
+            </AlertDialog>
+
         </>
     );
 }

@@ -18,7 +18,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Dashboard({ user, roles, runningEvent }: any) {
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard Voter" />
@@ -27,11 +26,8 @@ export default function Dashboard({ user, roles, runningEvent }: any) {
                     <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                         <NavUser />
                     </div>
-                    <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <div className="relative overflow-hidden rounded-xl dark:border-sidebar-border">
                         <RunningElectionEvent />
-                    </div>
-                    <div className="relative  overflow-hidden ">
-                        <FormTahap1 event={runningEvent} />
                     </div>
                 </div>
             </div>

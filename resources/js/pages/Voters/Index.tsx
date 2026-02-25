@@ -139,34 +139,14 @@ export default function User({ users, authUserId, csrfToken }) {
                 accessorKey: "email",
             },
             {
-                header: "Roles",
-                cell: ({ row }) => {
-                    const roles = row.original.roles || [];
-                    const maxVisible = 5;
-                    const visibleRoles = roles.slice(0, maxVisible);
-                    const remainingCount = roles.length - maxVisible;
-
-                    return (
-                        <div className="flex flex-wrap gap-1">
-                            {roles.length > 0 ? (
-                                <>
-                                    {visibleRoles.map((perm: { id: number; name: string }) => (
-                                        <Badge key={perm.id} variant="secondary">
-                                            {perm.name}
-                                        </Badge>
-                                    ))}
-                                    {remainingCount > 0 && (
-                                        <Badge variant="outline" className="bg-gray-100 text-gray-600">
-                                            {remainingCount} more
-                                        </Badge>
-                                    )}
-                                </>
-                            ) : (
-                                <span className="text-gray-400 text-xs">No Roles</span>
-                            )}
-                        </div>
-                    );
-                },
+                header: "Status",
+                accessorKey: "approved_at",
+                cell: ({ getValue }) =>
+                    new Date(getValue()).toLocaleDateString("id-ID", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                    }),
             },
             {
                 header: "Created At",

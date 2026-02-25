@@ -14,3 +14,4 @@ Route::get('/election-events/job-positions', [ElectionEventController::class, 'g
 Route::get('/voters', [ElectionEventController::class, 'getVoterList']);
 
 Route::post('/election-event-logs', [ElectionEventLogController::class, 'store']);
+Route::post('/election-events/check-participation', [ElectionEventLogController::class, 'checkParticipation']);
