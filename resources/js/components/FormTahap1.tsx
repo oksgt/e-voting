@@ -192,7 +192,7 @@ export function FormTahap1({ event }: any) {
     return (
         <>
             <div className="flex w-full max-w-md flex-col gap-6">
-                {positions.length > 0 ? (
+                { !participation && positions.length > 0 ? (
                     positions.map((pos) => (
                         <Item
                             key={pos.id}

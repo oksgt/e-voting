@@ -223,52 +223,6 @@ export default function User({ events, authUserId, csrfToken }) {
                                 </TooltipProvider>
                             }
 
-
-                            {can("elections.delete") && (
-
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="outline" size="icon">
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Trash2Icon className="h-4 w-4 text-red-700" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Delete item</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </Button>
-                                    </AlertDialogTrigger>
-
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This will delete the event.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction
-                                                className="bg-red-700 text-amber-50 hover:bg-red-800 hover:text-white transition-colors duration-200"
-                                                onClick={() =>
-                                                    router.delete(route("events.destroy", user.id), {
-                                                        onSuccess: () => {
-                                                            toast.success("Position deleted successfully!", {
-                                                                style: { backgroundColor: "green", color: "white" },
-                                                            });
-                                                        },
-                                                    })
-                                                }
-                                            >
-                                                Yes, delete
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            )}
                         </ButtonGroup>
                     );
                 },
