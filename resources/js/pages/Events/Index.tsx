@@ -257,7 +257,7 @@ export default function User({ events, authUserId, csrfToken }) {
                         </div>
                         {can("elections.create") &&
                             <div className="flex gap-2">
-                                <Button variant="default" size="sm" asChild>
+                                {/* <Button variant="default" size="sm" asChild>
                                     <Link
                                         href={route("events.create")}
                                         className="flex items-center gap-2"
@@ -265,7 +265,7 @@ export default function User({ events, authUserId, csrfToken }) {
                                         <PlusCircle className="h-4 w-4" />
                                         <span>Add New events</span>
                                     </Link>
-                                </Button>
+                                </Button> */}
                             </div>
 
                         }
