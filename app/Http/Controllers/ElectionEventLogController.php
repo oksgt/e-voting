@@ -131,20 +131,35 @@ class ElectionEventLogController extends Controller
     {
         $data = DB::table('election_event_logs as e')
             ->selectRaw('
-            e.event_id,
-            COUNT(DISTINCT e.user_id) AS jumlah_user_ikut,
-            t.total_user,
-            ROUND(COUNT(DISTINCT e.user_id) / t.total_user * 100, 2) AS persentase
-        ')
+                e.event_id,
+                COUNT(DISTINCT e.user_id) AS jumlah_user_ikut,
+                t.total_user,
+                ROUND(COUNT(DISTINCT e.user_id) / t.total_user * 100, 2) AS persentase
+            ')
             ->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u WHERE u.id NOT IN (1)) t'))
             ->where('e.event_id', $eventId)
             ->groupBy('e.event_id', 't.total_user')
             ->get()
             ->map(function ($row) {
                 $row->persentase = (float) $row->persentase;
-                $row->sisa = 100 - $row->persentase; // tambahkan slice sisa
+                $row->sisa = 100 - $row->persentase;
                 return $row;
             });
+
+        // Jika tidak ada data di election_event_logs
+        if ($data->isEmpty()) {
+            $totalUser = DB::table('users')
+                ->whereNotIn('id', [1])
+                ->count();
+
+            $data = collect([ (object) [
+                'event_id' => $eventId,
+                'jumlah_user_ikut' => 0,
+                'total_user' => $totalUser,
+                'persentase' => 0.0,
+                'sisa' => 100.0,
+            ]]);
+        }
 
         return response()->json($data);
     }

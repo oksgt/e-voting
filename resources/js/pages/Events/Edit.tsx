@@ -107,7 +107,7 @@ export default function Edit({ event }: EditEventProps) {
                         <div className="w-full grid grid-cols-2 gap-6">
                             {/* Kolom kiri: Chart */}
                             <div className="flex w-full flex-col">
-                                <ChartPenjaringan />
+                                <ChartPenjaringan event_id={event.id}/>
                             </div>
 
                             {/* Kolom kanan: Top 2 penjaringan */}

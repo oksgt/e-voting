@@ -26,7 +26,7 @@ const chartConfig = {
     value: { label: "Persentase" },
 } satisfies ChartConfig
 
-export function ChartPenjaringan() {
+export function ChartPenjaringan({event_id}) {
     const [chartData, setChartData] = useState<any[]>([])
     const [lastUpdated, setLastUpdated] = useState<string>("")
     const [loading, setLoading] = useState(false)
@@ -40,7 +40,7 @@ export function ChartPenjaringan() {
 
 
     useEffect(() => {
-        fetch("/api/chart-penjaringan/3")
+        fetch("/api/chart-penjaringan/" + event_id)
             .then((res) => res.json())
             .then((data) => {
                 if (data.length > 0) {
