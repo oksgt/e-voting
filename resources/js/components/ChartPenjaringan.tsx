@@ -18,13 +18,7 @@ import {
 } from "@/components/ui/chart"
 import { Separator } from "radix-ui"
 import { SelectSeparator } from "@radix-ui/react-select"
-import {
-    Item,
-    ItemContent,
-    ItemDescription,
-    ItemMedia,
-    ItemTitle,
-} from "@/components/ui/item"
+
 
 export const description = "Pie chart penjaringan event 3"
 
@@ -35,6 +29,7 @@ const chartConfig = {
 export function ChartPenjaringan() {
     const [chartData, setChartData] = useState<any[]>([])
     const [lastUpdated, setLastUpdated] = useState<string>("")
+    const [loading, setLoading] = useState(false)
 
     const formatTimestamp = (date: Date) => {
         return new Intl.DateTimeFormat("id-ID", {
@@ -81,6 +76,7 @@ export function ChartPenjaringan() {
                 </div>
                 <button
                     onClick={() => {
+                        setLoading(true)
                         fetch("/api/chart-penjaringan/3")
                             .then((res) => res.json())
                             .then((data) => {
@@ -88,24 +84,27 @@ export function ChartPenjaringan() {
                                     const item = data[0]
                                     const mapped = [
                                         {
-                                            name: "Ikut",
+                                            name: Number(item.persentase),
                                             value: Number(item.persentase),
-                                            fill: "#3b82f6", // biru utama
+                                            fill: "#3b82f6", // Tailwind blue-500
                                         },
                                         {
-                                            name: "Belum Ikut",
+                                            name: Number(item.sisa),
                                             value: Number(item.sisa),
-                                            fill: "#DEEDFE", // biru muda
+                                            fill: "#DEEDFE", // Tailwind blue-300 (lebih muda)
                                         },
                                     ]
                                     setChartData(mapped)
                                 }
-                            })
+                            }).finally(() => setLoading(false))
                     }}
                     className="rounded-full p-2 hover:bg-gray-100 transition-colors"
                     aria-label="Reload chart"
                 >
-                    <RefreshCw className="h-5 w-5 text-blue-600" />
+                    <RefreshCw
+                        className={`h-5 w-5 text-blue-600 transition-transform ${loading ? "animate-spin" : ""
+                            }`}
+                    />
                 </button>
             </CardHeader>
 
@@ -145,44 +144,6 @@ export function ChartPenjaringan() {
                                         {chartData[1].value}%
                                     </span>
                                     <span className="text-sm text-gray-500">Belum memilih</span>
-                                </div>
-                            </div>
-                            <SelectSeparator />
-                            <div className="flex items-center justify-center mt-2 gap-4">
-                                <span className="text-lg font-semibold text-gray-900 ">
-                                    Top 2 penjaringan per posisi
-                                </span>
-                                <TrendingUp className="h-5 w-5 text-blue-600" />
-                                <div className="flex w-full max-w-md flex-col gap-6">
-                                    <Item variant="outline">
-                                        <ItemMedia variant="icon">
-                                            <u />
-                                        </ItemMedia>
-                                        <ItemContent>
-                                            <ItemTitle>Default Size</ItemTitle>
-                                            <ItemDescription>
-                                                The standard size for most use cases.
-                                            </ItemDescription>
-                                        </ItemContent>
-                                    </Item>
-                                    <Item variant="outline" size="sm">
-                                        <ItemMedia variant="icon">
-                                            <u />
-                                        </ItemMedia>
-                                        <ItemContent>
-                                            <ItemTitle>Small Size</ItemTitle>
-                                            <ItemDescription>A compact size for dense layouts.</ItemDescription>
-                                        </ItemContent>
-                                    </Item>
-                                    <Item variant="outline" size="xs">
-                                        <ItemMedia variant="icon">
-                                            <u />
-                                        </ItemMedia>
-                                        <ItemContent>
-                                            <ItemTitle>Extra Small Size</ItemTitle>
-                                            <ItemDescription>The most compact size available.</ItemDescription>
-                                        </ItemContent>
-                                    </Item>
                                 </div>
                             </div>
                         </>

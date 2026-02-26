@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, Users2Icon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from "@/components/ui/switch"
 import {
@@ -31,6 +31,14 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { ChartPenjaringan, Chartpenjaringan } from '@/components/ChartPenjaringan';
+import {
+    Item,
+    ItemContent,
+    ItemDescription,
+    ItemMedia,
+    ItemTitle,
+} from "@/components/ui/item"
+import { TopTwoPerPosition } from '@/components/TopTwoPerPositions';
 
 type EditEventProps = {
     event: {
@@ -89,135 +97,140 @@ export default function Edit({ event }: EditEventProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Election Event Edit" />
-            <div className="flex justify-center p-4">
-                <div className="grid grid-cols-2 gap-4 w-full">
-                    <div className="">
-                        <Card className="w-full">
-                            <CardHeader>
-                                <CardTitle>Summary Event</CardTitle>
-                                <CardDescription>Rekapitulasi data pemilihan tahap penjaringan bakal calon</CardDescription>
-                            </CardHeader>
-                            <CardContent>
+            <div className="flex flex-col justify-center p-4">
+                <Card className="w-full mb-4">
+                    <CardHeader>
+                        <CardTitle>Summary Event</CardTitle>
+                        <CardDescription>Rekapitulasi data pemilihan tahap penjaringan bakal calon</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="w-full grid grid-cols-2 gap-6">
+                            {/* Kolom kiri: Chart */}
+                            <div className="flex w-full flex-col">
                                 <ChartPenjaringan />
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div className="">
-                        <Card className="w-full">
-                            <CardContent>
-                                <form onSubmit={handleSubmit}>
-                                    <FieldGroup>
-                                        <FieldSet>
-                                            <FieldLegend>Edit Election Event</FieldLegend>
-                                            <div className="flex flex-col md:flex-row gap-6">
-                                                <div className="flex-1 space-y-4">
+                            </div>
 
-                                                    {/* Event Name */}
-                                                    <Field>
-                                                        <FieldLabel htmlFor="input-name">Event Name</FieldLabel>
-                                                        <Input
-                                                            id="input-name"
-                                                            value={data.name}
-                                                            onChange={(e) => setData('name', e.target.value)}
-                                                        />
-                                                        {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                                                    </Field>
+                            {/* Kolom kanan: Top 2 penjaringan */}
+                            <div className="flex w-full flex-col">
+                                <TopTwoPerPosition eventId={event.id} />
+                                {/* Tambahkan Item lain sesuai kebutuhan */}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                                                    {/* Keyword */}
-                                                    <Field>
-                                                        <FieldLabel htmlFor="input-keyword">Keyword</FieldLabel>
-                                                        <Input
-                                                            id="input-keyword"
-                                                            value={data.keyword}
-                                                            onChange={(e) => setData('keyword', e.target.value)}
-                                                        />
-                                                        {errors.keyword && <p className="text-red-500 text-sm">{errors.keyword}</p>}
-                                                    </Field>
+                <Card className="w-full">
+                    <CardContent>
+                        <form onSubmit={handleSubmit}>
+                            <FieldGroup>
+                                <FieldSet>
+                                    <FieldLegend>Edit Election Event</FieldLegend>
+                                    <div className="flex flex-col md:flex-row gap-6">
+                                        <div className="flex-1 space-y-4">
 
-                                                    {/* Description */}
-                                                    <Field>
-                                                        <FieldLabel htmlFor="input-description">Description</FieldLabel>
-                                                        <Textarea
-                                                            id="input-description"
-                                                            value={data.description}
-                                                            onChange={(e) => setData('description', e.target.value)}
-                                                        />
-                                                        {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-                                                    </Field>
+                                            {/* Event Name */}
+                                            <Field>
+                                                <FieldLabel htmlFor="input-name">Event Name</FieldLabel>
+                                                <Input
+                                                    id="input-name"
+                                                    value={data.name}
+                                                    onChange={(e) => setData('name', e.target.value)}
+                                                />
+                                                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                                            </Field>
 
-                                                    {/* Start Date */}
-                                                    <Field>
-                                                        <FieldLabel htmlFor="input-start-date">Start Date</FieldLabel>
-                                                        <Input
-                                                            type="datetime-local"
-                                                            id="input-start-date"
-                                                            value={toDatetimeLocal(data.started_at)}
-                                                            onChange={(e) => setData('started_at', e.target.value)}
-                                                        />
-                                                        {errors.started_at && <p className="text-red-500 text-sm">{errors.started_at}</p>}
-                                                    </Field>
+                                            {/* Keyword */}
+                                            <Field>
+                                                <FieldLabel htmlFor="input-keyword">Keyword</FieldLabel>
+                                                <Input
+                                                    id="input-keyword"
+                                                    value={data.keyword}
+                                                    onChange={(e) => setData('keyword', e.target.value)}
+                                                />
+                                                {errors.keyword && <p className="text-red-500 text-sm">{errors.keyword}</p>}
+                                            </Field>
 
-                                                    <Field>
-                                                        <FieldLabel htmlFor="input-start-date">Finish Date</FieldLabel>
-                                                        <Input
-                                                            type="datetime-local"
-                                                            id="input-finish-date"
-                                                            value={toDatetimeLocal(data.finished_at)}
-                                                            onChange={(e) => setData('finished_at', e.target.value)}
-                                                        />
-                                                        {errors.finished_at && <p className="text-red-500 text-sm">{errors.finished_at}</p>}
-                                                    </Field>
+                                            {/* Description */}
+                                            <Field>
+                                                <FieldLabel htmlFor="input-description">Description</FieldLabel>
+                                                <Textarea
+                                                    id="input-description"
+                                                    value={data.description}
+                                                    onChange={(e) => setData('description', e.target.value)}
+                                                />
+                                                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                                            </Field>
 
-                                                    {/* Status Select */}
-                                                    <Field>
-                                                        <FieldLabel htmlFor="status-select">Status</FieldLabel>
-                                                        <Select
-                                                            value={data.status}
-                                                            onValueChange={(value) => setData("status", value)}
-                                                        >
-                                                            <SelectTrigger id="status-select">
-                                                                <SelectValue placeholder="Select status" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="pending">Pending</SelectItem>
-                                                                <SelectItem value="scheduled">Scheduled</SelectItem>
-                                                                <SelectItem value="running">Running</SelectItem>
-                                                                <SelectItem value="finished">Finished</SelectItem>
-                                                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                        {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
-                                                    </Field>
-                                                </div>
-                                            </div>
-                                        </FieldSet>
+                                            {/* Start Date */}
+                                            <Field>
+                                                <FieldLabel htmlFor="input-start-date">Start Date</FieldLabel>
+                                                <Input
+                                                    type="datetime-local"
+                                                    id="input-start-date"
+                                                    value={toDatetimeLocal(data.started_at)}
+                                                    onChange={(e) => setData('started_at', e.target.value)}
+                                                />
+                                                {errors.started_at && <p className="text-red-500 text-sm">{errors.started_at}</p>}
+                                            </Field>
 
-                                        {/* Action Buttons */}
-                                        <Field orientation="horizontal" className="flex justify-between mt-6">
-                                            <Button variant="secondary" type="button" onClick={() => window.history.back()}>
-                                                Back
-                                            </Button>
+                                            <Field>
+                                                <FieldLabel htmlFor="input-start-date">Finish Date</FieldLabel>
+                                                <Input
+                                                    type="datetime-local"
+                                                    id="input-finish-date"
+                                                    value={toDatetimeLocal(data.finished_at)}
+                                                    onChange={(e) => setData('finished_at', e.target.value)}
+                                                />
+                                                {errors.finished_at && <p className="text-red-500 text-sm">{errors.finished_at}</p>}
+                                            </Field>
 
-                                            <div className="flex gap-2">
-                                                <Button type="submit" disabled={processing}>
-                                                    {processing ? (
-                                                        <span className="flex items-center gap-2">
-                                                            <LoaderCircle className="h-4 w-4 animate-spin" />
-                                                            Processing...
-                                                        </span>
-                                                    ) : (
-                                                        "Save Changes"
-                                                    )}
-                                                </Button>
-                                            </div>
-                                        </Field>
-                                    </FieldGroup>
-                                </form>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
+                                            {/* Status Select */}
+                                            <Field>
+                                                <FieldLabel htmlFor="status-select">Status</FieldLabel>
+                                                <Select
+                                                    value={data.status}
+                                                    onValueChange={(value) => setData("status", value)}
+                                                >
+                                                    <SelectTrigger id="status-select">
+                                                        <SelectValue placeholder="Select status" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="pending">Pending</SelectItem>
+                                                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                        <SelectItem value="running">Running</SelectItem>
+                                                        <SelectItem value="finished">Finished</SelectItem>
+                                                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
+                                            </Field>
+                                        </div>
+                                    </div>
+                                </FieldSet>
 
+                                {/* Action Buttons */}
+                                <Field orientation="horizontal" className="flex justify-between mt-6">
+                                    <Button variant="secondary" type="button" onClick={() => window.history.back()}>
+                                        Back
+                                    </Button>
+
+                                    <div className="flex gap-2">
+                                        <Button type="submit" disabled={processing}>
+                                            {processing ? (
+                                                <span className="flex items-center gap-2">
+                                                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                                                    Processing...
+                                                </span>
+                                            ) : (
+                                                "Save Changes"
+                                            )}
+                                        </Button>
+                                    </div>
+                                </Field>
+                            </FieldGroup>
+                        </form>
+                    </CardContent>
+                </Card>
 
             </div>
         </AppLayout>

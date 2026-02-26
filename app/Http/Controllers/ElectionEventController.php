@@ -79,6 +79,54 @@ class ElectionEventController extends Controller
         ]);
     }
 
+    public function topTwoPerPosition($eventId)
+    {
+        // Ambil semua posisi aktif
+        $positions = Position::where('status', 1)
+            ->orderBy('number', 'asc')
+            ->get();
+
+        $result = [];
+
+        foreach ($positions as $position) {
+            // Hitung total suara per kandidat di posisi ini
+            $candidates = DB::table('election_event_logs as e')
+                ->join('users as u', 'u.id', '=', 'e.voted_by')
+                ->select(
+                    'u.id',
+                    'u.name',
+                    DB::raw('COUNT(e.id) as total_votes')
+                )
+                ->where('e.event_id', $eventId)
+                ->where('e.position_id', $position->id)
+                ->groupBy('u.id', 'u.name')
+                ->orderByDesc('total_votes')
+                ->limit(2) // ambil top 2
+                ->get();
+
+            // Hitung total semua suara di posisi ini
+            $totalVotes = DB::table('election_event_logs')
+                ->where('event_id', $eventId)
+                ->where('position_id', $position->id)
+                ->count();
+
+            // Tambahkan persentase
+            $candidates = $candidates->map(function ($c) use ($totalVotes) {
+                $c->persentase = $totalVotes > 0
+                    ? round(($c->total_votes / $totalVotes) * 100, 2)
+                    : 0;
+                return $c;
+            });
+
+            $result[] = [
+                'position' => $position->name,
+                'candidates' => $candidates,
+            ];
+        }
+
+        return response()->json($result);
+    }
+
     public function getVoterList(Request $request){
 
         $search = $request->input('search');
