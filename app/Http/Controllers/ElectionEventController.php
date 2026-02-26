@@ -119,6 +119,7 @@ class ElectionEventController extends Controller
             });
 
             $result[] = [
+                'id' => $position->id,
                 'position' => $position->name,
                 'candidates' => $candidates,
             ];
