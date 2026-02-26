@@ -34,7 +34,7 @@ export default function RunningElectionEvent() {
         <>
             <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
                 {events.length === 0 ? (
-                    <div className="flex flex-col items-center text-center space-y-3">
+                    <div className="flex flex-col items-center text-center space-y-3 mt-10 mb-10">
                         {/* Ikon berwarna dengan gaya Apple */}
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -52,7 +52,7 @@ export default function RunningElectionEvent() {
                         </svg>
 
                         <p className="text-neutral-700 dark:text-neutral-300 font-medium text-sm">
-                            Tidak ada event yang sedang berlangsung
+                            Tidak ada pemilihan yang sedang berlangsung
                         </p>
 
                         {/* Link Refresh dengan Lucide Icon */}

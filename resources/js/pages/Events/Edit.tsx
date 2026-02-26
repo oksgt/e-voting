@@ -39,6 +39,7 @@ import {
     ItemTitle,
 } from "@/components/ui/item"
 import { TopTwoPerPosition } from '@/components/TopTwoPerPositions';
+import { DateTimePicker } from '@/components/DateTimePicker';
 
 type EditEventProps = {
     event: {
@@ -107,7 +108,7 @@ export default function Edit({ event }: EditEventProps) {
                         <div className="w-full grid grid-cols-2 gap-6">
                             {/* Kolom kiri: Chart */}
                             <div className="flex w-full flex-col">
-                                <ChartPenjaringan event_id={event.id}/>
+                                <ChartPenjaringan event_id={event.id} />
                             </div>
 
                             {/* Kolom kanan: Top 2 penjaringan */}
@@ -162,27 +163,21 @@ export default function Edit({ event }: EditEventProps) {
                                             </Field>
 
                                             {/* Start Date */}
-                                            <Field>
-                                                <FieldLabel htmlFor="input-start-date">Start Date</FieldLabel>
-                                                <Input
-                                                    type="datetime-local"
-                                                    id="input-start-date"
-                                                    value={toDatetimeLocal(data.started_at)}
-                                                    onChange={(e) => setData('started_at', e.target.value)}
-                                                />
-                                                {errors.started_at && <p className="text-red-500 text-sm">{errors.started_at}</p>}
-                                            </Field>
+                                            <DateTimePicker
+                                                id="input-start-date"
+                                                label="Start Date"
+                                                value={toDatetimeLocal(data.started_at)}
+                                                onChange={(val) => setData("started_at", val)}
+                                                error={errors.started_at}
+                                            />
 
-                                            <Field>
-                                                <FieldLabel htmlFor="input-start-date">Finish Date</FieldLabel>
-                                                <Input
-                                                    type="datetime-local"
-                                                    id="input-finish-date"
-                                                    value={toDatetimeLocal(data.finished_at)}
-                                                    onChange={(e) => setData('finished_at', e.target.value)}
-                                                />
-                                                {errors.finished_at && <p className="text-red-500 text-sm">{errors.finished_at}</p>}
-                                            </Field>
+                                            <DateTimePicker
+                                                id="input-finish-date"
+                                                label="Finish Date"
+                                                value={toDatetimeLocal(data.finished_at)}
+                                                onChange={(val) => setData("finished_at", val)}
+                                                error={errors.finished_at}
+                                            />
 
                                             {/* Status Select */}
                                             <Field>

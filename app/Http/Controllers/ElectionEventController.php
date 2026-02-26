@@ -26,7 +26,7 @@ class ElectionEventController extends Controller
                         ->orWhere('keyword', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'asc')
             ->get();
 
         return Inertia::render('Events/Index', [

@@ -101,43 +101,31 @@ export default function User({ events, authUserId, csrfToken }) {
                 cell: ({ row }) => row.index + 1 + pagination.pageIndex * pagination.pageSize,
             },
             {
-                header: "Event Name",
-                accessorKey: "name",
-            },
-            {
-                header: "Keyword",
-                accessorKey: "keyword",
-            },
-            {
-                header: "Start at",
-                accessorKey: "started_at",
-                cell: ({ getValue }) => {
-                    const value = getValue()
-                    if (!value) return "-"
+                header: "Actions",
+                cell: ({ row }) => {
+                    const user = row.original;
+                    return (
+                        <ButtonGroup>
 
-                    return new Date(value).toLocaleString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })
-                },
-            },
-            {
-                header: "Finished at",
-                accessorKey: "finished_at",
-                cell: ({ getValue }) => {
-                    const value = getValue()
-                    if (!value) return "-"
+                            {can("elections.update") &&
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="outline" size="icon">
+                                                <Link href={route("events.edit", user.id)}>
+                                                    <Edit3 className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Edit item</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            }
 
-                    return new Date(value).toLocaleString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })
+                        </ButtonGroup>
+                    );
                 },
             },
             {
@@ -200,31 +188,43 @@ export default function User({ events, authUserId, csrfToken }) {
                 },
             },
             {
-                header: "Actions",
-                cell: ({ row }) => {
-                    const user = row.original;
-                    return (
-                        <ButtonGroup>
+                header: "Event Name",
+                accessorKey: "name",
+            },
+            {
+                header: "Keyword",
+                accessorKey: "keyword",
+            },
+            {
+                header: "Start at",
+                accessorKey: "started_at",
+                cell: ({ getValue }) => {
+                    const value = getValue()
+                    if (!value) return "-"
 
-                            {can("elections.update") &&
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="outline" size="icon">
-                                                <Link href={route("events.edit", user.id)}>
-                                                    <Edit3 className="h-4 w-4" />
-                                                </Link>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>Edit item</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            }
+                    return new Date(value).toLocaleString("id-ID", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })
+                },
+            },
+            {
+                header: "Finished at",
+                accessorKey: "finished_at",
+                cell: ({ getValue }) => {
+                    const value = getValue()
+                    if (!value) return "-"
 
-                        </ButtonGroup>
-                    );
+                    return new Date(value).toLocaleString("id-ID", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })
                 },
             }
         ],
