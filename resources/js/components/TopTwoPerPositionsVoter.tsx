@@ -155,6 +155,12 @@ export function TopTwoPerPositionVoter({ eventId }: { eventId: number }) {
         }
     }
 
+    const ucwords = (str: string) => {
+        return str
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase())
+    }
+
 
     return (
         <>
@@ -202,7 +208,7 @@ export function TopTwoPerPositionVoter({ eventId }: { eventId: number }) {
                                                         </div>
                                                     )}
                                                     <UserCircle className="h-10 w-10 text-gray-600" />
-                                                    <span className="text-lg font-semibold text-gray-900">{c.name}</span>
+                                                    <span className="text-lg font-semibold text-gray-900">{ucwords(c.name)}</span>
                                                 </div>
                                             )
                                         })}

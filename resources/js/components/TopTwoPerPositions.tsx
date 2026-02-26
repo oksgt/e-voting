@@ -51,6 +51,12 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
         return () => clearInterval(interval)
     }, [eventId])
 
+    const ucwords = (str: string) => {
+        return str
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase())
+    }
+
     return (
         <Card className="w-full flex flex-col">
             <CardHeader className="flex items-center justify-between pb-0">
@@ -91,7 +97,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                                 <ol className="list-decimal list-inside space-y-2 text-gray-700 font-medium">
                                     {pos.candidates.map((c: any) => (
                                         <li key={c.id}>
-                                            {c.name} ({c.persentase}%)
+                                            {ucwords(c.name)} ({c.persentase}%)
                                         </li>
                                     ))}
                                 </ol>
