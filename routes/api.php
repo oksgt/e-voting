@@ -15,3 +15,6 @@ Route::get('/voters', [ElectionEventController::class, 'getVoterList']);
 
 Route::post('/election-event-logs', [ElectionEventLogController::class, 'store']);
 Route::post('/election-events/check-participation', [ElectionEventLogController::class, 'checkParticipation']);
+Route::get('/chart-penjaringan/{eventId}', [ElectionEventLogController::class, 'penjaringan']);
+
+

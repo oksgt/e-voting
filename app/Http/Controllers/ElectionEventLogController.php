@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ElectionEventLog;
 use App\Models\Position;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ElectionEventLogController extends Controller
 {
@@ -126,4 +127,25 @@ class ElectionEventLogController extends Controller
         ], 200);
     }
 
+    public function penjaringan($eventId)
+    {
+        $data = DB::table('election_event_logs as e')
+            ->selectRaw('
+            e.event_id,
+            COUNT(DISTINCT e.user_id) AS jumlah_user_ikut,
+            t.total_user,
+            ROUND(COUNT(DISTINCT e.user_id) / t.total_user * 100, 2) AS persentase
+        ')
+            ->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u WHERE u.id NOT IN (1)) t'))
+            ->where('e.event_id', $eventId)
+            ->groupBy('e.event_id', 't.total_user')
+            ->get()
+            ->map(function ($row) {
+                $row->persentase = (float) $row->persentase;
+                $row->sisa = 100 - $row->persentase; // tambahkan slice sisa
+                return $row;
+            });
+
+        return response()->json($data);
+    }
 }

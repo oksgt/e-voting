@@ -96,7 +96,6 @@ export default function Edit({ event }: EditEventProps) {
                             <CardHeader>
                                 <CardTitle>Summary Event</CardTitle>
                                 <CardDescription>Rekapitulasi data pemilihan tahap penjaringan bakal calon</CardDescription>
-                                <CardAction>Card Action</CardAction>
                             </CardHeader>
                             <CardContent>
                                 <ChartPenjaringan />
