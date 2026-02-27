@@ -24,17 +24,18 @@ class UserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
-                'required',
+                'nullable',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($userId),
+                Rule::unique('users', 'email')->ignore($userId)->whereNull('deleted_at'),
             ],
 
             'nik' => [
-                'nullable', // allow empty if not mandatory
+                'required',
                 'string',
                 'size:16', // exactly 16 characters
-                Rule::unique('users', 'nik')->ignore($userId),
+                'regex:/^\d{16}$/',
+                Rule::unique('users', 'nik')->ignore($userId)->whereNull('deleted_at'),
             ],
 
             'phone_number' => [
@@ -71,7 +72,6 @@ class UserRequest extends FormRequest
             'name.string'   => 'Name must be a valid string.',
             'name.max'      => 'Name may not be greater than 255 characters.',
 
-            'email.required' => 'Email is required.',
             'email.email'    => 'Please enter a valid email address.',
             'email.unique'   => 'This email is already taken. Please use another one.',
 
@@ -91,6 +91,8 @@ class UserRequest extends FormRequest
 
             'nik.string' => 'NIK must be a valid string.',
             'nik.size'   => 'NIK must be exactly 16 digits.',
+            'nik.required' => 'NIK is required.',
+            'nik.regex' => 'NIK must contain only digits.',
             'nik.unique' => 'This NIK is already registered.',
 
             'phone_number.string' => 'Phone number must be a valid string.',

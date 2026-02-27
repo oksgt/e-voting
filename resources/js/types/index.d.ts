@@ -1,5 +1,7 @@
 import type { InertiaLinkProps } from "@inertiajs/react";
 import type { LucideIcon } from "lucide-react";
+import type { Permission } from "./permission";
+import type { Role } from "./role";
 
 export interface Auth {
 	user: User;
@@ -46,8 +48,8 @@ export interface User {
 	phone_number: string | null;
 	login_method: "password" | "magic_link" | "both";
 	whatsapp_active: boolean;
-	permissions: string[];
-	roles: string[];
+	permissions: Permission[];
+	roles: Role[];
 	[key: string]: unknown; // This allows for additional properties...
 }
 

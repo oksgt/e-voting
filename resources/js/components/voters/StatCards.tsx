@@ -1,4 +1,4 @@
-import { STAT_CARD_CONFIGS } from "@/components/voters/constants";
+import { STAT_CARD_CONFIGS } from "@/lib/constants";
 import type { VoterStatusCounts } from "@/types/voter";
 
 interface StatCardsProps {

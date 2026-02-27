@@ -1,9 +1,9 @@
 import { Head } from "@inertiajs/react";
-import { breadcrumbs } from "@/components/voters/constants";
 import StatCards from "@/components/voters/StatCards";
 import VoterTable from "@/components/voters/VoterTable";
 import { useVoterPage } from "@/hooks/use-voter-page";
 import AppLayout from "@/layouts/app-layout";
+import { breadcrumbs } from "@/lib/constants";
 import type { VoterComponentProps } from "@/types/voter";
 
 const VoterComponent = ({ users, authUserId, filters, csrfToken, statusCounts }: VoterComponentProps) => {
