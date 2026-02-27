@@ -67,9 +67,17 @@ const breadcrumbs: BreadcrumbItem[] = [
 function toDatetimeLocal(value: string) {
     if (!value) return "";
     const date = new Date(value);
-    // ambil bagian YYYY-MM-DDTHH:MM
-    return date.toISOString().slice(0, 16);
+    // ambil bagian YYYY-MM-DDTHH:MM sesuai lokal
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return (
+        date.getFullYear() +
+        "-" + pad(date.getMonth() + 1) +
+        "-" + pad(date.getDate()) +
+        "T" + pad(date.getHours()) +
+        ":" + pad(date.getMinutes())
+    );
 }
+
 export default function Edit({ event }: EditEventProps) {
     console.log(event);
     const { data, setData, put, processing, errors, reset } = useForm({

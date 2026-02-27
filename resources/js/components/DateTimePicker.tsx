@@ -27,15 +27,28 @@ export function DateTimePicker({ id, label, value, onChange, error }: DateTimePi
         initialDate ? initialDate.toTimeString().slice(0, 8) : "10:30:00"
     )
 
+    console.log('label', label);
+    console.log('value', value);
+
     React.useEffect(() => {
         if (date && time) {
-            const [hours, minutes, seconds] = time.split(":")
-            const newDate = new Date(date)
-            newDate.setHours(Number(hours), Number(minutes), Number(seconds))
-            const isoString = newDate.toISOString().slice(0, 19)
-            onChange(isoString)
+            const [hours, minutes, seconds] = time.split(":");
+            const newDate = new Date(date);
+            newDate.setHours(Number(hours), Number(minutes), Number(seconds));
+
+            // Format ke "YYYY-MM-DD HH:MM:SS"
+            const pad = (n: number) => n.toString().padStart(2, "0");
+            const formatted =
+                newDate.getFullYear() + "-" +
+                pad(newDate.getMonth() + 1) + "-" +
+                pad(newDate.getDate()) + " " +
+                pad(newDate.getHours()) + ":" +
+                pad(newDate.getMinutes()) + ":" +
+                pad(newDate.getSeconds());
+
+            onChange(formatted);
         }
-    }, [date, time])
+    }, [date, time]);
 
     return (
         <Field>

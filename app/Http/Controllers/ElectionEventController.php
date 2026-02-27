@@ -6,6 +6,7 @@ use App\Http\Requests\EventsRequest;
 use App\Models\ElectionEvent;
 use App\Models\Position;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -51,12 +52,24 @@ class ElectionEventController extends Controller
             ], 404);
         }
 
+        $now = Carbon::now();
+
+        // Jika waktu sekarang di luar rentang started_at dan finished_at
+        if ($now->lt(Carbon::parse($runningEvent->started_at)) || $now->gt(Carbon::parse($runningEvent->finished_at))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Event sudah berakhir atau belum dimulai',
+                'data'    => null
+            ], 400);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'List Data Products',
             'data'    => $runningEvent
         ]);
     }
+
 
     public function getActivePosition(Request $request)
     {

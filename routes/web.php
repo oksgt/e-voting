@@ -20,6 +20,8 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::get('/testing-broadcast', [UserController::class, 'testingBroadcast'])->name('testing.broadcast');
+
 Route::get('/check-phone/{phone}', [UserController::class, 'checkPhoneNumber']);
 
 Route::get('/download/user-template', function () {
