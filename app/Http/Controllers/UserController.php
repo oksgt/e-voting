@@ -17,6 +17,8 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
+use function Pest\Laravel\json;
+
 class UserController extends Controller
 {
     /**
@@ -350,4 +352,96 @@ class UserController extends Controller
         return sprintf('%s@example.com', $nik);
     }
 
+    public function testingBroadcast(Request $request, $id)
+    {
+        (!$id) ? abort(404) : null;
+        // Fetch token dari settings
+        $token = DB::table('settings')
+            ->where('key', 'fonnte_token')
+            ->value('value');
+
+        if (!$token) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Fonnte token not found'
+            ], 404);
+        }
+
+        $userWhatsapp = User::where('whatsapp_active', '1')
+            ->select('name', 'phone_number')
+            ->where('id', $id)
+            ->first();
+        // ->get();
+
+        (!$userWhatsapp) ? abort(404) : null;
+
+        $message = "Hai, {name}. Terima kasih sudah registrasi.\n\n" .
+            "Silahkan gunakan link berikut untuk login:\n\n" .
+            "{var1}" . "\n\n" .
+            "Terima kasih sudah bergabung!";
+
+        // $result = $userWhatsapp->map(function ($user) {
+        //     return $user->phone_number . "|" . $user->name . "|" . $this->generateMagicLink($user->phone_number);
+        // });
+
+        // Gabungkan semua target jadi satu string
+        // $target = $result->implode(',');
+
+        $target = $userWhatsapp->phone_number . "|" . $userWhatsapp->name . "|" . $this->generateMagicLink($userWhatsapp->phone_number);
+
+        $response = Http::withHeaders([
+            'Authorization' => $token,
+        ])->post('https://api.fonnte.com/send', [
+            'target'    => $target,
+            'message'   => $message,
+            'delay'     => '2',
+        ]);
+
+        return response()->json([
+            'status_code' => $response->status(),
+            'success'     => $response->successful(),
+            'data'        => $response->json(), // isi JSON dari Fonnte
+            'raw'         => $response->body(), // isi mentah
+        ]);
+    }
+
+    private function generateMagicLink($phone_number)
+    {
+        if (empty($phone_number)) {
+            return null; // atau bisa lempar exception
+        }
+
+        // Cari user berdasarkan nomor telepon
+        $user = User::where('phone_number', $phone_number)->first();
+
+        if (!$user) {
+            return null;
+        }
+
+        // Cek apakah sudah ada magic link aktif
+        $existingLink = MagicLinks::where('user_id', $user->id)
+            ->where('expired_at', '>', now())
+            ->first();
+
+        if ($existingLink) {
+            return url("/magic-login/{$existingLink->token}");
+        }
+
+        // Generate token baru
+        $token = Str::random(40);
+
+        $expiration = (int) DB::table('settings')
+            ->where('key', 'magic_link_expiration')
+            ->value('value');
+
+        // Simpan magic link baru
+        MagicLinks::create([
+            'user_id'    => $user->id,
+            'token'      => hash('sha256', $token),
+            'expired_at' => now()->addMinutes($expiration)
+        ]);
+
+        // Return URL magic link
+        return url("/magic-login/{$token}");
+    }
 }

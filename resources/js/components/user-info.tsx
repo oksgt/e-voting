@@ -8,6 +8,12 @@ export function UserInfo({ user, showEmail = false }: { user: User; showEmail?: 
     const roles = user?.roles || [];
     const roleName: string | undefined = roles.map((r: { name: string }) => r.name).at(0);
 
+    const ucwords = (str: string) => {
+        return str
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase())
+    }
+
     return (
         <>
             <Avatar className="h-8 w-8 overflow-hidden rounded-full">
@@ -17,7 +23,7 @@ export function UserInfo({ user, showEmail = false }: { user: User; showEmail?: 
                 </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{ucwords(user.name)}</span>
                 {showEmail && roleName === "Admin" ? (
                     <span className="truncate text-xs text-muted-foreground">{user.email}</span>
                 ) : (

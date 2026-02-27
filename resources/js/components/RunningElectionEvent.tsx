@@ -2,6 +2,8 @@ import axios from "axios";
 import { ListChecks, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FormTahap1 } from "./FormTahap1";
+import { TopTwoPerPosition } from "./TopTwoPerPositions";
+import { TopTwoPerPositionVoter } from "./TopTwoPerPositionsVoter";
 
 export default function RunningElectionEvent() {
     const [events, setEvents] = useState([]);
@@ -28,9 +30,9 @@ export default function RunningElectionEvent() {
 
     return (
         <>
-            <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+            <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
                 {events.length === 0 ? (
-                    <div className="flex flex-col items-center text-center space-y-3">
+                    <div className="flex flex-col items-center text-center space-y-3 mt-10 mb-10">
                         {/* Ikon berwarna dengan gaya Apple */}
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -48,7 +50,7 @@ export default function RunningElectionEvent() {
                         </svg>
 
                         <p className="text-neutral-700 dark:text-neutral-300 font-medium text-sm">
-                            Tidak ada event yang sedang berlangsung
+                            Tidak ada pemilihan yang sedang berlangsung
                         </p>
 
                         {/* Link Refresh dengan Lucide Icon */}
@@ -90,12 +92,16 @@ export default function RunningElectionEvent() {
                 )}
             </div>
 
-            {events?.data ? (
-                <div className=" overflow-hidden mt-4">
+            {events?.data?.id === 3 && (
+                <div className="overflow-hidden mt-4">
                     <FormTahap1 event={events.data} />
                 </div>
-            ) : (
-                <p className="text-neutral-500 text-sm">Tidak ada event tersedia</p>
+            )}
+
+            {events?.data?.id === 4 && (
+                <div className="overflow-hidden mt-4">
+                    <TopTwoPerPositionVoter eventId={3} />
+                </div>
             )}
 
         </>

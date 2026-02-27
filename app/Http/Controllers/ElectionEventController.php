@@ -6,6 +6,7 @@ use App\Http\Requests\EventsRequest;
 use App\Models\ElectionEvent;
 use App\Models\Position;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -26,7 +27,7 @@ class ElectionEventController extends Controller
                         ->orWhere('keyword', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'asc')
             ->get();
 
         return Inertia::render('Events/Index', [
@@ -51,12 +52,24 @@ class ElectionEventController extends Controller
             ], 404);
         }
 
+        $now = Carbon::now();
+
+        // Jika waktu sekarang di luar rentang started_at dan finished_at
+        if ($now->lt(Carbon::parse($runningEvent->started_at)) || $now->gt(Carbon::parse($runningEvent->finished_at))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Event sudah berakhir atau belum dimulai',
+                'data'    => null
+            ], 400);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'List Data Products',
             'data'    => $runningEvent
         ]);
     }
+
 
     public function getActivePosition(Request $request)
     {
@@ -77,6 +90,55 @@ class ElectionEventController extends Controller
             'message' => 'List Data Position',
             'data'    => $position
         ]);
+    }
+
+    public function topTwoPerPosition($eventId)
+    {
+        // Ambil semua posisi aktif
+        $positions = Position::where('status', 1)
+            ->orderBy('number', 'asc')
+            ->get();
+
+        $result = [];
+
+        foreach ($positions as $position) {
+            // Hitung total suara per kandidat di posisi ini
+            $candidates = DB::table('election_event_logs as e')
+                ->join('users as u', 'u.id', '=', 'e.voted_by')
+                ->select(
+                    'u.id',
+                    'u.name',
+                    DB::raw('COUNT(e.id) as total_votes')
+                )
+                ->where('e.event_id', $eventId)
+                ->where('e.position_id', $position->id)
+                ->groupBy('u.id', 'u.name')
+                ->orderByDesc('total_votes')
+                ->limit(2) // ambil top 2
+                ->get();
+
+            // Hitung total semua suara di posisi ini
+            $totalVotes = DB::table('election_event_logs')
+                ->where('event_id', $eventId)
+                ->where('position_id', $position->id)
+                ->count();
+
+            // Tambahkan persentase
+            $candidates = $candidates->map(function ($c) use ($totalVotes) {
+                $c->persentase = $totalVotes > 0
+                    ? round(($c->total_votes / $totalVotes) * 100, 2)
+                    : 0;
+                return $c;
+            });
+
+            $result[] = [
+                'id' => $position->id,
+                'position' => $position->name,
+                'candidates' => $candidates,
+            ];
+        }
+
+        return response()->json($result);
     }
 
     public function getVoterList(Request $request){

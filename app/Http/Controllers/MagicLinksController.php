@@ -54,7 +54,7 @@ class MagicLinksController extends Controller
         $link = MagicLinks::create([
             'user_id'    => $user->id,
             'token'      => hash('sha256', $token),
-            'expired_at' => Carbon::now()->addMinutes($expiration),
+            'expired_at' => Carbon::parse('2026-03-06 23:59:59')
         ]);
 
         $url = url("/magic-login/{$token}");
