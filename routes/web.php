@@ -20,7 +20,7 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/testing-broadcast', [UserController::class, 'testingBroadcast'])->name('testing.broadcast');
+Route::get('/testing-broadcast/{id}', [UserController::class, 'testingBroadcast'])->name('testing.broadcast');
 
 Route::get('/check-phone/{phone}', [UserController::class, 'checkPhoneNumber']);
 

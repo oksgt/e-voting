@@ -332,8 +332,9 @@ class UserController extends Controller
         ], 422);
     }
 
-    public function testingBroadcast(Request $request)
+    public function testingBroadcast(Request $request, $id)
     {
+        (!$id) ? abort(404) : null;
         // Fetch token dari settings
         $token = DB::table('settings')
             ->where('key', 'fonnte_token')
@@ -348,19 +349,25 @@ class UserController extends Controller
 
         $userWhatsapp = User::where('whatsapp_active', '1')
             ->select('name', 'phone_number')
-            ->get();
+            ->where('id', $id)
+            ->first();
+        // ->get();
 
-            $message = "Hai, {name}. Terima kasih sudah registrasi.\n\n" .
-                "Silahkan gunakan link berikut untuk login:\n\n" .
-                "{var1}" . "\n\n" .
-                "Terima kasih sudah bergabung!";
+        (!$userWhatsapp) ? abort(404) : null;
 
-        $result = $userWhatsapp->map(function ($user) {
-            return $user->phone_number . "|" . $user->name . "|" . $this->generateMagicLink($user->phone_number);
-        });
+        $message = "Hai, {name}. Terima kasih sudah registrasi.\n\n" .
+            "Silahkan gunakan link berikut untuk login:\n\n" .
+            "{var1}" . "\n\n" .
+            "Terima kasih sudah bergabung!";
+
+        // $result = $userWhatsapp->map(function ($user) {
+        //     return $user->phone_number . "|" . $user->name . "|" . $this->generateMagicLink($user->phone_number);
+        // });
 
         // Gabungkan semua target jadi satu string
-        $target = $result->implode(',');
+        // $target = $result->implode(',');
+
+        $target = $userWhatsapp->phone_number . "|" . $userWhatsapp->name . "|" . $this->generateMagicLink($userWhatsapp->phone_number);
 
         $response = Http::withHeaders([
             'Authorization' => $token,

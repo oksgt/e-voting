@@ -164,6 +164,21 @@ export default function User({ users, authUserId, csrfToken }) {
                     const user = row.original;
                     return (
                         <ButtonGroup>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" >
+                                            <Link href={route("testing.broadcast", user.id)}>
+                                                Kirim Magic Link
+                                            </Link>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Kirim Magic Link</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
                             {can("voters.update") &&
                                 <TooltipProvider>
                                     <Tooltip>
