@@ -20,10 +20,17 @@ class DashboardController extends Controller
         // ambil role pertama dengan aman
         $user_role = $user->roles->pluck('name')->first();
         $runningEvent = ElectionEvent::where('status', 'running')->first();
-        $voters = User::with('roles')
-            ->whereHas('roles', function ($q) {
-                $q->where('name', 'Voter');
-            })->get();
+        // Status counts (always across all voters, unaffected by search/status filter)
+        $rawCounts     = User::query()
+        ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+        $statusCounts  = [
+            'total'    => $rawCounts->sum(),
+            'pending'  => $rawCounts->get('pending', 0),
+            'approved' => $rawCounts->get('approved', 0),
+            'rejected' => $rawCounts->get('rejected', 0),
+        ];
 
         $view = 'dashboard';
         if ($user_role === 'Voter') {
@@ -34,20 +41,7 @@ class DashboardController extends Controller
             'user' => $user,
             'roles' => $user->roles->pluck('name'),
             'runningEvent' => $runningEvent,
-            'voters' => [
-                'approved' => $voters
-                    ->where('whatsapp_active', 1)
-                    ->where('status', 'approved')
-                    ->count(),
-                'pending'=> $voters
-                    ->where('whatsapp_active', 0)
-                    ->where('status', 'pending')
-                    ->count(),
-                'rejected'=> $voters
-                    ->where('status', 'rejected')
-                    ->count(),
-                'registered' => $voters->count()
-            ],
+            'voters' => $statusCounts,
         ]);
 
     }
