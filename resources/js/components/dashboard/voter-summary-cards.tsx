@@ -4,6 +4,8 @@ import type { DashboardSectionProps } from "@/components/dashboard/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Progress } from "@/components/ui/progress";
+import useVoterStatusMetrics from "@/hooks/use-voter-status-metrics";
 
 const voterStatusConfig = {
     count: {
@@ -24,22 +26,13 @@ const voterStatusConfig = {
 } satisfies ChartConfig;
 
 export default function VoterSummaryCards({ voters }: DashboardSectionProps) {
-    const totalVoters = voters.total;
-    const approvalRate = totalVoters > 0 ? Math.round((voters.approved / totalVoters) * 100) : 0;
-    const pendingRate = totalVoters > 0 ? Math.round((voters.pending / totalVoters) * 100) : 0;
-    const rejectionRate = totalVoters > 0 ? Math.round((voters.rejected / totalVoters) * 100) : 0;
+    const { totalVoters, approvalRate, voterStatusData, statusList } = useVoterStatusMetrics(voters);
 
-    const voterStatusData = [
-        { status: "approved", label: "Disetujui", count: voters.approved, fill: "var(--color-approved)" },
-        { status: "pending", label: "Menunggu", count: voters.pending, fill: "var(--color-pending)" },
-        { status: "rejected", label: "Ditolak", count: voters.rejected, fill: "var(--color-rejected)" },
-    ];
-
-    const statusList = [
-        { label: "Disetujui", value: voters.approved, percentage: approvalRate, icon: CheckCircle2 },
-        { label: "Menunggu Aktivasi", value: voters.pending, percentage: pendingRate, icon: Clock3 },
-        { label: "Ditolak", value: voters.rejected, percentage: rejectionRate, icon: XCircle },
-    ];
+    const statusIconMap = {
+        approved: CheckCircle2,
+        pending: Clock3,
+        rejected: XCircle,
+    } as const;
 
     return (
         <Card>
@@ -116,7 +109,7 @@ export default function VoterSummaryCards({ voters }: DashboardSectionProps) {
 
                     <div className="space-y-4">
                         {statusList.map((item) => {
-                            const StatusIcon = item.icon;
+                            const StatusIcon = statusIconMap[item.key];
 
                             return (
                                 <div key={item.label} className="space-y-2">
@@ -127,9 +120,7 @@ export default function VoterSummaryCards({ voters }: DashboardSectionProps) {
                                         </div>
                                         <Badge variant="secondary">{item.value} voter</Badge>
                                     </div>
-                                    <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
-                                        <div className="bg-primary h-full rounded-full" style={{ width: `${item.percentage}%` }} />
-                                    </div>
+                                    <Progress value={item.percentage} className={`[&_[data-slot=progress-indicator]]:${item.fill}`} />
                                     <p className="text-muted-foreground text-xs">{item.percentage}% dari total voter</p>
                                 </div>
                             );
