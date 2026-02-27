@@ -58,7 +58,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
     }
 
     return (
-        <Card className="w-full flex flex-col">
+        <Card className="w-full flex flex-col mt-4">
             <CardHeader className="flex items-center justify-between pb-0">
                 <div className="flex flex-col">
                     <CardTitle>Top 2 penjaringan per posisi</CardTitle>
