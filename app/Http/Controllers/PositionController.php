@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PositionRequest;
+use App\Http\Resources\PositionCollection;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,7 +15,10 @@ class PositionController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search         = $request->input('search');
+        $per_page       = $request->integer('per_page', 10);
+        $sort_by        = $request->input('sort_by');
+        $sort_direction = $request->input('sort_direction');
 
         $positions = Position::query()
             ->when($search, function ($query, $search) {
@@ -23,16 +27,21 @@ class PositionController extends Controller
                         ->orWhere('description', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->when(
+                $sort_by && in_array($sort_by, ['name', 'description', 'status', 'created_at'], true),
+                fn($q) => $q->orderBy($sort_by, $sort_direction === 'desc' ? 'desc' : 'asc'),
+                fn($q) => $q->orderBy('created_at', 'desc')
+            )
+            ->paginate($per_page);
 
         return Inertia::render('Positions/Index', [
-            'positions'  => $positions,
-            'authUserId' => auth()->id(),
+            'positions'  => new PositionCollection($positions),
             'filters'    => [
+                'per_page'       => $per_page,
                 'search' => $search,
+                'sort_by'        => $sort_by,
+                'sort_direction' => $sort_direction,
             ],
-            'csrfToken' => csrf_token(),
         ]);
     }
 
@@ -49,13 +58,13 @@ class PositionController extends Controller
      */
     public function store(PositionRequest $request)
     {
-        $positionData = [
-            'name'        => $request->name,
-            'description' => $request->description,
-            'status'      => ($request->status === 'active') ? 1 : 0,
-        ];
+        $validated = $request->validated();
 
-        $position = Position::create($positionData);
+        Position::create([
+            'name'        => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'status'      => ($validated['status'] === 'active') ? 1 : 0,
+        ]);
 
         return redirect()
             ->route('positions.index')
@@ -76,7 +85,7 @@ class PositionController extends Controller
     public function edit(Position $position)
     {
         return Inertia::render('Positions/Edit', [
-            'user' => $position
+            'position' => $position,
         ]);
     }
 
@@ -85,13 +94,13 @@ class PositionController extends Controller
      */
     public function update(PositionRequest $request, Position $position)
     {
-        $positionData = [
-            'name'        => $request->name,
-            'description' => $request->description,
-            'status'      => ($request->status === 'active') ? 1 : 0,
-        ];
+        $validated = $request->validated();
 
-        $position->update($positionData);
+        $position->update([
+            'name'        => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'status'      => ($validated['status'] === 'active') ? 1 : 0,
+        ]);
 
         return redirect()
             ->route('positions.index')
@@ -103,12 +112,10 @@ class PositionController extends Controller
      */
     public function destroy(Position $position)
     {
-
-        // Soft delete other users
         $position->delete();
 
         return redirect()
             ->route('positions.index')
-            ->with('success', 'User deleted successfully.');
+            ->with('success', 'Position deleted successfully.');
     }
 }

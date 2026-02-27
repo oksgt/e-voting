@@ -12,7 +12,6 @@ class PositionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Sesuaikan dengan kebutuhan, misalnya hanya admin
         return true;
     }
 
@@ -21,15 +20,18 @@ class PositionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $positionId = $this->route('position')?->id;
+
         return [
             'name' => [
                 'required',
                 'string',
                 'max:100',
                 Rule::unique('positions', 'name')
-                    ->ignore($this->route('position')?->id), // safe for both store & update
+                    ->ignore($positionId),
             ],
             'description' => 'nullable|string|max:500',
+            'status' => 'required|in:active,not active',
         ];
     }
 
@@ -45,6 +47,8 @@ class PositionRequest extends FormRequest
             'name.unique'   => 'Nama posisi sudah digunakan, silakan pilih nama lain.',
             'description.string' => 'Deskripsi harus berupa teks.',
             'description.max'    => 'Deskripsi maksimal 500 karakter.',
+            'status.required'    => 'Status wajib dipilih.',
+            'status.in'          => 'Status tidak valid.',
         ];
     }
 }

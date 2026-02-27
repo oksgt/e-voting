@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ElectionEvent;
+use App\Models\Position;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,12 @@ class DashboardController extends Controller
             'rejected' => $rawCounts->get('rejected', 0),
         ];
 
+        $positionCounts = [
+            'total' => Position::query()->count(),
+            'active' => Position::query()->where('status', 1)->count(),
+            'inactive' => Position::query()->where('status', 0)->count(),
+        ];
+
         $view = 'dashboard';
         if ($user_role === 'Voter') {
             $view = 'dashboard-voter';
@@ -42,6 +49,7 @@ class DashboardController extends Controller
             'roles' => $user->roles->pluck('name'),
             'runningEvent' => $runningEvent,
             'voters' => $statusCounts,
+            'positions' => $positionCounts,
         ]);
 
     }

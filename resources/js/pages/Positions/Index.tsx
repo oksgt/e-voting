@@ -1,104 +1,52 @@
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import {
-    Table,
-    TableHeader,
-    TableBody,
-    TableRow,
-    TableHead,
-    TableCell,
-} from "@/components/ui/table"
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { route } from 'ziggy-js';
+import { Head, Link, router } from "@inertiajs/react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { BadgeCheck, BadgeX, Edit3, Tag, Trash2Icon, Users } from "lucide-react";
+import { useMemo } from "react";
+import { toast } from "sonner";
+import { route } from "ziggy-js";
 
-import {
-    useReactTable,
-    getCoreRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    flexRender,
-} from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import { ButtonGroup } from '@/components/ui/button-group';
-import { BadgeCheck, BadgeX, CheckCircle, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, Tag, Trash2Icon, WandSparkles, XCircle } from 'lucide-react';
 import {
     AlertDialog,
-    AlertDialogTrigger,
+    AlertDialogAction,
+    AlertDialogCancel,
     AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
     AlertDialogDescription,
     AlertDialogFooter,
-    AlertDialogCancel,
-    AlertDialogAction,
-} from "@/components/ui/alert-dialog"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { router } from '@inertiajs/react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { usePositionPage } from "@/hooks/use-position-page";
+import AppLayout from "@/layouts/app-layout";
 import { can } from "@/lib/can";
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Field, FieldGroup } from '@/components/ui/field';
-import { Label } from '@radix-ui/react-label';
-import { toast } from 'sonner';
+import type { BreadcrumbItem } from "@/types";
+import type { PositionComponentProps } from "@/types/position";
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Position', href: route('positions.index') },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: "Position", href: route("positions.index") }];
 
-export default function User({ positions, authUserId, csrfToken }) {
-
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
-    const [sorting, setSorting] = useState([]);
-    const [pagination, setPagination] = useState({
-        pageIndex: 0,
-        pageSize: 5,
+export default function PositionIndex({ positions, filters }: PositionComponentProps) {
+    const { sorting, onSortingChange, pagination, onPaginationChange, searchQuery, handleSearchChange } = usePositionPage({
+        currentPage: positions.meta.current_page,
+        perPage: positions.meta.per_page,
+        filters,
     });
-    const [search, setSearch] = useState("");
 
-    // Filter users by search text (name or email)
-    const filteredUsers = useMemo(() => {
-        const list = positions?.data ?? positions ?? [];
-
-        if (!search) return list;
-
-        return list.filter((u) => {
-            const name = (u.name ?? "").toLowerCase();
-            const description = (u.description ?? "").toLowerCase();
-
-            return (
-                name.includes(search.toLowerCase()) ||
-                description.includes(search.toLowerCase())
-            );
-        });
-    }, [positions, search]);
-
-
-    // Define columns
-    const columns = useMemo(
+    const columns = useMemo<ColumnDef<PositionComponentProps["positions"]["data"][number]>[]>(
         () => [
             {
+                id: "no",
                 header: "No",
-                cell: ({ row }) => row.index + 1 + pagination.pageIndex * pagination.pageSize,
+                cell: ({ row }) => {
+                    const from = positions.meta.from ?? 0;
+                    return from + row.index;
+                },
+                enableSorting: false,
             },
             {
                 header: "Position Name",
@@ -112,15 +60,13 @@ export default function User({ positions, authUserId, csrfToken }) {
                 header: "Status",
                 accessorKey: "status",
                 cell: ({ row }) => {
-                    const status = row.getValue("status")
-                    const isActive = status === 1 || status === "active"
+                    const status = row.getValue("status");
+                    const isActive = status === 1 || status === "active";
 
                     return (
                         <Badge
                             variant={isActive ? "secondary" : "destructive"}
-                            className={`flex items-center gap-1 px-2 py-1 ${isActive
-                                    ? "bg-green-100 text-green-700 border border-green-300  "
-                                    : ""
+                            className={`flex items-center gap-1 px-2 py-1 ${isActive ? "bg-green-100 text-green-700 border border-green-300  " : ""
                                 }`}
                         >
                             {isActive ? (
@@ -130,22 +76,22 @@ export default function User({ positions, authUserId, csrfToken }) {
                             )}
                             {isActive ? "Active" : "Not Active"}
                         </Badge>
-                    )
+                    );
                 },
             },
 
             {
                 header: "Actions",
                 cell: ({ row }) => {
-                    const user = row.original;
+                    const position = row.original;
                     return (
                         <ButtonGroup>
-                            {can("positions.update") &&
+                            {can("positions.update") && (
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <Button variant="outline" size="icon">
-                                                <Link href={route("positions.edit", user.id)}>
+                                            <Button variant="outline" size="icon" asChild>
+                                                <Link href={route("positions.edit", position.id)}>
                                                     <Edit3 className="h-4 w-4" />
                                                 </Link>
                                             </Button>
@@ -155,11 +101,9 @@ export default function User({ positions, authUserId, csrfToken }) {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                            }
-
+                            )}
 
                             {can("positions.delete") && (
-
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant="outline" size="icon">
@@ -179,16 +123,14 @@ export default function User({ positions, authUserId, csrfToken }) {
                                     <AlertDialogContent>
                                         <AlertDialogHeader>
                                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This will delete the Position.
-                                            </AlertDialogDescription>
+                                            <AlertDialogDescription>This will delete the Position.</AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                                             <AlertDialogAction
                                                 className="bg-red-700 text-amber-50 hover:bg-red-800 hover:text-white transition-colors duration-200"
                                                 onClick={() =>
-                                                    router.delete(route("positions.destroy", user.id), {
+                                                    router.delete(route("positions.destroy", position.id), {
                                                         onSuccess: () => {
                                                             toast.success("Position deleted successfully!", {
                                                                 style: { backgroundColor: "green", color: "white" },
@@ -206,148 +148,56 @@ export default function User({ positions, authUserId, csrfToken }) {
                         </ButtonGroup>
                     );
                 },
-            }
+            },
         ],
-        [pagination.pageIndex, pagination.pageSize]
+        [positions.meta.from],
     );
-
-    // Create table instance
-    const table = useReactTable({
-        data: filteredUsers,
-        columns,
-        state: { sorting, pagination },
-        onSortingChange: setSorting,
-        onPaginationChange: setPagination,
-        getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-    });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="User" />
+            <Head title="Position" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <Card className="w-full">
+                <Card className="w-full border-primary/10 shadow-lg">
                     <CardHeader className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Data Position</CardTitle>
-                            <CardDescription className="mt-2">
-                                List of position
+                            <CardTitle className="flex items-center gap-2">
+                                <Users className="h-5 w-5 text-primary" />
+                                Data Position
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                                {positions.meta.total} position{positions.meta.total !== 1 ? "s" : ""} found
                             </CardDescription>
                         </div>
-                        {can("positions.create") &&
+                        {can("positions.create") && (
                             <div className="flex gap-2">
                                 <Button variant="default" size="sm" asChild>
-                                    <Link
-                                        href={route("positions.create")}
-                                        className="flex items-center gap-2"
-                                    >
+                                    <Link href={route("positions.create")} className="flex items-center gap-2">
                                         <Tag className="h-4 w-4" />
                                         <span>Add New Position</span>
                                     </Link>
                                 </Button>
                             </div>
-
-                        }
+                        )}
                     </CardHeader>
 
-                    <CardContent>
-                        {/* Search + Items per page controls */}
-                        <div className="flex items-center justify-between mb-4">
-                            <Input
-                                type="text"
-                                placeholder="Search by position name..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-1/3"
-                            />
-                            <div className="flex items-center gap-2">
-                                <span>Rows per page:</span>
-                                <Select
-                                    value={String(pagination.pageSize)}
-                                    onValueChange={(value) =>
-                                        setPagination((prev) => ({
-                                            ...prev,
-                                            pageSize: Number(value),
-                                        }))
-                                    }
-                                >
-                                    <SelectTrigger className="w-[120px]">
-                                        <SelectValue placeholder="Rows per page" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {[5, 10, 20, 50].map((size) => (
-                                            <SelectItem key={size} value={String(size)}>
-                                                {size}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-
-                            </div>
-                        </div>
-
-                        <Table>
-                            <TableHeader>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => (
-                                            <TableHead
-                                                key={header.id}
-                                                onClick={header.column.getToggleSortingHandler?.()}
-                                                className="cursor-pointer select-none"
-                                            >
-                                                {flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                                {{
-                                                    asc: " 🔼",
-                                                    desc: " 🔽",
-                                                }[header.column.getIsSorted()] ?? null}
-                                            </TableHead>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableHeader>
-                            <TableBody>
-                                {table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id}>
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-
-                        {/* Pagination Controls */}
-                        <div className="flex items-center justify-between mt-4">
-                            <Button
-                                variant="outline"
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
-                            >
-                                Previous
-                            </Button>
-                            <span>
-                                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                                {table.getPageCount()}
-                            </span>
-                            <Button
-                                variant="outline"
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
-                            >
-                                Next
-                            </Button>
-                        </div>
+                    <CardContent className="space-y-4 pt-2">
+                        <DataTable
+                            columns={columns}
+                            data={positions.data}
+                            sorting={sorting}
+                            onSortingChange={onSortingChange}
+                            pagination={pagination}
+                            onPaginationChange={onPaginationChange}
+                            pageCount={positions.meta.last_page}
+                            loading={false}
+                            globalFilter={searchQuery}
+                            onGlobalFilterChange={handleSearchChange}
+                            searchPlaceholder="Search by position name or description..."
+                            noDataMessage="No positions found."
+                        />
                     </CardContent>
                 </Card>
             </div>
         </AppLayout>
     );
-
 }
