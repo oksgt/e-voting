@@ -207,9 +207,11 @@ class ElectionEventController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ElectionEvent $electionEvent)
+    public function show(ElectionEvent $event)
     {
-        //
+        return Inertia::render('Events/Summary', [
+            'event' => $event
+        ]);
     }
 
     /**

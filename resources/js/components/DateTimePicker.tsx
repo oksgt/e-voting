@@ -62,7 +62,7 @@ export function DateTimePicker({ id, label, value, onChange, error }: DateTimePi
                             className="w-40 justify-between font-normal"
                         >
                             {date ? format(date, "PPP") : "Select date"}
-                            <ChevronDownIcon />
+                            {/* <ChevronDownIcon /> */}
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto overflow-hidden p-0" align="start">

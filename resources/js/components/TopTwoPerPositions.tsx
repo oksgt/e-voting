@@ -58,7 +58,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
     }
 
     return (
-        <Card className="w-full flex flex-col mt-4">
+        <Card className="w-full flex flex-col">
             <CardHeader className="flex items-center justify-between pb-0">
                 <div className="flex flex-col">
                     <CardTitle>Top 2 penjaringan per posisi</CardTitle>
@@ -78,8 +78,30 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                 </button>
             </CardHeader>
 
+            {/* <CardContent className="flex flex-col gap-3">
+                <Item
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                >
+                    <ItemMedia variant="icon">
+                        <Users2Icon />
+                    </ItemMedia>
+                    <ItemContent>
+                        <ItemTitle className="text-gray-900 text-lg">
+                            Ketua OSIS
+                        </ItemTitle>
+                        <div className="text-gray-700 font-medium">
+                            <ol className="list-decimal list-inside space-y-2">
+                                <li>Andi (60%)</li>
+                                <li>Budi (40%)</li>
+                            </ol>
+                        </div>
+                    </ItemContent>
+                </Item>
+            </CardContent> */}
             <CardContent className="flex flex-col gap-3">
-                {positions.map((pos: any) => (
+                {positions.map((pos: { position: string; candidates: any[] }) => (
                     <Item
                         variant="outline"
                         size="sm"
@@ -93,15 +115,16 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                             <ItemTitle className="text-gray-900 text-lg">
                                 {pos.position}
                             </ItemTitle>
-                            <ItemDescription>
+
+                            <div className="text-gray-700 font-medium">
                                 <ol className="list-decimal list-inside space-y-2 text-gray-700 font-medium">
-                                    {pos.candidates.map((c: any) => (
+                                    {pos.candidates.map((c: { id: number; name: string; persentase: number }) => (
                                         <li key={c.id}>
                                             {ucwords(c.name)} ({c.persentase}%)
                                         </li>
                                     ))}
                                 </ol>
-                            </ItemDescription>
+                            </div>
                         </ItemContent>
                     </Item>
                 ))}

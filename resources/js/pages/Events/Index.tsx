@@ -32,7 +32,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { Calendar, CheckCircle, Clock, Edit3, PlayCircle, PlusCircle, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, Edit3, Gauge, PlayCircle, PlusCircle, XCircle } from 'lucide-react';
 import { useMemo, useState } from "react";
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -81,6 +81,21 @@ export default function User({ events, authUserId, csrfToken }) {
                     const user = row.original;
                     return (
                         <ButtonGroup>
+
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon">
+                                            <Link href={route("events.show", user.id)}>
+                                                <Gauge className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Event Summary</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
 
                             {can("elections.update") &&
                                 <TooltipProvider>

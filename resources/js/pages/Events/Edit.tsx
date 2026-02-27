@@ -1,17 +1,21 @@
 import { Head, useForm } from "@inertiajs/react";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Users2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
+
 import DateTime24Picker, { toIsoDateTime24 } from "@/components/commons/date-time-24-picker";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { DateTimePicker } from "@/components/DateTimePicker";
+import { ChartPenjaringan, Chartpenjaringan } from "@/components/ChartPenjaringan";
+import { TopTwoPerPosition } from "@/components/TopTwoPerPositions";
+
 import AppLayout from "@/layouts/app-layout";
 import type { BreadcrumbItem } from "@/types";
-import { Button } from '@/components/ui/button';
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+
 import {
     Card,
     CardAction,
@@ -19,40 +23,31 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import { route } from 'ziggy-js';
+} from "@/components/ui/card";
+
 import {
     Field,
     FieldGroup,
     FieldLabel,
     FieldLegend,
     FieldSet,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { LoaderCircle, Users2Icon } from 'lucide-react';
-import { toast } from 'sonner';
-import { Switch } from "@/components/ui/switch"
+} from "@/components/ui/field";
+
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
-import { ChartPenjaringan, Chartpenjaringan } from '@/components/ChartPenjaringan';
+} from "@/components/ui/select";
+
 import {
     Item,
     ItemContent,
     ItemDescription,
     ItemMedia,
     ItemTitle,
-} from "@/components/ui/item"
-import { TopTwoPerPosition } from '@/components/TopTwoPerPositions';
-import { DateTimePicker } from '@/components/DateTimePicker';
+} from "@/components/ui/item";
 
 type EditEventProps = {
     event: {
@@ -128,135 +123,112 @@ export default function Edit({ event }: EditEventProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Election Event Edit" />
             <div className="flex flex-col justify-center p-4">
-                <Card className="w-full mb-4">
-                    <CardHeader>
-                        <CardTitle>Summary Event</CardTitle>
-                        <CardDescription>Rekapitulasi data pemilihan tahap penjaringan bakal calon</CardDescription>
-                    </CardHeader>
+                <Card className="w-full">
                     <CardContent>
-                        <div className="w-full grid grid-cols-2 gap-6">
-                            {/* Kolom kiri: Chart */}
-                            <div className="flex w-full flex-col">
-                                <ChartPenjaringan event_id={event.id} />
-                                <TopTwoPerPosition eventId={event.id} />
-                            </div>
+                        <form onSubmit={handleSubmit}>
+                            <FieldGroup>
+                                <FieldSet>
+                                    <FieldLegend className='font-bold'>Edit Election Event</FieldLegend>
+                                    <div className="flex flex-col md:flex-row gap-6">
+                                        <div className="flex-1 space-y-4">
 
-                            {/* Kolom kanan: Top 2 penjaringan */}
-                            <div className="flex w-full flex-col">
-                                <Card className="w-full">
-                                    <CardContent>
-                                        <form onSubmit={handleSubmit}>
-                                            <FieldGroup>
-                                                <FieldSet>
-                                                    <FieldLegend className='font-bold'>Edit Election Event</FieldLegend>
-                                                    <div className="flex flex-col md:flex-row gap-6">
-                                                        <div className="flex-1 space-y-4">
+                                            {/* Event Name */}
+                                            <Field>
+                                                <FieldLabel htmlFor="input-name">Event Name</FieldLabel>
+                                                <Input
+                                                    id="input-name"
+                                                    value={data.name}
+                                                    onChange={(e) => setData('name', e.target.value)}
+                                                />
+                                                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                                            </Field>
 
-                                                            {/* Event Name */}
-                                                            <Field>
-                                                                <FieldLabel htmlFor="input-name">Event Name</FieldLabel>
-                                                                <Input
-                                                                    id="input-name"
-                                                                    value={data.name}
-                                                                    onChange={(e) => setData('name', e.target.value)}
-                                                                />
-                                                                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                                                            </Field>
+                                            {/* Keyword */}
+                                            <Field>
+                                                <FieldLabel htmlFor="input-keyword">Keyword</FieldLabel>
+                                                <Input
+                                                    id="input-keyword"
+                                                    value={data.keyword}
+                                                    onChange={(e) => setData('keyword', e.target.value)}
+                                                />
+                                                {errors.keyword && <p className="text-red-500 text-sm">{errors.keyword}</p>}
+                                            </Field>
 
-                                                            {/* Keyword */}
-                                                            <Field>
-                                                                <FieldLabel htmlFor="input-keyword">Keyword</FieldLabel>
-                                                                <Input
-                                                                    id="input-keyword"
-                                                                    value={data.keyword}
-                                                                    onChange={(e) => setData('keyword', e.target.value)}
-                                                                />
-                                                                {errors.keyword && <p className="text-red-500 text-sm">{errors.keyword}</p>}
-                                                            </Field>
+                                            {/* Description */}
+                                            <Field>
+                                                <FieldLabel htmlFor="input-description">Description</FieldLabel>
+                                                <Textarea
+                                                    id="input-description"
+                                                    value={data.description}
+                                                    onChange={(e) => setData('description', e.target.value)}
+                                                />
+                                                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                                            </Field>
 
-                                                            {/* Description */}
-                                                            <Field>
-                                                                <FieldLabel htmlFor="input-description">Description</FieldLabel>
-                                                                <Textarea
-                                                                    id="input-description"
-                                                                    value={data.description}
-                                                                    onChange={(e) => setData('description', e.target.value)}
-                                                                />
-                                                                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-                                                            </Field>
+                                            {/* Start Date */}
+                                            <DateTimePicker
+                                                id="input-start-date"
+                                                label="Start Date"
+                                                value={toDatetimeLocal(data.started_at)}
+                                                onChange={(val) => setData("started_at", val)}
+                                                error={errors.started_at}
+                                            />
 
-                                                            {/* Start Date */}
-                                                            <DateTimePicker
-                                                                id="input-start-date"
-                                                                label="Start Date"
-                                                                value={toDatetimeLocal(data.started_at)}
-                                                                onChange={(val) => setData("started_at", val)}
-                                                                error={errors.started_at}
-                                                            />
+                                            <DateTimePicker
+                                                id="input-finish-date"
+                                                label="Finish Date"
+                                                value={toDatetimeLocal(data.finished_at)}
+                                                onChange={(val) => setData("finished_at", val)}
+                                                error={errors.finished_at}
+                                            />
 
-                                                            <DateTimePicker
-                                                                id="input-finish-date"
-                                                                label="Finish Date"
-                                                                value={toDatetimeLocal(data.finished_at)}
-                                                                onChange={(val) => setData("finished_at", val)}
-                                                                error={errors.finished_at}
-                                                            />
+                                            {/* Status Select */}
+                                            <Field>
+                                                <FieldLabel htmlFor="status-select">Status</FieldLabel>
+                                                <Select
+                                                    value={data.status}
+                                                    onValueChange={(value) => setData("status", value)}
+                                                >
+                                                    <SelectTrigger id="status-select">
+                                                        <SelectValue placeholder="Select status" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="pending">Pending</SelectItem>
+                                                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                        <SelectItem value="running">Running</SelectItem>
+                                                        <SelectItem value="finished">Finished</SelectItem>
+                                                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
+                                            </Field>
+                                        </div>
+                                    </div>
+                                </FieldSet>
 
-                                                            {/* Status Select */}
-                                                            <Field>
-                                                                <FieldLabel htmlFor="status-select">Status</FieldLabel>
-                                                                <Select
-                                                                    value={data.status}
-                                                                    onValueChange={(value) => setData("status", value)}
-                                                                >
-                                                                    <SelectTrigger id="status-select">
-                                                                        <SelectValue placeholder="Select status" />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="pending">Pending</SelectItem>
-                                                                        <SelectItem value="scheduled">Scheduled</SelectItem>
-                                                                        <SelectItem value="running">Running</SelectItem>
-                                                                        <SelectItem value="finished">Finished</SelectItem>
-                                                                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
-                                                            </Field>
-                                                        </div>
-                                                    </div>
-                                                </FieldSet>
+                                {/* Action Buttons */}
+                                <Field orientation="horizontal" className="flex justify-between mt-6">
+                                    <Button variant="secondary" type="button" onClick={() => window.history.back()}>
+                                        Back
+                                    </Button>
 
-                                                {/* Action Buttons */}
-                                                <Field orientation="horizontal" className="flex justify-between mt-6">
-                                                    <Button variant="secondary" type="button" onClick={() => window.history.back()}>
-                                                        Back
-                                                    </Button>
-
-                                                    <div className="flex gap-2">
-                                                        <Button type="submit" disabled={processing}>
-                                                            {processing ? (
-                                                                <span className="flex items-center gap-2">
-                                                                    <LoaderCircle className="h-4 w-4 animate-spin" />
-                                                                    Processing...
-                                                                </span>
-                                                            ) : (
-                                                                "Save Changes"
-                                                            )}
-                                                        </Button>
-                                                    </div>
-                                                </Field>
-                                            </FieldGroup>
-                                        </form>
-                                    </CardContent>
-                                </Card>
-                                {/* Tambahkan Item lain sesuai kebutuhan */}
-                            </div>
-                        </div>
+                                    <div className="flex gap-2">
+                                        <Button type="submit" disabled={processing}>
+                                            {processing ? (
+                                                <span className="flex items-center gap-2">
+                                                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                                                    Processing...
+                                                </span>
+                                            ) : (
+                                                "Save Changes"
+                                            )}
+                                        </Button>
+                                    </div>
+                                </Field>
+                            </FieldGroup>
+                        </form>
                     </CardContent>
                 </Card>
-
-
-
             </div>
         </AppLayout>
     );
