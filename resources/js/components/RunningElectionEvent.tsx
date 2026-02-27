@@ -65,8 +65,6 @@ export default function RunningElectionEvent() {
 
                 ) : (
                     <div className="flex flex-col items-center text-center space-y-3">
-                        {/* Ikon Apple-style */}
-                        <ListChecks className="h-14 w-14 text-green-500" />
 
                         {/* Informasi Event */}
                         <div className="rounded-xl bg-white dark:bg-neutral-900 shadow-sm p-6 space-y-3">
@@ -76,7 +74,7 @@ export default function RunningElectionEvent() {
                             </h2>
 
                             {/* Waktu Mulai */}
-                            <div className="flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 text-sm">
+                            <div className="flex items-center space-x-2 text-neutral-600 dark:text-neutral-400 text-sm mb-0 ">
                                 <span className="font-medium">Mulai:</span>
                                 <span>{dateFormatter.format(new Date(events.data.started_at))}</span>
                             </div>

@@ -32,7 +32,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { Calendar, CheckCircle, Clock, Edit3, Gauge, PlayCircle, PlusCircle, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, Edit3, Gauge, PlayCircle, PlusCircle, RotateCw, XCircle } from 'lucide-react';
 import { useMemo, useState } from "react";
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -133,8 +133,8 @@ export default function User({ events, authUserId, csrfToken }) {
                         case "pending":
                             variant = "secondary"
                             classes += " bg-gray-100 text-gray-700 border border-gray-300"
-                            icon = <Clock className="h-4 w-4" data-icon="inline-start" />
-                            label = "Pending"
+                            icon = <RotateCw className="h-4 w-4 " data-icon="inline-start" />
+                            label = "Stop"
                             break
 
                         case "scheduled":
@@ -147,7 +147,7 @@ export default function User({ events, authUserId, csrfToken }) {
                         case "running":
                             variant = "secondary"
                             classes += " bg-green-100 text-green-700 border border-green-300"
-                            icon = <PlayCircle className="h-4 w-4" data-icon="inline-start" />
+                            icon = <RotateCw className="h-4 w-4 animate-spin" data-icon="inline-start" />
                             label = "Running"
                             break
 

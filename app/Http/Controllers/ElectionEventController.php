@@ -74,8 +74,8 @@ class ElectionEventController extends Controller
     public function getActivePosition(Request $request)
     {
         $position = Position::where('status', 1)
-        ->orderBy('number', 'asc')
-        ->get();
+            ->orderBy('number', 'asc')
+            ->get();
 
         if (!$position) {
             return response()->json([
@@ -103,6 +103,28 @@ class ElectionEventController extends Controller
 
         foreach ($positions as $position) {
             // Hitung total suara per kandidat di posisi ini
+            // $candidates = DB::table('election_event_logs as e')
+            //     ->join('users as u', 'u.id', '=', 'e.voted_by')
+            //     ->select(
+            //         'u.id',
+            //         'u.name',
+            //         DB::raw('COUNT(e.id) as total_votes')
+            //     )
+            //     ->where('e.event_id', $eventId)
+            //     ->where('e.position_id', $position->id)
+            //     ->groupBy('u.id', 'u.name')
+            //     ->orderByDesc('total_votes')
+            //     ->limit(2) // ambil top 2
+            //     ->get();
+
+            // // Hitung total semua suara di posisi ini
+            // $totalVotes = DB::table('election_event_logs')
+            //     ->where('event_id', $eventId)
+            //     ->where('position_id', $position->id)
+            //     ->count();
+
+            $excludedIds = []; // bisa juga []
+
             $candidates = DB::table('election_event_logs as e')
                 ->join('users as u', 'u.id', '=', 'e.voted_by')
                 ->select(
@@ -112,15 +134,20 @@ class ElectionEventController extends Controller
                 )
                 ->where('e.event_id', $eventId)
                 ->where('e.position_id', $position->id)
+                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                    $query->whereNotIn('u.id', $excludedIds);
+                })
                 ->groupBy('u.id', 'u.name')
                 ->orderByDesc('total_votes')
-                ->limit(2) // ambil top 2
+                ->limit(2)
                 ->get();
 
-            // Hitung total semua suara di posisi ini
             $totalVotes = DB::table('election_event_logs')
                 ->where('event_id', $eventId)
                 ->where('position_id', $position->id)
+                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                    $query->whereNotIn('voted_by', $excludedIds);
+                })
                 ->count();
 
             // Tambahkan persentase
@@ -141,7 +168,8 @@ class ElectionEventController extends Controller
         return response()->json($result);
     }
 
-    public function getVoterList(Request $request){
+    public function getVoterList(Request $request)
+    {
 
         $search = $request->input('search');
 
@@ -154,6 +182,7 @@ class ElectionEventController extends Controller
                     $q->where('name', 'like', "%{$search}%");
                 });
             })
+            ->where('status', 'approved')
             ->orderBy('name', 'asc')
             ->get();
 

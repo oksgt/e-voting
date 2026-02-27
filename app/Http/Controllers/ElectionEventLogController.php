@@ -129,15 +129,26 @@ class ElectionEventLogController extends Controller
 
     public function penjaringan($eventId)
     {
-        $data = DB::table('election_event_logs as e')
+        $excludedIds = [1]; // bisa juga []
+
+        $query = DB::table('election_event_logs as e')
             ->selectRaw('
                 e.event_id,
                 COUNT(DISTINCT e.user_id) AS jumlah_user_ikut,
                 t.total_user,
                 ROUND(COUNT(DISTINCT e.user_id) / t.total_user * 100, 2) AS persentase
             ')
-            ->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u WHERE u.id NOT IN (1)) t'))
-            ->where('e.event_id', $eventId)
+            ->where('e.event_id', $eventId);
+
+        // kondisi jika ada excludedIds
+        if (!empty($excludedIds)) {
+            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u WHERE u.id NOT IN (' . implode(',', $excludedIds) . ')) t'))
+                ->whereNotIn('e.user_id', $excludedIds);
+        } else {
+            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u) t'));
+        }
+
+        $data = $query
             ->groupBy('e.event_id', 't.total_user')
             ->get()
             ->map(function ($row) {

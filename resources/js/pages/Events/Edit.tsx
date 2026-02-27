@@ -193,11 +193,9 @@ export default function Edit({ event }: EditEventProps) {
                                                         <SelectValue placeholder="Select status" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="pending">Pending</SelectItem>
-                                                        <SelectItem value="scheduled">Scheduled</SelectItem>
+                                                        <SelectItem value="pending">Stop</SelectItem>
                                                         <SelectItem value="running">Running</SelectItem>
                                                         <SelectItem value="finished">Finished</SelectItem>
-                                                        <SelectItem value="cancelled">Cancelled</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                                 {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}

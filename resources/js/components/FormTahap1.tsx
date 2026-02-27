@@ -65,11 +65,6 @@ export function FormTahap1({ event }: any) {
                                 setPositions(res.data.data);
                             }
                         });
-                        // setDialogContent({
-                        //     type: "error",
-                        //     title: "Belum Lengkap",
-                        //     message: "Anda belum mengisi semua posisi.",
-                        // });
                     }
 
                     setParticipation(res.data.participated);
@@ -87,13 +82,22 @@ export function FormTahap1({ event }: any) {
         checkParticipation();
     }, [event.id, auth.user.id]);
 
-    // useEffect(() => {
-    //     // axios.get("/api/election-events/job-positions").then((res) => {
-    //     //     if (res.data.success) {
-    //     //         setPositions(res.data.data);
-    //     //     }
-    //     // });
-    // }, []);
+    // const fetchVoters = (posId: number, search: string) => {
+    //     if (search.length > 0) {
+    //         axios
+    //             .get("/api/voters", { params: { search } })
+    //             .then((res) => {
+    //                 if (res.data.success) {
+    //                     setVoterMap((prev) => ({ ...prev, [posId]: res.data.data }));
+    //                 } else {
+    //                     setVoterMap((prev) => ({ ...prev, [posId]: [] }));
+    //                 }
+    //             })
+    //             .catch(() => setVoterMap((prev) => ({ ...prev, [posId]: [] })));
+    //     } else {
+    //         setVoterMap((prev) => ({ ...prev, [posId]: [] }));
+    //     }
+    // };
 
     const fetchVoters = (posId: number, search: string) => {
         if (search.length > 0) {
@@ -101,12 +105,20 @@ export function FormTahap1({ event }: any) {
                 .get("/api/voters", { params: { search } })
                 .then((res) => {
                     if (res.data.success) {
-                        setVoterMap((prev) => ({ ...prev, [posId]: res.data.data }));
+                        // filter out voters yang sudah dipilih di posisi lain
+                        const chosenIds = Object.values(selectedVoter).map((v) => v?.id);
+                        const filtered = res.data.data.filter(
+                            (v: any) => !chosenIds.includes(v.id)
+                        );
+
+                        setVoterMap((prev) => ({ ...prev, [posId]: filtered }));
                     } else {
                         setVoterMap((prev) => ({ ...prev, [posId]: [] }));
                     }
                 })
-                .catch(() => setVoterMap((prev) => ({ ...prev, [posId]: [] })));
+                .catch(() =>
+                    setVoterMap((prev) => ({ ...prev, [posId]: [] }))
+                );
         } else {
             setVoterMap((prev) => ({ ...prev, [posId]: [] }));
         }
@@ -173,6 +185,12 @@ export function FormTahap1({ event }: any) {
         }
     };
 
+    const ucwords = (str: string) => {
+        return str
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase())
+    }
+
     return (
         <>
             <div className="flex w-full max-w-md flex-col gap-6">
@@ -191,7 +209,7 @@ export function FormTahap1({ event }: any) {
 
                                     <Combobox
                                         items={(voterMap[pos.id] || []).map((v) => ({
-                                            label: v.name,
+                                            label: ucwords(v.name),
                                             value: v.id,
                                         }))}
                                         onValueChange={(val) => {
@@ -231,9 +249,14 @@ export function FormTahap1({ event }: any) {
                                                 if (!(searchMap[pos.id] && searchMap[pos.id].length > 0)) {
                                                     axios.get("/api/voters").then((res) => {
                                                         if (res.data.success) {
+                                                            const chosenIds = Object.values(selectedVoter).map((v) => v?.id);
+                                                            const filtered = res.data.data.filter(
+                                                                (v: any) => !chosenIds.includes(v.id)
+                                                            );
+
                                                             setVoterMap((prev) => ({
                                                                 ...prev,
-                                                                [pos.id]: res.data.data,
+                                                                [pos.id]: filtered,
                                                             }));
                                                         }
                                                     });
@@ -254,7 +277,7 @@ export function FormTahap1({ event }: any) {
 
                                     {selectedVoter[pos.id] && (
                                         <p className="mt-2 text-sm text-blue-600">
-                                            Pilihan Anda: <strong>{selectedVoter[pos.id].name}</strong>
+                                            Pilihan Anda: <strong>{ucwords(selectedVoter[pos.id].name)}</strong>
                                         </p>
                                     )}
                                 </div>

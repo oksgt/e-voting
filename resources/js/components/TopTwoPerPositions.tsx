@@ -77,29 +77,6 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                     />
                 </button>
             </CardHeader>
-
-            {/* <CardContent className="flex flex-col gap-3">
-                <Item
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                >
-                    <ItemMedia variant="icon">
-                        <Users2Icon />
-                    </ItemMedia>
-                    <ItemContent>
-                        <ItemTitle className="text-gray-900 text-lg">
-                            Ketua OSIS
-                        </ItemTitle>
-                        <div className="text-gray-700 font-medium">
-                            <ol className="list-decimal list-inside space-y-2">
-                                <li>Andi (60%)</li>
-                                <li>Budi (40%)</li>
-                            </ol>
-                        </div>
-                    </ItemContent>
-                </Item>
-            </CardContent> */}
             <CardContent className="flex flex-col gap-3">
                 {positions.map((pos: { position: string; candidates: any[] }) => (
                     <Item

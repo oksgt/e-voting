@@ -18,7 +18,7 @@ Route::post('/election-events/check-participation', [ElectionEventLogController:
 Route::get('/chart-penjaringan/{eventId}', [ElectionEventLogController::class, 'penjaringan']);
 
 Route::get('/top-2-per-position/{eventId}', [ElectionEventController::class, 'topTwoPerPosition']);
-Route::post('/election-event-logs-tahap2', [ElectionEventLogController::class, 'store']);
+Route::post('/election-event-logs-tahap2', [ElectionEventLogController::class, 'store_tahap2']);
 
 
 
