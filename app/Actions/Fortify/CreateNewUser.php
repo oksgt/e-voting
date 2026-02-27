@@ -6,11 +6,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Spatie\Permission\Models\Role;
 
 class CreateNewUser implements CreatesNewUsers
 {
-    use PasswordValidationRules;
-
     /**
      * Validate and create a newly registered user.
      *
@@ -18,22 +17,44 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
-        Validator::make($input, [
+        $generatedEmail = sprintf('%s@example.com', $input['nik'] ?? '');
+        $payload = array_merge($input, ['email_generated' => $generatedEmail]);
+
+        Validator::make($payload, [
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
+            'nik' => [
                 'required',
                 'string',
-                'email',
-                'max:255',
-                Rule::unique(User::class),
+                'size:16',
+                'regex:/^\d{16}$/',
+                Rule::unique('users', 'nik')->whereNull('deleted_at'),
             ],
-            'password' => $this->passwordRules(),
+            'bidang' => ['required', 'string', 'max:255'],
+            'phone_number' => ['required', 'string', 'max:20'],
+            'password' => ['required', 'string', 'min:8'],
+            // validasi email generated agar tetap aman terhadap data lama
+            'email_generated' => [
+                Rule::unique(User::class, 'email')->whereNull('deleted_at'),
+            ],
+        ], [], [
+            'email_generated' => 'email',
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
-            'email' => $input['email'],
+            'nik' => $input['nik'],
+            'bidang' => $input['bidang'],
+            'phone_number' => $input['phone_number'],
+            'email' => $generatedEmail,
             'password' => $input['password'],
+            'status' => 'pending',
+            'login_method' => 'password',
+            'whatsapp_active' => false,
         ]);
+
+        $voterRole = Role::findOrCreate('Voter', 'web');
+        $user->assignRole($voterRole);
+
+        return $user;
     }
 }

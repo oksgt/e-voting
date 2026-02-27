@@ -1,95 +1,82 @@
-import { Button } from '@/components/ui/button';
-import { router } from '@inertiajs/react';
-
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import {
-    Table,
-    TableHeader,
-    TableBody,
-    TableRow,
-    TableHead,
-    TableCell,
-} from "@/components/ui/table"
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { route } from 'ziggy-js';
-
-import {
-    useReactTable,
-    getCoreRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    flexRender,
-} from "@tanstack/react-table";
+import { Head, Link, router } from "@inertiajs/react";
+import type { ColumnDef, OnChangeFn, PaginationState, SortingState } from "@tanstack/react-table";
+import { AlertTriangle, Edit3, LucidePlus, ShieldCheck, Trash2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { ButtonGroup } from '@/components/ui/button-group';
-import { AlertTriangle, Edit3, LucidePlus, Trash2Icon } from 'lucide-react';
+import { toast } from "sonner";
+import { route } from "ziggy-js";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
     AlertDialog,
-    AlertDialogTrigger,
+    AlertDialogAction,
+    AlertDialogCancel,
     AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
     AlertDialogDescription,
     AlertDialogFooter,
-    AlertDialogCancel,
-    AlertDialogAction,
-} from "@/components/ui/alert-dialog"
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { toast } from 'sonner';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { can } from '@/lib/can';
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import AppLayout from "@/layouts/app-layout";
+import { can } from "@/lib/can";
+import type { BreadcrumbItem, Pagination } from "@/types";
+import type { Role } from "@/types/role";
 
+const breadcrumbs: BreadcrumbItem[] = [{ title: "Roles", href: route("roles.index") }];
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Roles', href: route('roles.index') },
-];
+interface RolesProps {
+    roles: Pagination<Role>;
+}
 
-export default function Roles({ roles, authUserId }) {
-    const [sorting, setSorting] = useState([]);
-    const [pagination, setPagination] = useState({
+export default function Roles({ roles }: RolesProps) {
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [pagination, setPagination] = useState<PaginationState>({
         pageIndex: 0,
-        pageSize: 5, // show 5 rows per page
+        pageSize: 10,
     });
-
     const [search, setSearch] = useState("");
 
-    // Filter users by search text (name or email)
+    const allRoles: Role[] = useMemo(() => roles?.data ?? [], [roles]);
+
     const filteredRoles = useMemo(() => {
-        const list = roles?.data ?? roles ?? [];
+        if (!search) return allRoles;
+        return allRoles.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
+    }, [allRoles, search]);
 
-        if (!search) return list;
-        return list.filter(
-            (u) =>
-                u.name.toLowerCase().includes(search.toLowerCase())
-        );
-    }, [roles, search]);
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    };
 
-    // Define columns
-    const columns = useMemo(
+    const pageCount = Math.ceil(filteredRoles.length / pagination.pageSize);
+
+    const pagedRoles = useMemo(() => {
+        const start = pagination.pageIndex * pagination.pageSize;
+        return filteredRoles.slice(start, start + pagination.pageSize);
+    }, [filteredRoles, pagination.pageIndex, pagination.pageSize]);
+
+    const columns = useMemo<ColumnDef<Role>[]>(
         () => [
             {
+                id: "no",
                 header: "No",
-                cell: ({ row }) => row.index + 1 + pagination.pageIndex * pagination.pageSize,
+                cell: ({ row }) => pagination.pageIndex * pagination.pageSize + row.index + 1,
+                enableSorting: false,
             },
             {
-                header: "Name",
                 accessorKey: "name",
+                header: "Name",
             },
             {
+                id: "permissions",
                 header: "Permissions",
                 cell: ({ row }) => {
-                    const perms = row.original.permissions || [];
+                    const perms = row.original.permissions ?? [];
                     const maxVisible = 5;
                     const visiblePerms = perms.slice(0, maxVisible);
                     const remainingCount = perms.length - maxVisible;
@@ -98,238 +85,153 @@ export default function Roles({ roles, authUserId }) {
                         <div className="flex flex-wrap gap-1">
                             {perms.length > 0 ? (
                                 <>
-                                    {visiblePerms.map((perm: { id: number; name: string }) => (
+                                    {visiblePerms.map((perm) => (
                                         <Badge key={perm.id} variant="secondary">
                                             {perm.name}
                                         </Badge>
                                     ))}
                                     {remainingCount > 0 && (
-                                        <Badge variant="outline" className="bg-gray-100 text-gray-600">
-                                            {remainingCount} more
+                                        <Badge variant="outline" className="bg-muted text-muted-foreground">
+                                            +{remainingCount} more
                                         </Badge>
                                     )}
                                 </>
                             ) : (
-                                <span className="text-gray-400 text-xs">No permissions</span>
+                                <span className="text-muted-foreground text-xs">No permissions</span>
                             )}
                         </div>
                     );
                 },
+                enableSorting: false,
             },
             {
+                id: "actions",
                 header: "Actions",
                 cell: ({ row }) => {
                     const role = row.original;
                     return (
                         <ButtonGroup>
-                            {can("roles.update") &&
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button variant="outline" size="icon">
-                                            <Link href={route("roles.edit", role.id)}>
-                                                <Edit3 className="h-4 w-4" />
-                                            </Link>
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Edit item</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            }
+                            {can("roles.update") && (
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button variant="outline" size="icon" asChild>
+                                                <Link href={route("roles.edit", role.id)}>
+                                                    <Edit3 className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Edit role</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
 
-                            {can("roles.delete") &&
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="outline" size="icon">
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Trash2Icon className="h-4 w-4 text-red-700" />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Delete item</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </Button>
-                                </AlertDialogTrigger>
+                            {can("roles.delete") && (
+                                <AlertDialog>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="outline" size="icon">
+                                                        <Trash2Icon className="h-4 w-4 text-red-700" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Delete role</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
 
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will delete the role.
-                                            <Alert variant="destructive" className="mt-3">
-                                                <AlertTriangle className="h-4 w-4" />
-                                                <AlertTitle>Warning</AlertTitle>
-                                                <AlertDescription>
-                                                    Deleting this role will immediately revoke its permissions from all users who are assigned to it.
-                                                    This action cannot be undone and may affect access to critical features.
-                                                    Please proceed with caution.
-                                                </AlertDescription>
-                                            </Alert>
-
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            className="bg-red-700 text-amber-50 hover:bg-red-800 hover:text-white transition-colors duration-200"
-                                            onClick={() =>
-                                                router.delete(route("roles.destroy", role.id), {
-                                                    onSuccess: () => {
-                                                        toast.success("Role deleted successfully!", {
-                                                            style: { backgroundColor: "green", color: "white" },
-                                                        });
-                                                    },
-                                                })
-                                            }
-                                        >
-                                            Yes, delete
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                            }
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This will delete the role.
+                                                <Alert variant="destructive" className="mt-3">
+                                                    <AlertTriangle className="h-4 w-4" />
+                                                    <AlertTitle>Warning</AlertTitle>
+                                                    <AlertDescription>
+                                                        Deleting this role will immediately revoke its permissions from all users who are assigned
+                                                        to it. This action cannot be undone and may affect access to critical features. Please
+                                                        proceed with caution.
+                                                    </AlertDescription>
+                                                </Alert>
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                className="bg-red-700 text-amber-50 hover:bg-red-800 hover:text-white transition-colors duration-200"
+                                                onClick={() =>
+                                                    router.delete(route("roles.destroy", role.id), {
+                                                        onSuccess: () => {
+                                                            toast.success("Role deleted successfully!", {
+                                                                style: { backgroundColor: "green", color: "white" },
+                                                            });
+                                                        },
+                                                    })
+                                                }
+                                            >
+                                                Yes, delete
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
                         </ButtonGroup>
                     );
                 },
-            }
-            //show permission data here in a new column "Permissions"
+                enableSorting: false,
+            },
         ],
-        [pagination.pageIndex, pagination.pageSize]
+        [pagination.pageIndex, pagination.pageSize],
     );
-
-    // Create table instance
-    const table = useReactTable({
-        data: filteredRoles,
-        columns,
-        state: { sorting, pagination },
-        onSortingChange: setSorting,
-        onPaginationChange: setPagination,
-        getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-    });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="User" />
+            <Head title="Roles" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <Card className="w-full">
+                <Card className="border-primary/10 shadow-lg">
                     <CardHeader className="flex items-center justify-between">
                         <div>
-                            <CardTitle>Data Roles</CardTitle>
-                            <CardDescription className='mt-2'>List of user role</CardDescription>
+                            <CardTitle className="flex items-center gap-2">
+                                <ShieldCheck className="h-5 w-5 text-primary" />
+                                Data Roles
+                            </CardTitle>
+                            <CardDescription className="mt-1">
+                                {allRoles.length} role{allRoles.length !== 1 ? "s" : ""} registered
+                            </CardDescription>
                         </div>
-                        {can("roles.create") &&
+                        {can("roles.create") && (
                             <Button variant="default" size="sm" asChild>
-                                <Link href={route('roles.create')} className="flex items-center gap-2">
+                                <Link href={route("roles.create")} className="flex items-center gap-2">
                                     <LucidePlus className="h-4 w-4" />
                                     <span>Add New Role</span>
                                 </Link>
                             </Button>
-                        }
-                </CardHeader>
+                        )}
+                    </CardHeader>
 
-                <CardContent>
-                    {/* Search + Items per page controls */}
-                    <div className="flex items-center justify-between mb-4">
-                        <Input
-                            type="text"
-                            placeholder="Search by role name"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-1/3"
+                    <CardContent className="space-y-4 pt-2">
+                        <DataTable
+                            columns={columns}
+                            data={pagedRoles}
+                            sorting={sorting}
+                            onSortingChange={setSorting as OnChangeFn<SortingState>}
+                            pagination={pagination}
+                            onPaginationChange={setPagination as OnChangeFn<PaginationState>}
+                            pageCount={pageCount}
+                            loading={false}
+                            globalFilter={search}
+                            onGlobalFilterChange={handleSearchChange}
+                            searchPlaceholder="Search by role name..."
                         />
-                        <div className="flex items-center gap-2">
-                            <span>Rows per page:</span>
-                            <Select
-                                value={String(pagination.pageSize)}
-                                onValueChange={(value) =>
-                                    setPagination((prev) => ({
-                                        ...prev,
-                                        pageSize: Number(value),
-                                    }))
-                                }
-                            >
-                                <SelectTrigger className="w-[120px]">
-                                    <SelectValue placeholder="Rows per page" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[5, 10, 20, 50].map((size) => (
-                                        <SelectItem key={size} value={String(size)}>
-                                            {size}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                        </div>
-                    </div>
-
-                    <Table>
-                        <TableHeader>
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead
-                                            key={header.id}
-                                            onClick={header.column.getToggleSortingHandler?.()}
-                                            className="cursor-pointer select-none"
-                                        >
-                                            {flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )}
-                                            {{
-                                                asc: " 🔼",
-                                                desc: " 🔽",
-                                            }[header.column.getIsSorted()] ?? null}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-
-                    {/* Pagination Controls */}
-                    <div className="flex items-center justify-between mt-4">
-                        <Button
-                            variant="outline"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
-                        >
-                            Previous
-                        </Button>
-                        <span>
-                            Page {table.getState().pagination.pageIndex + 1} of{" "}
-                            {table.getPageCount()}
-                        </span>
-                        <Button
-                            variant="outline"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
-                        >
-                            Next
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-        </AppLayout >
+                    </CardContent>
+                </Card>
+            </div>
+        </AppLayout>
     );
 }

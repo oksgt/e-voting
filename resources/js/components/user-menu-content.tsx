@@ -1,16 +1,17 @@
+import { Link, router } from "@inertiajs/react";
+import { LogOut, Settings } from "lucide-react";
+import { useMemo } from "react";
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import { UserInfo } from '@/components/user-info';
-import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { logout } from '@/routes';
-import { edit } from '@/routes/profile';
-import { type User } from '@/types';
-import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+} from "@/components/ui/dropdown-menu";
+import { UserInfo } from "@/components/user-info";
+import { useMobileNavigation } from "@/hooks/use-mobile-navigation";
+import { logout } from "@/routes";
+import { edit } from "@/routes/profile";
+import type { User } from "@/types";
 
 interface UserMenuContentProps {
     user: User;
@@ -24,8 +25,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         router.flushAll();
     };
 
-    const roles = user?.roles || [];
-    const roleName: string | undefined = roles.map((r: { name: string }) => r.name).at(0);
+    const roleName = useMemo(() => user.roles.at(0)?.name, [user.roles]);
+    console.log("UserMenuContent rendered with role:", roleName);
 
     return (
         <>
@@ -40,13 +41,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <>
                     <DropdownMenuGroup>
                         <DropdownMenuItem asChild>
-                            <Link
-                                className="block w-full"
-                                href={edit()}
-                                as="button"
-                                prefetch
-                                onClick={cleanup}
-                            >
+                            <Link className="block w-full" href={edit()} as="button" prefetch onClick={cleanup}>
                                 <Settings className="mr-2" />
                                 Settings
                             </Link>
@@ -57,13 +52,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             )}
 
             <DropdownMenuItem asChild>
-                <Link
-                    className="block w-full"
-                    href={logout()}
-                    as="button"
-                    onClick={handleLogout}
-                    data-test="logout-button"
-                >
+                <Link className="block w-full" href={logout()} as="button" onClick={handleLogout} data-test="logout-button">
                     <LogOut className="mr-2" />
                     Log out
                 </Link>

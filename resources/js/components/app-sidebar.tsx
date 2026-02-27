@@ -1,6 +1,8 @@
-import { NavFooter } from '@/components/nav-footer';
-import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
+import { Link } from "@inertiajs/react";
+import { BookOpenCheck, LayoutGrid, Notebook, Tags, UsersRound } from "lucide-react";
+import { route } from "ziggy-js";
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
 import {
     Sidebar,
     SidebarContent,
@@ -9,23 +11,20 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, BookOpenCheck, Folder, LayoutGrid, Notebook, Tags, User2Icon, Users2, UserSquare2, UsersRound } from 'lucide-react';
-import AppLogo from './app-logo';
-import { route } from 'ziggy-js';
+} from "@/components/ui/sidebar";
+import { dashboard } from "@/routes";
+import type { NavItem } from "@/types";
+import AppLogo from "./app-logo";
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: "Dashboard",
         href: dashboard(),
         icon: LayoutGrid,
     },
     {
-        title: 'Events',
-        href: route('events.index'),
+        title: "Events",
+        href: route("events.index"),
         icon: BookOpenCheck,
     },
     // {
@@ -34,22 +33,21 @@ const mainNavItems: NavItem[] = [
     //     icon: UsersRound,
     // },
     {
-        title: 'Voter/Pemilih',
-        href: route('voters.index'),
+        title: "Voter/Pemilih",
+        href: route("voters.index"),
         icon: UsersRound,
     },
     {
-        title: 'Posisi',
-        href: route('positions.index'),
+        title: "Posisi",
+        href: route("positions.index"),
         icon: Tags,
     },
     {
-        title: 'User Roles',
-        href: route('roles.index'),
+        title: "User Roles",
+        href: route("roles.index"),
         icon: Notebook,
-    }
+    },
 ];
-
 
 export function AppSidebar() {
     return (

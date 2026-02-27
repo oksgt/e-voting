@@ -1,3 +1,16 @@
+import { Head, useForm } from "@inertiajs/react";
+import { LoaderCircle } from "lucide-react";
+import { toast } from "sonner";
+import { route } from "ziggy-js";
+import DateTime24Picker, { toIsoDateTime24 } from "@/components/commons/date-time-24-picker";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import AppLayout from "@/layouts/app-layout";
+import type { BreadcrumbItem } from "@/types";
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -43,65 +56,73 @@ import { DateTimePicker } from '@/components/DateTimePicker';
 
 type EditEventProps = {
     event: {
-        id: number
-        name: string
-        keyword: string | null
-        description: string | null
-        started_at: string // biasanya format ISO datetime
-        finished_at: string // biasanya format ISO datetime
-        duration: number   // integer (menit)
-        is_autorun: boolean
-        status: "pending" | "scheduled" | "running" | "finished" | "cancelled"
-        is_running: boolean // tinyint(1) → boolean
-    }
-}
+        id: number;
+        name: string;
+        keyword: string | null;
+        description: string | null;
+        started_at: string; // biasanya format ISO datetime
+        finished_at: string; // biasanya format ISO datetime
+        duration: number; // integer (menit)
+        is_autorun: boolean;
+        status: "pending" | "scheduled" | "running" | "finished" | "cancelled";
+        is_running: boolean; // tinyint(1) → boolean
+    };
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Events',
-        href: route('events.index'),
+        title: "Events",
+        href: route("events.index"),
     },
 ];
 
-// helper untuk format datetime ke input datetime-local
-function toDatetimeLocal(value: string) {
+const toDatetimeLocal = (value: string | null | undefined) => {
     if (!value) return "";
+
     const date = new Date(value);
-    // ambil bagian YYYY-MM-DDTHH:MM sesuai lokal
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    return (
-        date.getFullYear() +
-        "-" + pad(date.getMonth() + 1) +
-        "-" + pad(date.getDate()) +
-        "T" + pad(date.getHours()) +
-        ":" + pad(date.getMinutes())
-    );
-}
+    if (Number.isNaN(date.getTime())) return "";
+
+    const pad = (num: number) => String(num).padStart(2, "0");
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hour = pad(date.getHours());
+    const minute = pad(date.getMinutes());
+
+    return `${year}-${month}-${day}T${hour}:${minute}`;
+};
 
 export default function Edit({ event }: EditEventProps) {
-    console.log(event);
-    const { data, setData, put, processing, errors, reset } = useForm({
-        name: event.name || '',
-        keyword: event.keyword || '',
-        description: event.description || '',
-        started_at: event.started_at || '',
-        finished_at: event.finished_at || '',
-        duration: event.duration || '',
+    const { data, setData, put, processing, errors, transform } = useForm({
+        name: event.name || "",
+        keyword: event.keyword || "",
+        description: event.description || "",
+        started_at: toDatetimeLocal(event.started_at) || "",
+        finished_at: toDatetimeLocal(event.finished_at) || "",
+        duration: event.duration || "",
         is_autorun: event.is_autorun || false,
-        status: event.status || 'pending',
+        status: event.status || "pending",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
+
+        transform((formData) => ({
+            ...formData,
+            started_at: toIsoDateTime24(formData.started_at),
+            finished_at: toIsoDateTime24(formData.finished_at),
+        }));
+
         put(route("events.update", event.id), {
+            onFinish: () => transform((formData) => formData),
             onSuccess: () => {
                 toast.success("Election Event updated successfully!", {
                     style: { backgroundColor: "green", color: "white" },
-                })
+                });
             },
-        })
-    }
-
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -238,5 +259,5 @@ export default function Edit({ event }: EditEventProps) {
 
             </div>
         </AppLayout>
-    )
+    );
 }

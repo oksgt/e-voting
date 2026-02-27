@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RoleRequest;
+use App\Http\Resources\RoleCollection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -16,6 +17,7 @@ class RoleController extends Controller
      */
     public function index(Request $request)
     {
+        $per_page = $request->input('per_page', 10);
         $search = $request->input('search');
 
         $roles = Role::with('permissions')
@@ -25,11 +27,10 @@ class RoleController extends Controller
                 });
             })
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate($per_page);
 
         return Inertia::render('Roles/Index', [
-            'roles'      => $roles,
-            'authUserId' => auth()->id(),
+            'roles'      => new RoleCollection($roles),
             'filters'    => [
                 'search' => $search,
             ],

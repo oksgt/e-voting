@@ -15,7 +15,8 @@ class UserRequest extends FormRequest
 
     public function rules(): array
     {
-        $routeUser = $this->route('user');
+        // Support both 'user' (users resource) and 'voter' (voters resource) route parameters
+        $routeUser = $this->route('user') ?? $this->route('voter');
         $userId = $routeUser instanceof User ? $routeUser->id : ($routeUser ?? null);
 
         $loginMethod = $this->input('login_method', 'password'); // default to password
@@ -23,23 +24,30 @@ class UserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
-                'required',
+                'nullable',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($userId),
+                Rule::unique('users', 'email')->ignore($userId)->whereNull('deleted_at'),
             ],
 
             'nik' => [
-                'nullable', // allow empty if not mandatory
+                'required',
                 'string',
                 'size:16', // exactly 16 characters
-                Rule::unique('users', 'nik')->ignore($userId),
+                'regex:/^\d{16}$/',
+                Rule::unique('users', 'nik')->ignore($userId)->whereNull('deleted_at'),
             ],
 
             'phone_number' => [
                 'nullable',
                 'string',
                 'max:20', // adjust based on your format
+            ],
+
+            'bidang' => [
+                'nullable',
+                'string',
+                'max:255',
             ],
 
             'login_method' => ['required', Rule::in(['password', 'magic_link', 'both'])],
@@ -64,7 +72,6 @@ class UserRequest extends FormRequest
             'name.string'   => 'Name must be a valid string.',
             'name.max'      => 'Name may not be greater than 255 characters.',
 
-            'email.required' => 'Email is required.',
             'email.email'    => 'Please enter a valid email address.',
             'email.unique'   => 'This email is already taken. Please use another one.',
 
@@ -84,6 +91,8 @@ class UserRequest extends FormRequest
 
             'nik.string' => 'NIK must be a valid string.',
             'nik.size'   => 'NIK must be exactly 16 digits.',
+            'nik.required' => 'NIK is required.',
+            'nik.regex' => 'NIK must contain only digits.',
             'nik.unique' => 'This NIK is already registered.',
 
             'phone_number.string' => 'Phone number must be a valid string.',

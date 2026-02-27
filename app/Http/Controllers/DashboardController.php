@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\DashboardEventResource;
+use App\Http\Resources\PositionResource;
 use App\Models\ElectionEvent;
+use App\Models\Position;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -18,7 +22,37 @@ class DashboardController extends Controller
 
         // ambil role pertama dengan aman
         $user_role = $user->roles->pluck('name')->first();
-        $runningEvent = ElectionEvent::where('status', 'running')->first();
+        $eventModels = ElectionEvent::query()
+            ->orderByRaw("CASE WHEN status = 'running' THEN 0 ELSE 1 END")
+            ->orderByDesc('started_at')
+            ->orderByDesc('created_at')
+            ->get();
+        $runningEvent = $eventModels->firstWhere('status', 'running');
+        $electionEvents = DashboardEventResource::collection($eventModels)->resolve();
+        $runningEventResource = $runningEvent ? DashboardEventResource::make($runningEvent)->resolve() : null;
+        // Status counts (always across all voters, unaffected by search/status filter)
+        $rawCounts     = User::query()
+        ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+        $statusCounts  = [
+            'total'    => $rawCounts->sum(),
+            'pending'  => $rawCounts->get('pending', 0),
+            'approved' => $rawCounts->get('approved', 0),
+            'rejected' => $rawCounts->get('rejected', 0),
+        ];
+
+        $positionCounts = [
+            'total' => Position::query()->count(),
+            'active' => Position::query()->where('status', 1)->count(),
+            'inactive' => Position::query()->where('status', 0)->count(),
+        ];
+        $activePositions = PositionResource::collection(
+            Position::query()
+                ->where('status', 1)
+                ->orderBy('name')
+                ->get()
+        )->resolve();
 
         $view = 'dashboard';
         if ($user_role === 'Voter') {
@@ -26,9 +60,13 @@ class DashboardController extends Controller
         }
 
         return Inertia::render($view, [
-            'user'         => $user,
-            'roles'        => $user->roles->pluck('name'),
-            'runningEvent' => $runningEvent
+            'user' => $user,
+            'roles' => $user->roles->pluck('name'),
+            'runningEvent' => $runningEventResource,
+            'electionEvents' => $electionEvents,
+            'voters' => $statusCounts,
+            'positions' => $positionCounts,
+            'activePositions' => $activePositions,
         ]);
 
     }
@@ -37,18 +75,18 @@ class DashboardController extends Controller
     {
         $runningEvent = ElectionEvent::where('is_running', 1)->first();
 
-        if (!$runningEvent) {
+        if (! $runningEvent) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak ada event yang sedang berlangsung',
-                'data'    => null
+                'data' => null,
             ], 404);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'List Data Products',
-            'data'    => $runningEvent
+            'data' => $runningEvent,
         ]);
     }
 

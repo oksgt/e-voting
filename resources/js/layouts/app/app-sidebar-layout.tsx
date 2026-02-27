@@ -1,26 +1,21 @@
-import { usePage } from '@inertiajs/react';
-import { AppContent } from '@/components/app-content';
-import { AppShell } from '@/components/app-shell';
-import { AppSidebar } from '@/components/app-sidebar';
-import { AppSidebarHeader } from '@/components/app-sidebar-header';
-import { type BreadcrumbItem } from '@/types';
-import { type PropsWithChildren } from 'react';
+import { usePage } from "@inertiajs/react";
+import type { PropsWithChildren } from "react";
+import { AppContent } from "@/components/app-content";
+import { AppShell } from "@/components/app-shell";
+import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebarHeader } from "@/components/app-sidebar-header";
+import type { BreadcrumbItem } from "@/types";
 
 type AppSidebarLayoutProps = PropsWithChildren<{
     breadcrumbs?: BreadcrumbItem[];
 }>;
 
-export default function AppSidebarLayout({
-    children,
-    breadcrumbs = [],
-}: AppSidebarLayoutProps) {
+export default function AppSidebarLayout({ children, breadcrumbs = [] }: AppSidebarLayoutProps) {
     const { auth } = usePage().props as { auth?: { roles?: string[] } };
     const roles = auth?.roles || [];
 
     // gunakan toLowerCase agar aman terhadap case-sensitive
-    const canSeeSidebar = roles.some(
-        (role) => role.toLowerCase() === "admin"
-    );
+    const canSeeSidebar = roles.some((role) => role.toLowerCase() === "admin");
 
     return (
         <AppShell variant="sidebar">

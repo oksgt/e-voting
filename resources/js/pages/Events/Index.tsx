@@ -5,60 +5,35 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
     Table,
-    TableHeader,
     TableBody,
-    TableRow,
-    TableHead,
     TableCell,
-} from "@/components/ui/table"
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { route } from 'ziggy-js';
 
+import { Badge } from '@/components/ui/badge';
+import { ButtonGroup } from '@/components/ui/button-group';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { can } from "@/lib/can";
 import {
-    useReactTable,
+    flexRender,
     getCoreRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    flexRender,
+    useReactTable,
 } from "@tanstack/react-table";
+import { Calendar, CheckCircle, Clock, Edit3, PlayCircle, PlusCircle, XCircle } from 'lucide-react';
 import { useMemo, useState } from "react";
-import { ButtonGroup } from '@/components/ui/button-group';
-import { BadgeCheck, BadgeX, Calendar, CheckCircle, CirclePlay, Clock, Edit3, LoaderCircle, LucideCloudDownload, LucideDownload, LucideFileUp, LucideImport, LucideUpload, LucideUserPlus, PlayCircle, Plus, PlusCircle, Tag, Trash2Icon, WandSparkles, XCircle } from 'lucide-react';
-import {
-    AlertDialog,
-    AlertDialogTrigger,
-    AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogCancel,
-    AlertDialogAction,
-} from "@/components/ui/alert-dialog"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { router } from '@inertiajs/react';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { can } from "@/lib/can";
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { Field, FieldGroup } from '@/components/ui/field';
-import { Label } from '@radix-ui/react-label';
-import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Events', href: route('events.index') },

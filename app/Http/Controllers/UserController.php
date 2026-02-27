@@ -41,7 +41,7 @@ class UserController extends Controller
 
         return Inertia::render('Users/Index', [
             'users'      => $users,
-            'authUserId' => auth()->id(),
+            'authUserId' => Auth::id(),
             'filters'    => [
                 'search' => $search,
             ],
@@ -63,31 +63,34 @@ class UserController extends Controller
      */
     public function store(UserRequest $request)
     {
+        $validated = $request->validated();
+
         // Build base user data
         $userData = [
-            'name'          => $request->name,
-            'email'         => $request->email,
-            'nik'           => $request->nik,
-            'phone_number'  => $request->phone_number,
-            'login_method'  => $request->login_method,
+            'name'          => $validated['name'],
+            'email'         => $this->emailFromNik($validated['nik']),
+            'nik'           => $validated['nik'],
+            'phone_number'  => $validated['phone_number'] ?? null,
+            'login_method'  => $validated['login_method'],
+            'bidang'        => $validated['bidang'] ?? null,
         ];
 
         // Only set password if login method is password or both
-        if (in_array($request->login_method, ['password', 'both']) && $request->filled('password')) {
-            $userData['password'] = bcrypt($request->password);
+        if (in_array($validated['login_method'], ['password', 'both']) && !empty($validated['password'])) {
+            $userData['password'] = bcrypt($validated['password']);
         }
 
         $user = User::create($userData);
 
         // Assign roles safely (only if roles are provided)
-        if ($request->filled('roles')) {
-            $user->syncRoles($request->roles);
+        if (!empty($validated['roles'])) {
+            $user->syncRoles($validated['roles']);
         }
 
         // Update whatsapp_active based on validation result
-        if ($request->phone_number) {
+        if (!empty($validated['phone_number'])) {
             $rule = new \App\Rules\ValidPhoneNumber;
-            $rule->validate('phone_number', $request->phone_number, function () {});
+            $rule->validate('phone_number', $validated['phone_number'], function () {});
             $user->update(['whatsapp_active' => $rule->isRegistered ? 1 : 0]);
         }
 
@@ -132,8 +135,12 @@ class UserController extends Controller
 
         // Build update data
         $updateData = [
-            'name'  => $validated['name'],
-            'email' => $validated['email'],
+            'name'         => $validated['name'],
+            'email'        => $this->emailFromNik($validated['nik']),
+            'nik'          => $validated['nik'],
+            'phone_number' => $validated['phone_number'] ?? null,
+            'login_method' => $validated['login_method'],
+            'bidang'       => $validated['bidang'] ?? null,
         ];
 
         if (!empty($validated['password'])) {
@@ -143,9 +150,9 @@ class UserController extends Controller
         // Track whether anything changed
         $changesMade = false;
 
-        // Update user fields if dirty
-        if ($user->isDirty($updateData)) {
-            $user->update($updateData);
+        $user->fill($updateData);
+        if ($user->isDirty()) {
+            $user->save();
             $changesMade = true;
         }
 
@@ -170,7 +177,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         // Prevent self-deletion
-        if (auth()->id() === $user->id) {
+        if (Auth::id() === $user->id) {
             return redirect()
                 ->route('users.index')
                 ->with('error', 'You cannot delete your own account.');
@@ -192,10 +199,12 @@ class UserController extends Controller
             ->value('value');
 
         if (!$token) {
-            $fail("Fonnte token is not configured in settings.");
-            return;
+            return response()->json([
+                'error' => 'Fonnte token is not configured in settings.',
+            ], 422);
         }
 
+        /** @var \Illuminate\Http\Client\Response $response */
         $response = Http::withHeaders([
             'Authorization' => $token,
         ])->post('https://api.fonnte.com/validate', [
@@ -203,7 +212,7 @@ class UserController extends Controller
             'countryCode' => '62',
         ]);
 
-        dd($response->json());
+        return response()->json($response->json());
     }
 
     public function importCsv(Request $request)
@@ -253,12 +262,15 @@ class UserController extends Controller
 
             $data = array_combine($header, $row);
 
+            $generatedEmail = $this->emailFromNik($data['nik'] ?? null);
+
             // Basic validation
-            $validator = Validator::make($data, [
+            $validator = Validator::make(array_merge($data, ['generated_email' => $generatedEmail]), [
                 'nik' => [
-                    'nullable',
+                    'required',
                     'string',
-                    'max:16',
+                    'size:16',
+                    'regex:/^\d{16}$/',
                     Rule::unique('users', 'nik')->whereNull('deleted_at'),
                 ],
                 'name' => 'required|string|max:255',
@@ -268,18 +280,21 @@ class UserController extends Controller
                     'max:255',
                     Rule::unique('users', 'phone_number')->whereNull('deleted_at'),
                 ],
-                'email' => [
+                'generated_email' => [
                     'required',
                     'email',
                     Rule::unique('users', 'email')->whereNull('deleted_at'),
                 ],
             ], [
                 'nik.unique'          => 'NIK already exists in the system.',
+                'nik.required'        => 'NIK is required.',
+                'nik.size'            => 'NIK must be exactly 16 digits.',
+                'nik.regex'           => 'NIK must contain only digits.',
                 'name.required'       => 'Name is required.',
                 'phone_number.unique' => 'Phone number is already registered.',
-                'email.unique'        => 'Email address is already registered.',
-                'email.required'      => 'Email is required.',
-                'email.email'         => 'Email must be a valid format.',
+                'generated_email.unique'        => 'Generated email from NIK is already registered.',
+                'generated_email.required'      => 'Generated email is required.',
+                'generated_email.email'         => 'Generated email must be a valid format.',
             ]);
 
             if ($validator->fails()) {
@@ -297,7 +312,7 @@ class UserController extends Controller
                 'nik'          => $data['nik'] ?? null,
                 'name'         => $data['name'],
                 'phone_number' => $data['phone_number'] ?? null,
-                'email'        => $data['email'],
+                'email'        => $generatedEmail,
                 'login_method' => 'magic_link', // default
             ];
 
@@ -330,6 +345,11 @@ class UserController extends Controller
             'message' => 'No users imported.',
             'errors'  => $errors,
         ], 422);
+    }
+
+    private function emailFromNik(?string $nik): string
+    {
+        return sprintf('%s@example.com', $nik);
     }
 
     public function testingBroadcast(Request $request, $id)

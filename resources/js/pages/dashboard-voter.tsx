@@ -1,18 +1,13 @@
-import { FormTahap1 } from '@/components/FormTahap1';
-import { NavUser } from '@/components/nav-user';
-import RunningElectionEvent from '@/components/RunningElectionEvent';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import { SidebarMenuButton } from '@/components/ui/sidebar';
-import { UserInfo } from '@/components/user-info';
-import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
-import { SharedData, type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
-import { ChevronsUpDown } from 'lucide-react';
+import { Head } from "@inertiajs/react";
+import { NavUser } from "@/components/nav-user";
+import RunningElectionEvent from "@/components/RunningElectionEvent";
+import AppLayout from "@/layouts/app-layout";
+import { dashboard } from "@/routes";
+import type { BreadcrumbItem } from "@/types";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard Voter',
+        title: "Dashboard Voter",
         href: dashboard().url,
     },
 ];
