@@ -19,8 +19,6 @@ export default function RolesGroup({
         [roles, selectedRoles]
     );
 
-    console.log("selected", selectedRoles);
-
     return (
         <div className="border rounded p-2">
             <div className="flex justify-between items-center mb-2">

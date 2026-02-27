@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ElectionEvent;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -19,6 +20,10 @@ class DashboardController extends Controller
         // ambil role pertama dengan aman
         $user_role = $user->roles->pluck('name')->first();
         $runningEvent = ElectionEvent::where('status', 'running')->first();
+        $voters = User::with('roles')
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'Voter');
+            })->get();
 
         $view = 'dashboard';
         if ($user_role === 'Voter') {
@@ -26,9 +31,23 @@ class DashboardController extends Controller
         }
 
         return Inertia::render($view, [
-            'user'         => $user,
-            'roles'        => $user->roles->pluck('name'),
-            'runningEvent' => $runningEvent
+            'user' => $user,
+            'roles' => $user->roles->pluck('name'),
+            'runningEvent' => $runningEvent,
+            'voters' => [
+                'approved' => $voters
+                    ->where('whatsapp_active', 1)
+                    ->where('status', 'approved')
+                    ->count(),
+                'pending'=> $voters
+                    ->where('whatsapp_active', 0)
+                    ->where('status', 'pending')
+                    ->count(),
+                'rejected'=> $voters
+                    ->where('status', 'rejected')
+                    ->count(),
+                'registered' => $voters->count()
+            ],
         ]);
 
     }
@@ -37,18 +56,18 @@ class DashboardController extends Controller
     {
         $runningEvent = ElectionEvent::where('is_running', 1)->first();
 
-        if (!$runningEvent) {
+        if (! $runningEvent) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak ada event yang sedang berlangsung',
-                'data'    => null
+                'data' => null,
             ], 404);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'List Data Products',
-            'data'    => $runningEvent
+            'data' => $runningEvent,
         ]);
     }
 

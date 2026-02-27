@@ -15,7 +15,8 @@ class UserRequest extends FormRequest
 
     public function rules(): array
     {
-        $routeUser = $this->route('user');
+        // Support both 'user' (users resource) and 'voter' (voters resource) route parameters
+        $routeUser = $this->route('user') ?? $this->route('voter');
         $userId = $routeUser instanceof User ? $routeUser->id : ($routeUser ?? null);
 
         $loginMethod = $this->input('login_method', 'password'); // default to password
@@ -40,6 +41,12 @@ class UserRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:20', // adjust based on your format
+            ],
+
+            'bidang' => [
+                'nullable',
+                'string',
+                'max:255',
             ],
 
             'login_method' => ['required', Rule::in(['password', 'magic_link', 'both'])],

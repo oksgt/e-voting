@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import axios from "axios";
-import Countdown from "./countdown";
-import { Calendar, ListCheck, ListChecks, RefreshCw } from "lucide-react";
+import { ListChecks, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 import { FormTahap1 } from "./FormTahap1";
 
 export default function RunningElectionEvent() {
@@ -9,7 +8,6 @@ export default function RunningElectionEvent() {
 
     useEffect(() => {
         axios.get("/api/election-events/running").then((res) => {
-            console.log('data', res.data);
             setEvents(res.data);
         });
     }, []);

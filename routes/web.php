@@ -49,6 +49,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('voters', VoterController::class);
     Route::post('/voters/import', [UserController::class, 'importCsv'])->name('voters.import');
+    Route::patch('/voters/{voter}/approve', [VoterController::class, 'approve'])->name('voters.approve');
+    Route::patch('/voters/{voter}/reject', [VoterController::class, 'reject'])->name('voters.reject');
 
     Route::resource('positions', PositionController::class);
 

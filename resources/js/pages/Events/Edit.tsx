@@ -1,56 +1,35 @@
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import { route } from 'ziggy-js';
-import {
-    Field,
-    FieldGroup,
-    FieldLabel,
-    FieldLegend,
-    FieldSet,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { LoaderCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { Switch } from "@/components/ui/switch"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import { ChartPenjaringan, Chartpenjaringan } from '@/components/ChartPenjaringan';
+import { Head, useForm } from "@inertiajs/react";
+import { LoaderCircle } from "lucide-react";
+import { toast } from "sonner";
+import { route } from "ziggy-js";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import AppLayout from "@/layouts/app-layout";
+import type { BreadcrumbItem } from "@/types";
 
 type EditEventProps = {
     event: {
-        id: number
-        name: string
-        keyword: string | null
-        description: string | null
-        started_at: string // biasanya format ISO datetime
-        finished_at: string // biasanya format ISO datetime
-        duration: number   // integer (menit)
-        is_autorun: boolean
-        status: "pending" | "scheduled" | "running" | "finished" | "cancelled"
-        is_running: boolean // tinyint(1) → boolean
-    }
-}
+        id: number;
+        name: string;
+        keyword: string | null;
+        description: string | null;
+        started_at: string; // biasanya format ISO datetime
+        finished_at: string; // biasanya format ISO datetime
+        duration: number; // integer (menit)
+        is_autorun: boolean;
+        status: "pending" | "scheduled" | "running" | "finished" | "cancelled";
+        is_running: boolean; // tinyint(1) → boolean
+    };
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Events',
-        href: route('events.index'),
+        title: "Events",
+        href: route("events.index"),
     },
 ];
 
@@ -62,36 +41,34 @@ function toDatetimeLocal(value: string) {
     return date.toISOString().slice(0, 16);
 }
 export default function Edit({ event }: EditEventProps) {
-    console.log(event);
     const { data, setData, put, processing, errors, reset } = useForm({
-        name: event.name || '',
-        keyword: event.keyword || '',
-        description: event.description || '',
-        started_at: event.started_at || '',
-        finished_at: event.finished_at || '',
-        duration: event.duration || '',
+        name: event.name || "",
+        keyword: event.keyword || "",
+        description: event.description || "",
+        started_at: toDatetimeLocal(event.started_at) || "",
+        finished_at: toDatetimeLocal(event.finished_at) || "",
+        duration: event.duration || "",
         is_autorun: event.is_autorun || false,
-        status: event.status || 'pending',
+        status: event.status || "pending",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
         put(route("events.update", event.id), {
             onSuccess: () => {
                 toast.success("Election Event updated successfully!", {
                     style: { backgroundColor: "green", color: "white" },
-                })
+                });
             },
-        })
-    }
-
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Election Event Edit" />
             <div className="flex justify-center p-4">
                 <div className="grid grid-cols-2 gap-4 w-full">
-                    <div className="">
+                    {/* <div className="">
                         <Card className="w-full">
                             <CardHeader>
                                 <CardTitle>Summary Event</CardTitle>
@@ -102,7 +79,7 @@ export default function Edit({ event }: EditEventProps) {
                                 <ChartPenjaringan />
                             </CardContent>
                         </Card>
-                    </div>
+                    </div> */}
                     <div className="">
                         <Card className="w-full">
                             <CardContent>
@@ -112,14 +89,13 @@ export default function Edit({ event }: EditEventProps) {
                                             <FieldLegend>Edit Election Event</FieldLegend>
                                             <div className="flex flex-col md:flex-row gap-6">
                                                 <div className="flex-1 space-y-4">
-
                                                     {/* Event Name */}
                                                     <Field>
                                                         <FieldLabel htmlFor="input-name">Event Name</FieldLabel>
                                                         <Input
                                                             id="input-name"
-                                                            value={data.name}
-                                                            onChange={(e) => setData('name', e.target.value)}
+                                                            defaultValue={data.name}
+                                                            onChange={(e) => setData("name", e.target.value)}
                                                         />
                                                         {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                                                     </Field>
@@ -129,8 +105,8 @@ export default function Edit({ event }: EditEventProps) {
                                                         <FieldLabel htmlFor="input-keyword">Keyword</FieldLabel>
                                                         <Input
                                                             id="input-keyword"
-                                                            value={data.keyword}
-                                                            onChange={(e) => setData('keyword', e.target.value)}
+                                                            defaultValue={data.keyword}
+                                                            onChange={(e) => setData("keyword", e.target.value)}
                                                         />
                                                         {errors.keyword && <p className="text-red-500 text-sm">{errors.keyword}</p>}
                                                     </Field>
@@ -140,8 +116,8 @@ export default function Edit({ event }: EditEventProps) {
                                                         <FieldLabel htmlFor="input-description">Description</FieldLabel>
                                                         <Textarea
                                                             id="input-description"
-                                                            value={data.description}
-                                                            onChange={(e) => setData('description', e.target.value)}
+                                                            defaultValue={data.description}
+                                                            onChange={(e) => setData("description", e.target.value)}
                                                         />
                                                         {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
                                                     </Field>
@@ -152,8 +128,8 @@ export default function Edit({ event }: EditEventProps) {
                                                         <Input
                                                             type="datetime-local"
                                                             id="input-start-date"
-                                                            value={toDatetimeLocal(data.started_at)}
-                                                            onChange={(e) => setData('started_at', e.target.value)}
+                                                            defaultValue={toDatetimeLocal(data.started_at)}
+                                                            onChange={(e) => setData("started_at", e.target.value)}
                                                         />
                                                         {errors.started_at && <p className="text-red-500 text-sm">{errors.started_at}</p>}
                                                     </Field>
@@ -163,8 +139,8 @@ export default function Edit({ event }: EditEventProps) {
                                                         <Input
                                                             type="datetime-local"
                                                             id="input-finish-date"
-                                                            value={toDatetimeLocal(data.finished_at)}
-                                                            onChange={(e) => setData('finished_at', e.target.value)}
+                                                            defaultValue={toDatetimeLocal(data.finished_at)}
+                                                            onChange={(e) => setData("finished_at", e.target.value)}
                                                         />
                                                         {errors.finished_at && <p className="text-red-500 text-sm">{errors.finished_at}</p>}
                                                     </Field>
@@ -173,8 +149,8 @@ export default function Edit({ event }: EditEventProps) {
                                                     <Field>
                                                         <FieldLabel htmlFor="status-select">Status</FieldLabel>
                                                         <Select
-                                                            value={data.status}
-                                                            onValueChange={(value) => setData("status", value)}
+                                                            defaultValue={data.status}
+                                                            onValueChange={(value) => setData("status", value as typeof data.status)}
                                                         >
                                                             <SelectTrigger id="status-select">
                                                                 <SelectValue placeholder="Select status" />
@@ -218,9 +194,7 @@ export default function Edit({ event }: EditEventProps) {
                         </Card>
                     </div>
                 </div>
-
-
             </div>
         </AppLayout>
-    )
+    );
 }

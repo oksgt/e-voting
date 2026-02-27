@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\Voters\ApproveVoterRequest;
+use App\Http\Requests\Voters\DestroyVoterRequest;
+use App\Http\Requests\Voters\RejectVoterRequest;
+use App\Http\Requests\Voters\StoreVoterRequest;
+use App\Http\Requests\Voters\UpdateVoterRequest;
+use App\Http\Resources\UserCollection;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,26 +24,57 @@ class VoterController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
+        $search         = $request->input('search');
+        $per_page       = $request->per_page ?? 10;
+        $sort_by        = $request->sort_by;
+        $sort_direction = $request->sort_direction;
+        $status         = $request->input('status'); // pending | approved | rejected
 
-        $users = User::with('roles')
-            ->whereHas('roles', function ($q) {
-                $q->where('name', 'Voter');
-            })
+        // Base scope: only Voter-role users
+        $voterScope = User::whereHas('roles', function ($q) {
+            $q->where('name', 'Voter');
+        });
+
+        // Status counts (always across all voters, unaffected by search/status filter)
+        $rawCounts     = (clone $voterScope)->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+        $statusCounts  = [
+            'total'    => $rawCounts->sum(),
+            'pending'  => $rawCounts->get('pending', 0),
+            'approved' => $rawCounts->get('approved', 0),
+            'rejected' => $rawCounts->get('rejected', 0),
+        ];
+
+        $users = (clone $voterScope)
+            ->with('roles')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")
+                        ->orWhere('bidang', 'like', "%{$search}%")
+                        ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->when($status, fn($q) => $q->where('status', $status))
+            ->when(
+                $sort_by && in_array($sort_by, ['name', 'email', 'created_at', 'status', 'bidang']),
+                fn($q) => $q->orderBy($sort_by, $sort_direction ?? 'asc'),
+                fn($q) => $q->orderBy('created_at', 'desc')
+            )
+            ->paginate($per_page);
 
         return Inertia::render('Voters/Index', [
-            'users'      => $users,
-            'authUserId' => auth()->id(),
-            'filters'    => [
-                'search' => $search,
+            'users'        => new UserCollection($users),
+            'authUserId'   => $request->user()->id,
+            'statusCounts' => $statusCounts,
+            'filters'      => [
+                'per_page'       => $per_page,
+                'search'         => $search,
+                'status'         => $status,
+                'sort_by'        => $sort_by,
+                'sort_direction' => $sort_direction,
             ],
             'csrfToken' => csrf_token(),
         ]);
@@ -46,15 +82,15 @@ class VoterController extends Controller
 
     public function create()
     {
-        return Inertia::render('Users/Create', [
-            "roles" => Role::pluck('name')
+        return Inertia::render('Voters/Create', [
+            'roles' => Role::pluck('name'),
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(UserRequest $request)
+    public function store(StoreVoterRequest $request)
     {
         // Build base user data
         $userData = [
@@ -62,7 +98,9 @@ class VoterController extends Controller
             'email'         => $request->email,
             'nik'           => $request->nik,
             'phone_number'  => $request->phone_number,
+            'bidang'        => $request->bidang,
             'login_method'  => $request->login_method,
+            'status'        => 'pending',
         ];
 
         // Only set password if login method is password or both
@@ -101,17 +139,12 @@ class VoterController extends Controller
     /**
      * Show the form for editing the specified user.
      */
-    public function edit(User $user)
+    public function edit(User $voter)
     {
-        return Inertia::render('Users/Edit', [
-            // user data for prefill
-            'user' => $user->load('roles'), // eager load roles relationship
-
-            // all available role names
-            'roles' => Role::pluck('name'),
-
-            // current roles assigned to this user
-            'userRoles' => $user->roles->pluck('name'),
+        return Inertia::render('Voters/Edit', [
+            'user'      => $voter->load('roles'),
+            'roles'     => Role::pluck('name'),
+            'userRoles' => $voter->roles->pluck('name'),
         ]);
     }
 
@@ -119,15 +152,19 @@ class VoterController extends Controller
     /**
      * Update the specified user in storage.
      */
-    public function update(UserRequest $request, User $user)
+    public function update(UpdateVoterRequest $request, User $voter)
     {
         $validated = $request->validated();
 
         // Build update data
-        $updateData = [
-            'name'  => $validated['name'],
-            'email' => $validated['email'],
-        ];
+        // $updateData = [
+        //     'name'         => $validated['name'],
+        //     'email'        => $validated['email'],
+        //     'nik'          => $validated['nik'] ?? $voter->nik,
+        //     'phone_number' => $validated['phone_number'] ?? $voter->phone_number,
+        //     'bidang'       => $validated['bidang'] ?? null,
+        // ];
+        $updateData=$validated;
 
         if (!empty($validated['password'])) {
             $updateData['password'] = bcrypt($validated['password']);
@@ -136,15 +173,16 @@ class VoterController extends Controller
         // Track whether anything changed
         $changesMade = false;
 
-        // Update user fields if dirty
-        if ($user->isDirty($updateData)) {
-            $user->update($updateData);
+        // Fill model first, then check if any attribute actually changed
+        $voter->fill($updateData);
+        if ($voter->isDirty()) {
+            $voter->save();
             $changesMade = true;
         }
 
         // Sync roles if provided
         if (!empty($validated['roles'])) {
-            $user->syncRoles($validated['roles']);
+            $voter->syncRoles($validated['roles']);
             $changesMade = true;
         }
 
@@ -160,21 +198,41 @@ class VoterController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(DestroyVoterRequest $request, User $voter)
     {
-        // Prevent self-deletion
-        if (auth()->id() === $user->id) {
-            return redirect()
-                ->route('voters.index')
-                ->with('error', 'You cannot delete your own account.');
-        }
-
-        // Soft delete other users
-        $user->delete();
+        $voter->delete();
 
         return redirect()
             ->route('voters.index')
             ->with('success', 'Voter deleted successfully.');
+    }
+
+    /**
+     * Approve the specified voter.
+     */
+    public function approve(ApproveVoterRequest $request, User $voter)
+    {
+        if ($voter->status === 'approved') {
+            return back()->with('info', 'Voter is already approved.');
+        }
+
+        $voter->update(['status' => 'approved']);
+
+        return back()->with('success', 'Voter approved successfully.');
+    }
+
+    /**
+     * Reject the specified voter.
+     */
+    public function reject(RejectVoterRequest $request, User $voter)
+    {
+        if ($voter->status === 'rejected') {
+            return back()->with('info', 'Voter is already rejected.');
+        }
+
+        $voter->update(['status' => 'rejected']);
+
+        return back()->with('success', 'Voter rejected successfully.');
     }
 
     public function checkPhoneNumber(Request $request, string $phone)
@@ -185,10 +243,10 @@ class VoterController extends Controller
             ->value('value');
 
         if (!$token) {
-            $fail("Fonnte token is not configured in settings.");
-            return;
+            return response()->json(['error' => 'Fonnte token is not configured in settings.'], 422);
         }
 
+        /** @var \Illuminate\Http\Client\Response $response */
         $response = Http::withHeaders([
             'Authorization' => $token,
         ])->post('https://api.fonnte.com/validate', [
@@ -196,7 +254,7 @@ class VoterController extends Controller
             'countryCode' => '62',
         ]);
 
-        dd($response->json());
+        return response()->json($response->json());
     }
 
     public function importCsv(Request $request)
@@ -313,7 +371,6 @@ class VoterController extends Controller
                 'success' => true,
                 'message' => "Imported {$imported} users successfully.",
                 'errors'  => $errors,
-                'data'    => $data
             ]);
         }
 
