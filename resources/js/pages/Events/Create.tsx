@@ -1,53 +1,53 @@
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-} from "@/components/ui/card";
-import {
-    Field,
-    FieldGroup,
-    FieldLabel,
-    FieldLegend,
-    FieldSet,
-} from "@/components/ui/field";
+import { Head, useForm } from "@inertiajs/react";
+import { LoaderCircle } from "lucide-react";
+import { toast } from "sonner";
+import { route } from "ziggy-js";
+import DateTime24Picker, { toIsoDateTime24 } from "@/components/commons/date-time-24-picker";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { route } from 'ziggy-js';
+import AppLayout from "@/layouts/app-layout";
+import type { BreadcrumbItem } from "@/types";
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Events',
-        href: route('events.index'),
+        title: "Events",
+        href: route("events.index"),
     },
 ];
 
 export default function Create() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        keyword: '',
-        description: '',
-        started_at: '',
-        finished_at: '',
-        duration: '',
+    const { data, setData, post, processing, errors, reset, transform } = useForm({
+        name: "",
+        keyword: "",
+        description: "",
+        started_at: "",
+        finished_at: "",
+        duration: "",
         is_autorun: false,
-        status: 'pending',
+        status: "pending",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
+
+        transform((formData) => ({
+            ...formData,
+            started_at: toIsoDateTime24(formData.started_at),
+            finished_at: toIsoDateTime24(formData.finished_at),
+        }));
+
         post(route("events.store"), {
+            onFinish: () => transform((formData) => formData),
             onSuccess: () => {
                 toast.success("Election Event created successfully!", {
                     style: { backgroundColor: "green", color: "white" },
-                })
+                });
             },
-        })
-    }
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -59,75 +59,68 @@ export default function Create() {
                             <FieldGroup>
                                 <FieldSet>
                                     <FieldLegend>Form Add Election Event</FieldLegend>
-                                    <div className="flex flex-col md:flex-row gap-6">
+                                    <div className="flex flex-col gap-6 md:flex-row">
                                         <div className="flex-1 space-y-4">
-
-                                            {/* Event Name */}
                                             <Field>
                                                 <FieldLabel htmlFor="input-name">Event Name</FieldLabel>
                                                 <Input
                                                     id="input-name"
                                                     placeholder="Enter event name"
                                                     value={data.name}
-                                                    onChange={(e) => setData('name', e.target.value)}
+                                                    onChange={(e) => setData("name", e.target.value)}
                                                 />
                                                 {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                                             </Field>
 
-                                            {/* Keyword */}
                                             <Field>
                                                 <FieldLabel htmlFor="input-keyword">Keyword</FieldLabel>
                                                 <Input
                                                     id="input-keyword"
                                                     placeholder="Enter keyword"
                                                     value={data.keyword}
-                                                    onChange={(e) => setData('keyword', e.target.value)}
+                                                    onChange={(e) => setData("keyword", e.target.value)}
                                                 />
                                                 {errors.keyword && <p className="text-red-500 text-sm">{errors.keyword}</p>}
                                             </Field>
 
-                                            {/* Description */}
                                             <Field>
                                                 <FieldLabel htmlFor="input-description">Description</FieldLabel>
                                                 <Textarea
                                                     id="input-description"
                                                     placeholder="Description"
                                                     value={data.description}
-                                                    onChange={(e) => setData('description', e.target.value)}
+                                                    onChange={(e) => setData("description", e.target.value)}
                                                 />
                                                 {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
                                             </Field>
 
-                                            {/* Start Date */}
                                             <Field>
                                                 <FieldLabel htmlFor="input-start-date">Start Date</FieldLabel>
-                                                <Input
-                                                    type="datetime-local"
+                                                <DateTime24Picker
                                                     id="input-start-date"
                                                     value={data.started_at}
-                                                    onChange={(e) => setData('started_at', e.target.value)}
+                                                    onChange={(value) => setData("started_at", value)}
                                                 />
+                                                <p className="text-muted-foreground text-xs">
+                                                    Mendukung jam 00:00 sampai 24:00 dan akan disimpan konsisten ke server.
+                                                </p>
                                                 {errors.started_at && <p className="text-red-500 text-sm">{errors.started_at}</p>}
                                             </Field>
 
                                             <Field>
                                                 <FieldLabel htmlFor="input-finish-date">Finish Date</FieldLabel>
-                                                <Input
-                                                    type="datetime-local"
+                                                <DateTime24Picker
                                                     id="input-finish-date"
                                                     value={data.finished_at}
-                                                    onChange={(e) => setData('finished_at', e.target.value)}
+                                                    onChange={(value) => setData("finished_at", value)}
                                                 />
                                                 {errors.finished_at && <p className="text-red-500 text-sm">{errors.finished_at}</p>}
                                             </Field>
-
-
                                         </div>
                                     </div>
                                 </FieldSet>
 
-                                {/* Action Buttons */}
-                                <Field orientation="horizontal" className="flex justify-between mt-6">
+                                <Field orientation="horizontal" className="mt-6 flex justify-between">
                                     <Button variant="secondary" type="button" onClick={() => window.history.back()}>
                                         Back
                                     </Button>
@@ -154,5 +147,5 @@ export default function Create() {
                 </Card>
             </div>
         </AppLayout>
-    )
+    );
 }

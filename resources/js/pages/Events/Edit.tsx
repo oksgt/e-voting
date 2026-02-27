@@ -2,6 +2,7 @@ import { Head, useForm } from "@inertiajs/react";
 import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
+import DateTime24Picker, { toIsoDateTime24 } from "@/components/commons/date-time-24-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
@@ -33,15 +34,25 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// helper untuk format datetime ke input datetime-local
-function toDatetimeLocal(value: string) {
+const toDatetimeLocal = (value: string | null | undefined) => {
     if (!value) return "";
+
     const date = new Date(value);
-    // ambil bagian YYYY-MM-DDTHH:MM
-    return date.toISOString().slice(0, 16);
-}
+    if (Number.isNaN(date.getTime())) return "";
+
+    const pad = (num: number) => String(num).padStart(2, "0");
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hour = pad(date.getHours());
+    const minute = pad(date.getMinutes());
+
+    return `${year}-${month}-${day}T${hour}:${minute}`;
+};
+
 export default function Edit({ event }: EditEventProps) {
-    const { data, setData, put, processing, errors, reset } = useForm({
+    const { data, setData, put, processing, errors, transform } = useForm({
         name: event.name || "",
         keyword: event.keyword || "",
         description: event.description || "",
@@ -54,7 +65,15 @@ export default function Edit({ event }: EditEventProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        transform((formData) => ({
+            ...formData,
+            started_at: toIsoDateTime24(formData.started_at),
+            finished_at: toIsoDateTime24(formData.finished_at),
+        }));
+
         put(route("events.update", event.id), {
+            onFinish: () => transform((formData) => formData),
             onSuccess: () => {
                 toast.success("Election Event updated successfully!", {
                     style: { backgroundColor: "green", color: "white" },
@@ -125,22 +144,23 @@ export default function Edit({ event }: EditEventProps) {
                                                     {/* Start Date */}
                                                     <Field>
                                                         <FieldLabel htmlFor="input-start-date">Start Date</FieldLabel>
-                                                        <Input
-                                                            type="datetime-local"
+                                                        <DateTime24Picker
                                                             id="input-start-date"
-                                                            defaultValue={toDatetimeLocal(data.started_at)}
-                                                            onChange={(e) => setData("started_at", e.target.value)}
+                                                            value={data.started_at}
+                                                            onChange={(value) => setData("started_at", value)}
                                                         />
+                                                        <p className="text-muted-foreground text-xs">
+                                                            Mendukung jam 00:00 sampai 24:00 dan akan disimpan konsisten ke server.
+                                                        </p>
                                                         {errors.started_at && <p className="text-red-500 text-sm">{errors.started_at}</p>}
                                                     </Field>
 
                                                     <Field>
                                                         <FieldLabel htmlFor="input-start-date">Finish Date</FieldLabel>
-                                                        <Input
-                                                            type="datetime-local"
+                                                        <DateTime24Picker
                                                             id="input-finish-date"
-                                                            defaultValue={toDatetimeLocal(data.finished_at)}
-                                                            onChange={(e) => setData("finished_at", e.target.value)}
+                                                            value={data.finished_at}
+                                                            onChange={(value) => setData("finished_at", value)}
                                                         />
                                                         {errors.finished_at && <p className="text-red-500 text-sm">{errors.finished_at}</p>}
                                                     </Field>

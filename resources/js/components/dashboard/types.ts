@@ -13,14 +13,26 @@ export interface DashboardPositionStats {
 	total: number;
 }
 
+export interface DashboardActivePosition {
+	id: number;
+	name: string;
+	description: string | null;
+	status: number;
+	created_at: string | null;
+	updated_at: string | null;
+	deleted_at: string | null;
+}
+
 export interface DashboardSectionProps {
 	voters: DashboardVoterStats;
 }
 
 export interface PositionSectionProps {
 	positions: DashboardPositionStats;
+	activePositions: DashboardActivePosition[];
 }
 
 export interface RunningEventCardProps {
 	runningEvent: ElectionEvent | null;
+	electionEvents: ElectionEvent[];
 }

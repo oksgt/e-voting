@@ -5,9 +5,9 @@ export interface ElectionEvent {
 	keyword: string;
 	name: string;
 	start_date: string | null;
-	started_at: string;
+	started_at: string | null;
 	status: "pending" | "scheduled" | "running" | "finished" | "cancelled";
-	finished_at: string;
+	finished_at: string | null;
 	duration: number | null;
 	created_at: string;
 	updated_at: string;

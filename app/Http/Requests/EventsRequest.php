@@ -2,11 +2,32 @@
 
 namespace App\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class EventsRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $timezone = config('app.timezone');
+
+        $normalizeDateTime = function (?string $value) use ($timezone): ?string {
+            if ($value === null || trim($value) === '') {
+                return null;
+            }
+
+            return Carbon::parse($value)
+                ->setTimezone($timezone)
+                ->format('Y-m-d H:i:s');
+        };
+
+        $this->merge([
+            'started_at' => $normalizeDateTime($this->input('started_at')),
+            'finished_at' => $normalizeDateTime($this->input('finished_at')),
+        ]);
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -31,14 +52,12 @@ class EventsRequest extends FormRequest
             ],
             'keyword'     => 'required|string|max:50',
             'started_at'  => 'required|date',
-            'finished_at' => 'required|date',
+            'finished_at' => 'required|date|after:started_at',
             'start_date'  => 'nullable|date',
             'duration'    => 'nullable|integer|min:1',
             'is_autorun'  => 'boolean',
             'status'      => 'required|in:pending,scheduled,running,finished,cancelled',
             'is_running'  => 'boolean',
-            'started_at'  => 'nullable|date',
-            'finished_at' => 'nullable|date',
         ];
     }
 
@@ -65,6 +84,7 @@ class EventsRequest extends FormRequest
 
             'status.required' => 'Status event wajib diisi.',
             'status.in'       => 'Status event harus salah satu dari: pending, scheduled, running, finished, cancelled.',
+            'finished_at.after' => 'Waktu selesai harus setelah waktu mulai.',
         ];
     }
 }
