@@ -31,6 +31,10 @@ class ElectionEventController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
         return Inertia::render('Events/Index', [
             'events'     => $electionEvent,
             'authUserId' => auth()->id(),
@@ -223,6 +227,10 @@ class ElectionEventController extends Controller
      */
     public function show(ElectionEvent $event)
     {
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
         return Inertia::render('Events/Summary', [
             'event' => $event
         ]);
@@ -233,6 +241,9 @@ class ElectionEventController extends Controller
      */
     public function edit(ElectionEvent $event)
     {
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
         // Kirim data event ke view inertia/react edit form
         return Inertia::render('Events/Edit', [
             'event' => $event

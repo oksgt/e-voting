@@ -24,6 +24,11 @@ class VoterController extends Controller
      */
     public function index(Request $request)
     {
+
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
         $search         = $request->input('search');
         $per_page       = $request->per_page ?? 10;
         $sort_by        = $request->sort_by;
@@ -82,6 +87,10 @@ class VoterController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
         return Inertia::render('Voters/Create', [
             'roles' => Role::pluck('name'),
         ]);
@@ -141,6 +150,9 @@ class VoterController extends Controller
      */
     public function edit(User $voter)
     {
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
         return Inertia::render('Voters/Edit', [
             'user'      => $voter->load('roles'),
             'roles'     => Role::pluck('name'),
@@ -164,7 +176,7 @@ class VoterController extends Controller
         //     'phone_number' => $validated['phone_number'] ?? $voter->phone_number,
         //     'bidang'       => $validated['bidang'] ?? null,
         // ];
-        $updateData=$validated;
+        $updateData = $validated;
 
         if (!empty($validated['password'])) {
             $updateData['password'] = bcrypt($validated['password']);
@@ -200,6 +212,10 @@ class VoterController extends Controller
      */
     public function destroy(DestroyVoterRequest $request, User $voter)
     {
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
         $voter->delete();
 
         return redirect()
@@ -376,7 +392,7 @@ class VoterController extends Controller
 
         return response()->json([
             'success' => false,
-            'message' => 'No users imported.' ,
+            'message' => 'No users imported.',
             'errors'  => $errors,
         ], 422);
     }

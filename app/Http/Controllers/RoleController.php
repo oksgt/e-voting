@@ -17,6 +17,11 @@ class RoleController extends Controller
      */
     public function index(Request $request)
     {
+
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+
         $per_page = $request->input('per_page', 10);
         $search = $request->input('search');
 
@@ -42,6 +47,9 @@ class RoleController extends Controller
      */
     public function create()
     {
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
         $permissions = Permission::pluck('name')->toArray();
 
         $grouped = collect($permissions)->groupBy(function ($perm) {
@@ -80,6 +88,9 @@ class RoleController extends Controller
      */
     public function edit(string $id)
     {
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
         $role = Role::with('permissions')->findOrFail($id);
 
         // Get all permissions grouped by prefix (before the first dot)
