@@ -38,6 +38,7 @@ export function ChartPenjaringanTahap2({event_id}) {
         }).format(date)
     }
 
+    console.log('tahap 2', event_id);
 
     useEffect(() => {
         fetch("/api/chart-penjaringan/" + event_id)
@@ -78,7 +79,7 @@ export function ChartPenjaringanTahap2({event_id}) {
                 <button
                     onClick={() => {
                         setLoading(true)
-                        fetch("/api/chart-penjaringan/3")
+                        fetch("/api/chart-penjaringan/" + event_id)
                             .then((res) => res.json())
                             .then((data) => {
                                 if (data.length > 0) {
