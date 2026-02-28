@@ -27,7 +27,6 @@ export default function RunningElectionEvent() {
         minute: "2-digit",
     });
 
-
     return (
         <>
             <div className="relative overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">

@@ -125,12 +125,21 @@ export function FormTahap1({ event }: any) {
     };
 
     // susun object siap kirim
+    // const payload = {
+    //     event_id: event.id,
+    //     user_id: auth.user.id,
+    //     positions: Object.entries(selectedVoter).map(([posId, voter]) => ({
+    //         position_id: Number(posId),
+    //         voted_by: voter.id,
+    //     })),
+    // };
+
     const payload = {
         event_id: event.id,
-        user_id: auth.user.id,
+        voted_by: auth.user.id,
         positions: Object.entries(selectedVoter).map(([posId, voter]) => ({
             position_id: Number(posId),
-            voted_by: voter.id,
+            user_id: voter.id,
         })),
     };
 

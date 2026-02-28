@@ -13,9 +13,6 @@ return new class extends Migration
     {
         Schema::create('election_event_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('event_id')->constrained('election_events')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('position_id')->constrained('positions')->onDelete('cascade');
             $table->unsignedBigInteger('voted_by')->nullable(); // bisa relasi ke users juga
             $table->dateTime('voted_at')->nullable();
             $table->timestamps();

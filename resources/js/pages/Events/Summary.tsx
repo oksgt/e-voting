@@ -1,5 +1,5 @@
-import { Head, useForm } from "@inertiajs/react";
-import { LoaderCircle, Users2Icon } from "lucide-react";
+import { Head, Link, useForm } from "@inertiajs/react";
+import { Edit2, LoaderCircle, Users2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { route } from "ziggy-js";
 
@@ -48,6 +48,8 @@ import {
     ItemMedia,
     ItemTitle,
 } from "@/components/ui/item";
+import { ChartPenjaringanTahap2 } from "@/components/ChartPenjaringanTahap2";
+import { TopTwoPerPositionTahap2 } from "@/components/TopTwoPerPositionsTahap2";
 
 type EditEventProps = {
     event: {
@@ -90,30 +92,49 @@ const toDatetimeLocal = (value: string | null | undefined) => {
 
 export default function Edit({ event }: EditEventProps) {
 
-    console.log(event)
+    console.log('ss', event)
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Election Event Edit" />
             <div className="flex flex-col justify-center p-4">
                 <Card className="w-full mb-4">
-                    <CardHeader>
-                        <CardTitle>Summary Event: {event.name}</CardTitle>
-                        <CardDescription>Rekapitulasi data pemilihan tahap penjaringan bakal calon</CardDescription>
+                    <CardHeader className="flex items-center justify-between pb-0">
+                        <div className="flex flex-col">
+                            <CardTitle>Summary Event: {event.name}</CardTitle>
+                            <CardDescription>Rekapitulasi data pemilihan tahap penjaringan bakal calon</CardDescription>
+                        </div>
+                        <Link variant="default" href={route('events.edit', event.id)} className="inline-flex items-center px-4 py-2 bg-gray-950 text-white rounded">
+                            <Edit2 className="mr-2 h-4 w-4" />
+                            Edit data events
+                        </Link>
+
                     </CardHeader>
                     <CardContent>
-                        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Kolom kiri: Chart */}
-                            <div className="flex w-full flex-col">
-                                <ChartPenjaringan event_id={event.id} />
-                            </div>
+                        {event.id === 3 ? (
+                            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="flex w-full flex-col">
+                                    <ChartPenjaringan event_id={event.id} />
+                                </div>
 
-                            {/* Kolom kanan: Top 2 penjaringan */}
-                            <div className="flex w-full flex-col">
-                                <TopTwoPerPosition eventId={event.id} />
-                                {/* Tambahkan Item lain sesuai kebutuhan */}
+                                <div className="flex w-full flex-col">
+                                    <TopTwoPerPosition eventId={event.id} />
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="w-full grid grid-cols-10 gap-6">
+                                {/* 30% */}
+                                <div className="flex w-full flex-col col-span-3">
+                                    <ChartPenjaringanTahap2 event_id={event.id} />
+                                </div>
+
+                                {/* 70% */}
+                                <div className="flex w-full flex-col col-span-7">
+                                    <TopTwoPerPositionTahap2 eventId={event.id} />
+                                </div>
+                            </div>
+                        )}
+
                     </CardContent>
                 </Card>
 

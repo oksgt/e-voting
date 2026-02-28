@@ -102,31 +102,12 @@ class ElectionEventController extends Controller
         $result = [];
 
         foreach ($positions as $position) {
-            // Hitung total suara per kandidat di posisi ini
-            // $candidates = DB::table('election_event_logs as e')
-            //     ->join('users as u', 'u.id', '=', 'e.voted_by')
-            //     ->select(
-            //         'u.id',
-            //         'u.name',
-            //         DB::raw('COUNT(e.id) as total_votes')
-            //     )
-            //     ->where('e.event_id', $eventId)
-            //     ->where('e.position_id', $position->id)
-            //     ->groupBy('u.id', 'u.name')
-            //     ->orderByDesc('total_votes')
-            //     ->limit(2) // ambil top 2
-            //     ->get();
-
-            // // Hitung total semua suara di posisi ini
-            // $totalVotes = DB::table('election_event_logs')
-            //     ->where('event_id', $eventId)
-            //     ->where('position_id', $position->id)
-            //     ->count();
 
             $excludedIds = []; // bisa juga []
 
+            // Ambil kandidat top 2 berdasarkan jumlah nominasi (user_id)
             $candidates = DB::table('election_event_logs as e')
-                ->join('users as u', 'u.id', '=', 'e.voted_by')
+                ->join('users as u', 'u.id', '=', 'e.user_id') // <-- perbaikan: join ke kandidat
                 ->select(
                     'u.id',
                     'u.name',
@@ -142,27 +123,31 @@ class ElectionEventController extends Controller
                 ->limit(2)
                 ->get();
 
+            // Hitung total semua suara di posisi ini
             $totalVotes = DB::table('election_event_logs')
                 ->where('event_id', $eventId)
                 ->where('position_id', $position->id)
                 ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
-                    $query->whereNotIn('voted_by', $excludedIds);
+                    $query->whereNotIn('user_id', $excludedIds); // <-- perbaikan: filter kandidat
                 })
                 ->count();
 
             // Tambahkan persentase
-            $candidates = $candidates->map(function ($c) use ($totalVotes) {
+            $candidates = $candidates->map(function ($c) use ($totalVotes, &$totalPercentage) {
                 $c->persentase = $totalVotes > 0
-                    ? round(($c->total_votes / $totalVotes) * 100, 2)
+                    ? round(($c->total_votes / $totalVotes) * 100, 4)
                     : 0;
+
                 return $c;
             });
 
             $result[] = [
                 'id' => $position->id,
                 'position' => $position->name,
+                'total_votes' => $totalVotes,
                 'candidates' => $candidates,
             ];
+
         }
 
         return response()->json($result);

@@ -16,10 +16,10 @@ class ElectionEventLogController extends Controller
         try {
             $validated = $request->validate([
                 'event_id'   => 'required|integer|exists:election_events,id',
-                'user_id'    => 'required|integer|exists:users,id',
+                'voted_by'    => 'required|integer|exists:users,id',
                 'positions'  => 'required|array',
                 'positions.*.position_id' => 'required|integer|exists:positions,id',
-                'positions.*.voted_by'    => 'required|integer|exists:users,id',
+                'positions.*.user_id'    => 'required|integer|exists:users,id',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Override default 422 → kirim 200 dengan payload error
@@ -50,7 +50,7 @@ class ElectionEventLogController extends Controller
 
         // Step 2: cegah user update jika sudah submit semua posisi aktif
         $submittedCount = ElectionEventLog::where('event_id', $validated['event_id'])
-            ->where('user_id', $validated['user_id'])
+            ->where('voted_by', $validated['voted_by'])
             ->count();
 
         $totalPositions = Position::where('status', 1)->count();
@@ -68,11 +68,11 @@ class ElectionEventLogController extends Controller
             $log = ElectionEventLog::updateOrCreate(
                 [
                     'event_id'    => $validated['event_id'],
-                    'user_id'     => $validated['user_id'],
+                    'user_id'     => $pos['user_id'],
                     'position_id' => $pos['position_id'],
                 ],
                 [
-                    'voted_by' => $pos['voted_by'],
+                    'voted_by' => $validated['voted_by'],
                     'voted_at' => Carbon::now(),
                 ]
             );
@@ -133,14 +133,13 @@ class ElectionEventLogController extends Controller
 
         $query = DB::table('election_event_logs as e')
             ->selectRaw('
-                e.event_id,
-                COUNT(DISTINCT e.user_id) AS jumlah_user_ikut,
-                t.total_user,
-                ROUND(COUNT(DISTINCT e.user_id) / t.total_user * 100, 2) AS persentase
-            ')
+            e.event_id,
+            COUNT(DISTINCT e.voted_by) AS jumlah_user_ikut,
+            t.total_user,
+            ROUND(COUNT(DISTINCT e.voted_by) / t.total_user * 100, 2) AS persentase
+        ')
             ->where('e.event_id', $eventId);
 
-        // kondisi jika ada excludedIds
         if (!empty($excludedIds)) {
             $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u WHERE u.id NOT IN (' . implode(',', $excludedIds) . ')) t'))
                 ->whereNotIn('e.user_id', $excludedIds);
@@ -153,17 +152,19 @@ class ElectionEventLogController extends Controller
             ->get()
             ->map(function ($row) {
                 $row->persentase = (float) $row->persentase;
-                $row->sisa = 100 - $row->persentase;
+                $row->sisa = round(100 - $row->persentase, 2);
                 return $row;
             });
 
         // Jika tidak ada data di election_event_logs
         if ($data->isEmpty()) {
-            $totalUser = DB::table('users')
-                ->whereNotIn('id', [1])
-                ->count();
+            $totalUserQuery = DB::table('users');
+            if (!empty($excludedIds)) {
+                $totalUserQuery->whereNotIn('id', $excludedIds);
+            }
+            $totalUser = $totalUserQuery->count();
 
-            $data = collect([ (object) [
+            $data = collect([(object) [
                 'event_id' => $eventId,
                 'jumlah_user_ikut' => 0,
                 'total_user' => $totalUser,
@@ -240,5 +241,4 @@ class ElectionEventLogController extends Controller
             'data'    => $logs,
         ], 201);
     }
-
 }
