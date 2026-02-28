@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { RefreshCw, TrendingUp } from "lucide-react"
+import { Calendar, RefreshCw, TrendingUp } from "lucide-react"
 import { LabelList, Pie, PieChart } from "recharts"
 
 import {
@@ -70,7 +70,8 @@ export function ChartPenjaringan({event_id}) {
             <CardHeader className="flex items-center justify-between pb-0">
                 <div className="flex flex-col">
                     <CardTitle>Grafik Penjaringan</CardTitle>
-                    <CardDescription>
+                    <CardDescription className="mt-2 flex">
+                        <Calendar className="mr-2 h-4 w-4" />
                         Data per: {lastUpdated || "Memuat..."}
                     </CardDescription>
                 </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { RefreshCw, Users2Icon } from "lucide-react"
+import { Calendar, RefreshCw, Users2Icon } from "lucide-react"
 import {
     Item,
     ItemMedia,
@@ -62,7 +62,8 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
             <CardHeader className="flex items-center justify-between pb-0">
                 <div className="flex flex-col">
                     <CardTitle>Top 2 penjaringan per posisi</CardTitle>
-                    <CardDescription>
+                    <CardDescription className="mt-2 flex">
+                        <Calendar className="mr-2 h-4 w-4" />
                         Data per: {lastUpdated || "Memuat..."}
                     </CardDescription>
                 </div>

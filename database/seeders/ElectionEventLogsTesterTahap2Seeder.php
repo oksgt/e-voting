@@ -15,16 +15,16 @@ class ElectionEventLogsTesterTahap2Seeder extends Seeder
     public function run()
     {
         $eventId = 4; // id event
-        $userIds = range(37, 88); // total 51 user
+        $userIds = range(37, 57); // total 51 user
 
         // Kandidat per posisi (hasil ekstraksi dari JSON)
         $positionCandidates = [
-            1 => [62, 64], // Ketua
-            2 => [77, 46], // Sekretaris
-            6 => [75, 60], // Bendahara
-            3 => [87, 88], // Dewan Pengawas
-            4 => [52, 75], // Anggota Dewan Pengawas 1
-            5 => [60, 87], // Anggota Dewan Pengawas 2
+            1 => [37, 38], // Ketua
+            2 => [48, 55], // Sekretaris
+            6 => [49, 39], // Bendahara
+            3 => [45, 42], // Dewan Pengawas
+            4 => [47, 42], // Anggota Dewan Pengawas 1
+            5 => [41, 42], // Anggota Dewan Pengawas 2
         ];
 
         foreach ($userIds as $voterId) {

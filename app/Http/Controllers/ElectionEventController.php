@@ -104,7 +104,7 @@ class ElectionEventController extends Controller
 
         foreach ($positions as $position) {
 
-            $excludedIds = []; // bisa juga []
+            $excludedIds = [1]; // bisa juga []
 
             // Ambil kandidat top 2 berdasarkan jumlah nominasi (user_id)
             $candidates = DB::table('election_event_logs as e')

@@ -12,7 +12,7 @@ class ElectionEventLogsTesterSeeder extends Seeder
     public function run()
     {
         $eventId = 3; // id event
-        $userIds = range(37, 88); // total 51 user
+        $userIds = range(37, 57); // total 51 user
         $positionIds = range(1, 6); // 6 posisi
 
         foreach ($userIds as $voterId) {
