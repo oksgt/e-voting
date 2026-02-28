@@ -8,6 +8,7 @@ use App\Models\Position;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -147,7 +148,6 @@ class ElectionEventController extends Controller
                 'total_votes' => $totalVotes,
                 'candidates' => $candidates,
             ];
-
         }
 
         return response()->json($result);

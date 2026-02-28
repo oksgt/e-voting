@@ -55,6 +55,7 @@ class DashboardController extends Controller
         )->resolve();
 
         $view = 'dashboard';
+
         if ($user_role === 'Voter') {
             $view = 'dashboard-voter';
         }
@@ -67,6 +68,7 @@ class DashboardController extends Controller
             'voters' => $statusCounts,
             'positions' => $positionCounts,
             'activePositions' => $activePositions,
+            'userStatus' => $user->status
         ]);
 
     }
