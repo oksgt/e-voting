@@ -118,103 +118,85 @@ export default function User({ events, authUserId, csrfToken }) {
                     );
                 },
             },
+            //
             {
-                header: "Status",
-                accessorKey: "status",
+                header: "Event",
+                accessorKey: "name", // pakai salah satu accessor
                 cell: ({ row }) => {
-                    const status = row.getValue("status")
+                    const status = row.original.status
+                    const name = row.getValue("name")
 
-                    let variant = "secondary"
                     let classes = "flex items-center gap-1 px-2 py-1"
                     let icon = null
                     let label = ""
 
                     switch (status) {
                         case "pending":
-                            variant = "secondary"
                             classes += " bg-gray-100 text-gray-700 border border-gray-300"
-                            icon = <RotateCw className="h-4 w-4 " data-icon="inline-start" />
+                            icon = <RotateCw className="h-4 w-4" />
                             label = "Stop"
                             break
-
                         case "scheduled":
-                            variant = "secondary"
                             classes += " bg-blue-100 text-blue-700 border border-blue-300"
-                            icon = <Calendar className="h-4 w-4" data-icon="inline-start" />
+                            icon = <Calendar className="h-4 w-4" />
                             label = "Scheduled"
                             break
-
                         case "running":
-                            variant = "secondary"
                             classes += " bg-green-100 text-green-700 border border-green-300"
-                            icon = <RotateCw className="h-4 w-4 animate-spin" data-icon="inline-start" />
+                            icon = <RotateCw className="h-4 w-4 animate-spin" />
                             label = "Running"
                             break
-
                         case "finished":
-                            variant = "secondary"
                             classes += " bg-purple-100 text-purple-700 border border-purple-300"
-                            icon = <CheckCircle className="h-4 w-4" data-icon="inline-start" />
+                            icon = <CheckCircle className="h-4 w-4" />
                             label = "Finished"
                             break
-
                         case "cancelled":
-                            variant = "destructive"
                             classes += " bg-red-100 text-red-700 border border-red-300"
-                            icon = <XCircle className="h-4 w-4" data-icon="inline-start" />
+                            icon = <XCircle className="h-4 w-4" />
                             label = "Cancelled"
                             break
-
                         default:
                             label = status
                     }
 
                     return (
-                        <Badge variant={variant} className={classes}>
-                            {icon}
-                            {label}
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                            <span className="font-medium">{name}</span>
+                            <Badge className={classes}>
+                                {icon}
+                                {label}
+                            </Badge>
+                        </div>
                     )
                 },
             },
             {
-                header: "Event Name",
-                accessorKey: "name",
-            },
-            {
-                header: "Keyword",
-                accessorKey: "keyword",
-            },
-            {
-                header: "Start at",
-                accessorKey: "started_at",
-                cell: ({ getValue }) => {
-                    const value = getValue()
-                    if (!value) return "-"
+                header: "Period",
+                accessorKey: "started_at", // tetap pakai salah satu accessor
+                cell: ({ row }) => {
+                    const started = row.getValue("started_at")
+                    const finished = row.original.finished_at
 
-                    return new Date(value).toLocaleString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })
-                },
-            },
-            {
-                header: "Finished at",
-                accessorKey: "finished_at",
-                cell: ({ getValue }) => {
-                    const value = getValue()
-                    if (!value) return "-"
+                    // console.log(row);
 
-                    return new Date(value).toLocaleString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    })
+                    const formatDate = (value: string | null) => {
+                        if (!value) return "-"
+                        return new Date(value).toLocaleString("id-ID", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        })
+                    }
+
+                    return (
+                        <div className="flex flex-col">
+                            <span>Start: <strong>{formatDate(started)}</strong></span>
+                            <span>Finish: <strong>{formatDate(finished)}</strong></span>
+                        </div>
+                    )
                 },
             }
         ],

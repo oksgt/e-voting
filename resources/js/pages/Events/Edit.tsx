@@ -124,14 +124,16 @@ export default function Edit({ event }: EditEventProps) {
             <Head title="Election Event Edit" />
             <div className="flex flex-col justify-center p-4">
                 <Card className="w-full">
+                    <CardHeader>
+                        <CardTitle>Edit Election Event</CardTitle>
+                    </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit}>
                             <FieldGroup>
                                 <FieldSet>
-                                    <FieldLegend className='font-bold'>Edit Election Event</FieldLegend>
-                                    <div className="flex flex-col md:flex-row gap-6">
-                                        <div className="flex-1 space-y-4">
-
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Kolom kiri */}
+                                        <div className="space-y-4">
                                             {/* Event Name */}
                                             <Field>
                                                 <FieldLabel htmlFor="input-name">Event Name</FieldLabel>
@@ -164,7 +166,10 @@ export default function Edit({ event }: EditEventProps) {
                                                 />
                                                 {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
                                             </Field>
+                                        </div>
 
+                                        {/* Kolom kanan */}
+                                        <div className="space-y-4">
                                             {/* Start Date */}
                                             <DateTimePicker
                                                 id="input-start-date"
@@ -174,6 +179,7 @@ export default function Edit({ event }: EditEventProps) {
                                                 error={errors.started_at}
                                             />
 
+                                            {/* Finish Date */}
                                             <DateTimePicker
                                                 id="input-finish-date"
                                                 label="Finish Date"
@@ -183,7 +189,7 @@ export default function Edit({ event }: EditEventProps) {
                                             />
 
                                             {/* Status Select */}
-                                            <Field>
+                                            <Field className="w-75">
                                                 <FieldLabel htmlFor="status-select">Status</FieldLabel>
                                                 <Select
                                                     value={data.status}

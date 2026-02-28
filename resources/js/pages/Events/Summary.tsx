@@ -104,7 +104,7 @@ export default function Edit({ event }: EditEventProps) {
                             <CardTitle>Summary Event: {event.name}</CardTitle>
                             <CardDescription>Rekapitulasi data pemilihan tahap penjaringan bakal calon</CardDescription>
                         </div>
-                        <Link variant="default" href={route('events.edit', event.id)} className="inline-flex items-center px-4 py-2 bg-gray-950 text-white rounded">
+                        <Link href={route('events.edit', event.id)} className="inline-flex items-center px-4 py-2 bg-gray-950 text-white rounded">
                             <Edit2 className="mr-2 h-4 w-4" />
                             Edit data events
                         </Link>
@@ -137,8 +137,6 @@ export default function Edit({ event }: EditEventProps) {
 
                     </CardContent>
                 </Card>
-
-
 
             </div>
         </AppLayout>
