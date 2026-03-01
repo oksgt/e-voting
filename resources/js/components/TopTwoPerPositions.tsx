@@ -15,9 +15,12 @@ import {
     CardContent,
 } from "@/components/ui/card"
 import ToggleBerkenan from "./ToggleBerkenan"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertTriangleIcon } from "lucide-react"
 
 export function TopTwoPerPosition({ eventId }: { eventId: number }) {
     const [positions, setPositions] = useState<any[]>([])
+    const [analisa, setAnalisa] = useState<any[]>([])
     const [lastUpdated, setLastUpdated] = useState<string>("")
     const [loading, setLoading] = useState(false)
 
@@ -34,6 +37,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
             .then((res) => res.json())
             .then((data) => {
                 setPositions(data.positions)
+                setAnalisa(data.Analisa)
                 setLastUpdated(formatTimestamp(new Date()))
             })
             .finally(() => setLoading(false))
@@ -80,6 +84,23 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                 </button>
             </CardHeader>
             <CardContent>
+
+                {analisa?.length > 0 && (
+                    <Alert className="w-full border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50 mb-4">
+                        <AlertTriangleIcon />
+                        <AlertTitle>Analisa Data</AlertTitle>
+                        <AlertDescription>
+                            <ul className="list-disc pl-5 space-y-1">
+                                {analisa.map((item, index) => (
+                                    <li key={index}>
+                                        {item.issue.description}
+                                    </li>
+                                ))}
+                            </ul>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {positions.map((pos: { position: string; candidates: any[] }) => (
                         <Item
