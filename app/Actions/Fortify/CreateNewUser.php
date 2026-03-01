@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\AnggotaKoperasi;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -31,7 +32,7 @@ class CreateNewUser implements CreatesNewUsers
             ],
             'bidang' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
             // validasi email generated agar tetap aman terhadap data lama
             'email_generated' => [
                 Rule::unique(User::class, 'email')->whereNull('deleted_at'),
@@ -54,6 +55,15 @@ class CreateNewUser implements CreatesNewUsers
 
         $voterRole = Role::findOrCreate('Voter', 'web');
         $user->assignRole($voterRole);
+
+        // Update anggota koperasi dengan user_id dan registered_at
+        AnggotaKoperasi::where('nik', $input['nik'])
+            ->update([
+                'user_id' => $user->id,
+                'nowa' => $input['phone_number'],
+                'nik' => $input['nik'],
+                'registered_at' => now(),
+            ]);
 
         return $user;
     }

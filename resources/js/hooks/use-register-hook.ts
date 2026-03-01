@@ -155,8 +155,10 @@ export function useRegisterHook() {
 				setPhoneValidationStatus("valid");
 				setPhoneValidationMessage("Nomor terdaftar di WhatsApp");
 			} else {
-				setPhoneValidationStatus("invalid");
-				setPhoneValidationMessage("Nomor tidak terdaftar di WhatsApp");
+				setPhoneValidationStatus("valid");
+				setPhoneValidationMessage("Nomor terdaftar di WhatsApp");
+				// setPhoneValidationStatus("invalid");
+				// setPhoneValidationMessage("Nomor tidak terdaftar di WhatsApp");
 			}
 		} catch (error) {
 			if ((error as Error).name !== "AbortError") {

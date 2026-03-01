@@ -34,7 +34,8 @@ Route::post('/election-event-log/rejection/remove', [ElectionEventLogController:
 
 Route::get('/anggota', function (Request $request) {
     $query = AnggotaKoperasi::query()
-        ->when($request->query('bidang'), fn ($q, $bidang) => $q->where('bidang', $bidang));
+        ->when($request->query('bidang'), fn ($q, $bidang) => $q->where('bidang', $bidang))
+        ->where('user_id', null);
 
     return new AnggotaKoperasiCollection($query->get());
 });

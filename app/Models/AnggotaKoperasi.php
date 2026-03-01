@@ -16,5 +16,16 @@ class AnggotaKoperasi extends Model
         'nik',
         'bidang',
         'nowa',
+        'user_id',
+        'registered_at',
     ];
+
+    protected $casts = [
+        'registered_at' => 'datetime',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
