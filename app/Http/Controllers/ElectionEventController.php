@@ -98,7 +98,7 @@ class ElectionEventController extends Controller
     public function topTwoPerPosition($eventId, $limit = null)
     {
         $topLimit = 2; // hanya untuk ANALISA
-        $excludedIds = [1];
+        $excludedIds = [];
 
         $positions = Position::where('status', 1)
             ->orderBy('number', 'asc')
@@ -109,17 +109,19 @@ class ElectionEventController extends Controller
 
         foreach ($positions as $position) {
 
-            $query = DB::table('election_event_logs as e')
-                ->join('anggota_koperasi as u', 'u.id', '=', 'e.user_id')
+            $query = DB::table('anggota_koperasi as u')
+                ->leftJoin('election_event_logs as e', function ($join) use ($eventId, $position) {
+                    $join->on('u.id', '=', 'e.user_id')
+                        ->where('e.event_id', $eventId)
+                        ->where('e.position_id', $position->id);
+                })
                 ->select(
                     'u.id',
                     'u.nama',
                     DB::raw('COUNT(e.id) as total_votes'),
                     DB::raw('COUNT(e.rejectionId) as filled_rejections'),
-                    DB::raw('SUM(CASE WHEN e.rejectionId IS NULL THEN 1 ELSE 0 END) as null_rejections')
+                    DB::raw('SUM(CASE WHEN e.rejectionId IS NULL AND e.id IS NOT NULL THEN 1 ELSE 0 END) as null_rejections')
                 )
-                ->where('e.event_id', $eventId)
-                ->where('e.position_id', $position->id)
                 ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
                     $query->whereNotIn('u.id', $excludedIds);
                 })
@@ -174,7 +176,7 @@ class ElectionEventController extends Controller
                     if (!isset($candidateTopMap[$c->id])) {
                         $candidateTopMap[$c->id] = [
                             'id' => $c->id,
-                            'name' => $c->nama  ,
+                            'name' => $c->nama,
                             'positions' => []
                         ];
                     }
