@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\ElectionEvent;
-use Illuminate\Http\Request;
 use App\Models\ElectionEventLog;
 use App\Models\Position;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ElectionEventLogController extends Controller
@@ -15,18 +15,18 @@ class ElectionEventLogController extends Controller
     {
         try {
             $validated = $request->validate([
-                'event_id'   => 'required|integer|exists:election_events,id',
-                'voted_by'    => 'required|integer|exists:users,id',
-                'positions'  => 'required|array',
+                'event_id' => 'required|integer|exists:election_events,id',
+                'voted_by' => 'required|integer|exists:users,id',
+                'positions' => 'required|array',
                 'positions.*.position_id' => 'required|integer|exists:positions,id',
-                'positions.*.user_id'    => 'required|integer|exists:users,id',
+                'positions.*.user_id' => 'required|integer|exists:users,id',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Override default 422 → kirim 200 dengan payload error
             return response()->json([
                 'success' => false,
                 'message' => 'Validasi gagal',
-                'errors'  => $e->errors(),
+                'errors' => $e->errors(),
             ], 200);
         }
 
@@ -41,7 +41,7 @@ class ElectionEventLogController extends Controller
         }
 
         $now = Carbon::now();
-        if (!($now->between($event->started_at, $event->finished_at))) {
+        if (! ($now->between($event->started_at, $event->finished_at))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Event sudah berakhir atau belum dimulai',
@@ -67,8 +67,8 @@ class ElectionEventLogController extends Controller
         foreach ($validated['positions'] as $pos) {
             $log = ElectionEventLog::updateOrCreate(
                 [
-                    'event_id'    => $validated['event_id'],
-                    'user_id'     => $pos['user_id'],
+                    'event_id' => $validated['event_id'],
+                    'user_id' => $pos['user_id'],
                     'position_id' => $pos['position_id'],
                 ],
                 [
@@ -83,7 +83,7 @@ class ElectionEventLogController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Data berhasil disimpan',
-            'data'    => $logs,
+            'data' => $logs,
         ]);
     }
 
@@ -91,11 +91,11 @@ class ElectionEventLogController extends Controller
     {
         $validated = $request->validate([
             'event_id' => 'required|integer|exists:election_events,id',
-            'user_id'  => 'required|integer|exists:users,id',
+            'user_id' => 'required|integer|exists:users,id',
         ]);
 
         $event = ElectionEvent::findOrFail($validated['event_id']);
-        $now   = Carbon::now();
+        $now = Carbon::now();
 
         // Pastikan event masih aktif
         // if ($event->status !== 'running' || !$now->between($event->started_at, $event->finished_at)) {
@@ -140,8 +140,8 @@ class ElectionEventLogController extends Controller
         ')
             ->where('e.event_id', $eventId);
 
-        if (!empty($excludedIds)) {
-            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u WHERE u.id NOT IN (' . implode(',', $excludedIds) . ')) t'))
+        if (! empty($excludedIds)) {
+            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u WHERE u.id NOT IN ('.implode(',', $excludedIds).')) t'))
                 ->whereNotIn('e.user_id', $excludedIds);
         } else {
             $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u) t'));
@@ -153,13 +153,14 @@ class ElectionEventLogController extends Controller
             ->map(function ($row) {
                 $row->persentase = (float) $row->persentase;
                 $row->sisa = round(100 - $row->persentase, 2);
+
                 return $row;
             });
 
         // Jika tidak ada data di election_event_logs
         if ($data->isEmpty()) {
             $totalUserQuery = DB::table('users');
-            if (!empty($excludedIds)) {
+            if (! empty($excludedIds)) {
                 $totalUserQuery->whereNotIn('id', $excludedIds);
             }
             $totalUser = $totalUserQuery->count();
@@ -217,7 +218,7 @@ class ElectionEventLogController extends Controller
         }
 
         $now = Carbon::now();
-        if (!($now->between($event->started_at, $event->finished_at))) {
+        if (! ($now->between($event->started_at, $event->finished_at))) {
             return response()->json([
                 'success' => false,
                 'message' => 'Event sudah berakhir atau belum dimulai',
@@ -237,16 +238,15 @@ class ElectionEventLogController extends Controller
             ], 200);
         }
 
-
         // Simpan setiap pilihan ke tabel
         $logs = [];
         foreach ($validated['selections'] as $selection) {
             $log = ElectionEventLog::create([
-                'event_id'    => $validated['event_id'],
-                'user_id'     => $validated['user_id'],
+                'event_id' => $validated['event_id'],
+                'user_id' => $validated['user_id'],
                 'position_id' => $selection['posId'],
-                'voted_by'    => $selection['kandidatId'],
-                'voted_at'    => $now,
+                'voted_by' => $selection['kandidatId'],
+                'voted_at' => $now,
             ]);
 
             $logs[] = $log;
@@ -255,7 +255,7 @@ class ElectionEventLogController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Data berhasil disimpan',
-            'data'    => $logs,
+            'data' => $logs,
         ], 201);
     }
 

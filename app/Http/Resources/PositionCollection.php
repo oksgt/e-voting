@@ -14,7 +14,7 @@ class PositionCollection extends ResourceCollection
      */
     public function toArray(Request $request): array
     {
-        return $this->collection->map(fn($item) => new PositionResource($item))->toArray();
+        return $this->collection->map(fn ($item) => new PositionResource($item))->toArray();
     }
 
     public function paginationInformation($request, $paginated, $default): array

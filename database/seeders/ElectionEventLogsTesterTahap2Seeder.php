@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -33,16 +32,15 @@ class ElectionEventLogsTesterTahap2Seeder extends Seeder
                 $chosenCandidate = collect($candidates)->random();
 
                 DB::table('election_event_logs')->insert([
-                    'event_id'   => $eventId,
-                    'user_id'    => $chosenCandidate, // kandidat yang dipilih
-                    'position_id'=> $posId,
-                    'voted_by'   => $voterId,         // siapa yang memilih
-                    'voted_at'   => Carbon::now(),
+                    'event_id' => $eventId,
+                    'user_id' => $chosenCandidate, // kandidat yang dipilih
+                    'position_id' => $posId,
+                    'voted_by' => $voterId,         // siapa yang memilih
+                    'voted_at' => Carbon::now(),
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
             }
         }
     }
-
 }

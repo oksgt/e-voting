@@ -118,6 +118,8 @@ return [
     |
     */
 
+    'nik_encryption_key' => env('VITE_NIK_ENCRYPTION_KEY'),
+
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),

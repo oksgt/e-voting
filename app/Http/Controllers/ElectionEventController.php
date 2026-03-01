@@ -8,7 +8,6 @@ use App\Models\Position;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -36,9 +35,9 @@ class ElectionEventController extends Controller
         }
 
         return Inertia::render('Events/Index', [
-            'events'     => $electionEvent,
+            'events' => $electionEvent,
             'authUserId' => auth()->id(),
-            'filters'    => [
+            'filters' => [
                 'search' => $search,
             ],
             'csrfToken' => csrf_token(),
@@ -49,11 +48,11 @@ class ElectionEventController extends Controller
     {
         $runningEvent = ElectionEvent::where('status', 'running')->first();
 
-        if (!$runningEvent) {
+        if (! $runningEvent) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak ada event yang sedang berlangsung',
-                'data'    => null
+                'data' => null,
             ], 404);
         }
 
@@ -64,17 +63,16 @@ class ElectionEventController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Event sudah berakhir atau belum dimulai',
-                'data'    => null
+                'data' => null,
             ], 400);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'List Data Products',
-            'data'    => $runningEvent
+            'data' => $runningEvent,
         ]);
     }
-
 
     public function getActivePosition(Request $request)
     {
@@ -82,18 +80,18 @@ class ElectionEventController extends Controller
             ->orderBy('number', 'asc')
             ->get();
 
-        if (!$position) {
+        if (! $position) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak ada data posisi',
-                'data'    => null
+                'data' => null,
             ], 404);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'List Data Position',
-            'data'    => $position
+            'data' => $position,
         ]);
     }
 
@@ -122,7 +120,7 @@ class ElectionEventController extends Controller
                 )
                 ->where('e.event_id', $eventId)
                 ->where('e.position_id', $position->id)
-                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
                     $query->whereNotIn('u.id', $excludedIds);
                 })
                 ->groupBy('u.id', 'u.name')
@@ -256,18 +254,18 @@ class ElectionEventController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        if (!$voter) {
+        if (! $voter) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak ada data',
-                'data'    => null
+                'data' => null,
             ], 404);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'List Data Voter',
-            'data'    => $voter
+            'data' => $voter,
         ]);
     }
 
@@ -285,14 +283,14 @@ class ElectionEventController extends Controller
     public function store(EventsRequest $request)
     {
         $eventData = [
-            'name'        => $request->name,
-            'keyword'     => $request->keyword,
+            'name' => $request->name,
+            'keyword' => $request->keyword,
             'description' => $request->description,
-            'started_at'  => $request->started_at,
+            'started_at' => $request->started_at,
             'finished_at' => $request->finished_at,
-            'is_autorun'  => $request->boolean('is_autorun'),
-            'status'      => 'scheduled',
-            'is_running'  => 0, // default saat create
+            'is_autorun' => $request->boolean('is_autorun'),
+            'status' => 'scheduled',
+            'is_running' => 0, // default saat create
         ];
 
         $event = ElectionEvent::create($eventData);
@@ -301,7 +299,6 @@ class ElectionEventController extends Controller
             ->route('events.index')
             ->with('success', 'Event created successfully.');
     }
-
 
     /**
      * Display the specified resource.
@@ -313,7 +310,7 @@ class ElectionEventController extends Controller
         }
 
         return Inertia::render('Events/Summary', [
-            'event' => $event
+            'event' => $event,
         ]);
     }
 
@@ -327,7 +324,7 @@ class ElectionEventController extends Controller
         }
         // Kirim data event ke view inertia/react edit form
         return Inertia::render('Events/Edit', [
-            'event' => $event
+            'event' => $event,
         ]);
     }
 
@@ -337,16 +334,16 @@ class ElectionEventController extends Controller
     public function update(EventsRequest $request, ElectionEvent $event)
     {
         $eventData = [
-            'name'        => $request->name,
-            'keyword'     => $request->keyword,
+            'name' => $request->name,
+            'keyword' => $request->keyword,
             'description' => $request->description,
-            'started_at'  => $request->started_at,
+            'started_at' => $request->started_at,
             'finished_at' => $request->finished_at,
-            'duration'    => $request->duration,
-            'is_autorun'  => $request->boolean('is_autorun'),
-            'status'      => $request->status,
-            'is_running'  => $request->boolean('is_running') ?? 0,
-            'started_at'  => $request->started_at,
+            'duration' => $request->duration,
+            'is_autorun' => $request->boolean('is_autorun'),
+            'status' => $request->status,
+            'is_running' => $request->boolean('is_running') ?? 0,
+            'started_at' => $request->started_at,
             'finished_at' => $request->finished_at,
         ];
 
@@ -374,7 +371,7 @@ class ElectionEventController extends Controller
     {
         // Kirim data event ke view inertia/react edit form
         return Inertia::render('Events/Running', [
-            'event' => $event
+            'event' => $event,
         ]);
     }
 }

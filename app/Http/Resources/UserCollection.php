@@ -14,7 +14,7 @@ class UserCollection extends ResourceCollection
      */
     public function toArray(Request $request): array
     {
-        return $this->collection->map(fn($item)=>new UserResource($item))->toArray();
+        return $this->collection->map(fn ($item) => new UserResource($item))->toArray();
     }
 
     public function paginationInformation($request, $paginated, $default): array

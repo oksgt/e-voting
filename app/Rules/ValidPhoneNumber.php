@@ -18,28 +18,31 @@ class ValidPhoneNumber implements ValidationRule
             ->where('key', 'fonnte_token')
             ->value('value');
 
-        if (!$token) {
-            $fail("Fonnte token is not configured in settings.");
+        if (! $token) {
+            $fail('Fonnte token is not configured in settings.');
+
             return;
         }
 
         $response = Http::withHeaders([
             'Authorization' => $token,
         ])->post('https://api.fonnte.com/validate', [
-            'target'      => $value,
+            'target' => $value,
             'countryCode' => '62',
         ]);
 
         if ($response->failed()) {
             $fail("Unable to validate {$attribute} at the moment.");
+
             return;
         }
 
         $data = $response->json();
 
-        if (!isset($data['status']) || $data['status'] !== true) {
+        if (! isset($data['status']) || $data['status'] !== true) {
             $reason = $data['reason'] ?? 'Phone number is invalid.';
             $fail("{$attribute} validation failed: {$reason}");
+
             return;
         }
 
@@ -47,7 +50,7 @@ class ValidPhoneNumber implements ValidationRule
         $normalized = preg_replace('/^0/', '62', $value);
 
         // Mark as registered if API says so
-        if (!empty($data['registered']) && in_array($normalized, $data['registered'])) {
+        if (! empty($data['registered']) && in_array($normalized, $data['registered'])) {
             $this->isRegistered = true;
         } else {
             $this->isRegistered = false;

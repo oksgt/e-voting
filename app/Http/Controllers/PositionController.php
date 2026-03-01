@@ -33,17 +33,17 @@ class PositionController extends Controller
             })
             ->when(
                 $sort_by && in_array($sort_by, ['name', 'description', 'status', 'created_at'], true),
-                fn($q) => $q->orderBy($sort_by, $sort_direction === 'desc' ? 'desc' : 'asc'),
-                fn($q) => $q->orderBy('created_at', 'desc')
+                fn ($q) => $q->orderBy($sort_by, $sort_direction === 'desc' ? 'desc' : 'asc'),
+                fn ($q) => $q->orderBy('created_at', 'desc')
             )
             ->paginate($per_page);
 
         return Inertia::render('Positions/Index', [
-            'positions'  => new PositionCollection($positions),
-            'filters'    => [
-                'per_page'       => $per_page,
+            'positions' => new PositionCollection($positions),
+            'filters' => [
+                'per_page' => $per_page,
                 'search' => $search,
-                'sort_by'        => $sort_by,
+                'sort_by' => $sort_by,
                 'sort_direction' => $sort_direction,
             ],
         ]);
@@ -68,9 +68,9 @@ class PositionController extends Controller
         $validated = $request->validated();
 
         Position::create([
-            'name'        => $validated['name'],
+            'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'status'      => ($validated['status'] === 'active') ? 1 : 0,
+            'status' => ($validated['status'] === 'active') ? 1 : 0,
         ]);
 
         return redirect()
@@ -107,9 +107,9 @@ class PositionController extends Controller
         $validated = $request->validated();
 
         $position->update([
-            'name'        => $validated['name'],
+            'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'status'      => ($validated['status'] === 'active') ? 1 : 0,
+            'status' => ($validated['status'] === 'active') ? 1 : 0,
         ]);
 
         return redirect()

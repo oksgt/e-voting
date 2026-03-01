@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['event_id', 'user_id', 'position_id']);
+            $table->unique(['id', 'voted_by']);
         });
     }
 
