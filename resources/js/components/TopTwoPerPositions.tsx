@@ -14,6 +14,7 @@ import {
     CardDescription,
     CardContent,
 } from "@/components/ui/card"
+import ToggleBerkenan from "./ToggleBerkenan"
 
 export function TopTwoPerPosition({ eventId }: { eventId: number }) {
     const [positions, setPositions] = useState<any[]>([])
@@ -29,7 +30,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
 
     const fetchData = () => {
         setLoading(true)
-        fetch(`/api/top-2-per-position/${eventId}`)
+        fetch(`/api/top-2-per-position/${eventId}/`)
             .then((res) => res.json())
             .then((data) => {
                 setPositions(data)
@@ -61,7 +62,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
         <Card className="w-full flex flex-col">
             <CardHeader className="flex items-center justify-between pb-0">
                 <div className="flex flex-col">
-                    <CardTitle>Top 2 penjaringan per posisi</CardTitle>
+                    <CardTitle>Hasil penjaringan per posisi</CardTitle>
                     <CardDescription className="mt-2 flex">
                         <Calendar className="mr-2 h-4 w-4" />
                         Data per: {lastUpdated || "Memuat..."}
@@ -86,22 +87,58 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                         className="w-full"
                         key={pos.position}
                     >
-                        <ItemMedia variant="icon">
-                            <Users2Icon />
-                        </ItemMedia>
                         <ItemContent>
                             <ItemTitle className="text-gray-900 text-lg">
-                                {pos.position}
+                                Posisi: <strong>{pos.position}</strong>
                             </ItemTitle>
 
                             <div className="text-gray-700 font-medium">
-                                <ol className="list-decimal list-inside space-y-2 text-gray-700 font-medium">
-                                    {pos.candidates.map((c: { id: number; name: string; persentase: number }) => (
-                                        <li key={c.id}>
-                                            {ucwords(c.name)} ({c.persentase}%)
-                                        </li>
-                                    ))}
-                                </ol>
+                                <div className="text-gray-700 font-medium">
+                                    <table className="table-auto w-full border-collapse border border-gray-300 text-gray-700 font-medium">
+                                        <thead>
+                                            <tr>
+                                                <th className="border border-gray-300 px-4 py-2 text-left">No</th>
+                                                <th className="border border-gray-300 px-4 py-2 text-left">Nama</th>
+                                                <th className="border border-gray-300 px-4 py-2 text-left">Persentase</th>
+                                                <th className="border border-gray-300 px-4 py-2 text-left">Jumlah Pemilih</th>
+                                                <th className="border border-gray-300 px-4 py-2 text-left">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {pos.candidates.map(
+                                                (c: { id: number; name: string; persentase: number }, index: number) => (
+                                                    <tr key={c.id}>
+                                                        <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                                                        <td className="border border-gray-300 px-4 py-2">{ucwords(c.name)}</td>
+                                                        <td className="border border-gray-300 px-4 py-2">{c.persentase}%</td>
+                                                        <td className="border border-gray-300 px-4 py-2">{c.total_votes} pemilih</td>
+                                                        <td className="border border-gray-300 px-4 py-2">
+                                                            <ToggleBerkenan data={c} />
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            )}
+
+                                            {/* Row akumulasi */}
+                                            <tr className="font-semibold bg-gray-100">
+                                                <td className="border border-gray-300 px-4 py-2" colSpan={2}>
+                                                    Total
+                                                </td>
+                                                <td className="border border-gray-300 px-4 py-2">
+                                                    {Math.round(
+                                                        pos.candidates.reduce(
+                                                            (acc: number, c: { persentase: number }) => acc + c.persentase,
+                                                            0
+                                                        )
+                                                    )}%
+                                                </td>
+                                                <td className="border border-gray-300 px-4 py-2">
+                                                    {pos.candidates.reduce( (acc: number, c: { persentase: number }) => acc + c.total_votes, 0 )}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </ItemContent>
                     </Item>

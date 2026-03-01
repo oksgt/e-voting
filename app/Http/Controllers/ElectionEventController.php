@@ -97,7 +97,7 @@ class ElectionEventController extends Controller
         ]);
     }
 
-    public function topTwoPerPosition($eventId)
+    public function topTwoPerPosition($eventId, $limit = null)
     {
         // Ambil semua posisi aktif
         $positions = Position::where('status', 1)
@@ -111,12 +111,14 @@ class ElectionEventController extends Controller
             $excludedIds = [1]; // bisa juga []
 
             // Ambil kandidat top 2 berdasarkan jumlah nominasi (user_id)
-            $candidates = DB::table('election_event_logs as e')
-                ->join('users as u', 'u.id', '=', 'e.user_id') // <-- perbaikan: join ke kandidat
+            $query = DB::table('election_event_logs as e')
+                ->join('users as u', 'u.id', '=', 'e.user_id')
                 ->select(
                     'u.id',
                     'u.name',
-                    DB::raw('COUNT(e.id) as total_votes')
+                    DB::raw('COUNT(e.id) as total_votes'),
+                    DB::raw('COUNT(e.rejectionId) as filled_rejections'),
+                    DB::raw('SUM(CASE WHEN e.rejectionId IS NULL THEN 1 ELSE 0 END) as null_rejections')
                 )
                 ->where('e.event_id', $eventId)
                 ->where('e.position_id', $position->id)
@@ -124,9 +126,13 @@ class ElectionEventController extends Controller
                     $query->whereNotIn('u.id', $excludedIds);
                 })
                 ->groupBy('u.id', 'u.name')
-                ->orderByDesc('total_votes')
-                ->limit(2)
-                ->get();
+                ->orderByDesc('total_votes');
+
+            if (!is_null($limit)) {
+                $query->limit($limit);
+            }
+
+            $candidates = $query->get();
 
             // Hitung total semua suara di posisi ini
             $totalVotes = DB::table('election_event_logs')
@@ -137,12 +143,16 @@ class ElectionEventController extends Controller
                 })
                 ->count();
 
+            $position_id = $position->id;
+
             // Tambahkan persentase
-            $candidates = $candidates->map(function ($c) use ($totalVotes, &$totalPercentage) {
+            $candidates = $candidates->map(function ($c) use ($totalVotes, &$position_id, &$eventId) {
                 $c->persentase = $totalVotes > 0
                     ? round(($c->total_votes / $totalVotes) * 100, 4)
                     : 0;
 
+                $c->position_id = $position_id;
+                $c->event_id = (int) $eventId;
                 return $c;
             });
 
