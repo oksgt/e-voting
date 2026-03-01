@@ -41,6 +41,7 @@ export function FormTahap1({ event }: any) {
     const [openAlertSubmit, setOpenAlertSubmit] = useState(false);
     const [dialogContent, setDialogContent] = useState(null);
     const [participation, setParticipation] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const checkParticipation = async () => {
@@ -166,6 +167,7 @@ export function FormTahap1({ event }: any) {
         }
 
         try {
+            setLoading(true);
             const res = await axios.post("/api/election-event-logs", payload);
             if (res.data.success) {
                 setDialogContent({
@@ -182,6 +184,7 @@ export function FormTahap1({ event }: any) {
                     message: res.data.message,
                 });
                 setOpenAlertSubmit(true);
+                setLoading(false);
             }
         } catch (err) {
             console.error("Error kirim payload:", err);
@@ -191,6 +194,7 @@ export function FormTahap1({ event }: any) {
                 message: "Terjadi kesalahan saat mengirim data. " + err,
             });
             setOpenAlertSubmit(true);
+            setLoading(false);
         }
     };
 
@@ -323,16 +327,22 @@ export function FormTahap1({ event }: any) {
                 <div className="mt-4 flex justify-center mb-4">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button size="lg">Kirim Pilihan</Button>
+                            <Button size="lg" disabled={loading}>
+                                {loading ? "Sedang mengirim data" : "Kirim Pilihan"}
+                            </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Konfirmasi</AlertDialogTitle>
-                                <AlertDialogDescription>Apakah Anda yakin ingin mengirim pilihan ini?</AlertDialogDescription>
+                                <AlertDialogDescription>
+                                    Apakah Anda yakin ingin mengirim pilihan ini?
+                                </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleSubmit}>OK</AlertDialogAction>
+                                <AlertDialogCancel disabled={loading}>Batal</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleSubmit} disabled={loading}>
+                                    OK
+                                </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
