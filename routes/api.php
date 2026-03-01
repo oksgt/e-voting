@@ -20,7 +20,3 @@ Route::get('/chart-penjaringan/{eventId}', [ElectionEventLogController::class, '
 Route::get('/top-2-per-position/{eventId}', [ElectionEventController::class, 'topTwoPerPosition']);
 
 Route::post('/election-event-logs-tahap2', [ElectionEventLogController::class, 'store_tahap2']);
-
-
-
-

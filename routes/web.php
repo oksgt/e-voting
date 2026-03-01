@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Response as FacadesResponse;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
-use Illuminate\Support\Facades\Response;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -27,7 +26,7 @@ Route::get('/check-phone/{phone}', [UserController::class, 'checkPhoneNumber']);
 Route::get('/download/user-template', function () {
     $path = public_path('storage/csv-template/user-template.csv');
 
-    if (!file_exists($path)) {
+    if (! file_exists($path)) {
         abort(404, 'Template file not found.');
     }
 
@@ -59,12 +58,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('events', ElectionEventController::class);
 
     Route::get('/events/{event}/control', [ElectionEventController::class, 'eventControl'])
-    ->name('events.control');
+        ->name('events.control');
 
     Route::post('/election-event-logs', [ElectionEventLogController::class, 'store']);
 
-    //roles permissions
+    // roles permissions
     Route::resource('roles', RoleController::class);
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

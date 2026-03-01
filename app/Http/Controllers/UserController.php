@@ -7,7 +7,6 @@ use App\Models\MagicLinks;
 use App\Models\User;
 use App\Rules\ValidPhoneNumber;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -24,7 +23,6 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -40,21 +38,22 @@ class UserController extends Controller
             ->get();
 
         return Inertia::render('Users/Index', [
-            'users'      => $users,
+            'users' => $users,
             'authUserId' => Auth::id(),
-            'filters'    => [
+            'filters' => [
                 'search' => $search,
             ],
             'csrfToken' => csrf_token(),
         ]);
     }
+
     /**
      * Show the form for creating a new resource.
      */
     public function create()
     {
         return Inertia::render('Users/Create', [
-            "roles" => Role::pluck('name')
+            'roles' => Role::pluck('name'),
         ]);
     }
 
@@ -67,28 +66,28 @@ class UserController extends Controller
 
         // Build base user data
         $userData = [
-            'name'          => $validated['name'],
-            'email'         => $this->emailFromNik($validated['nik']),
-            'nik'           => $validated['nik'],
-            'phone_number'  => $validated['phone_number'] ?? null,
-            'login_method'  => $validated['login_method'],
-            'bidang'        => $validated['bidang'] ?? null,
+            'name' => $validated['name'],
+            'email' => $this->emailFromNik($validated['nik']),
+            'nik' => $validated['nik'],
+            'phone_number' => $validated['phone_number'] ?? null,
+            'login_method' => $validated['login_method'],
+            'bidang' => $validated['bidang'] ?? null,
         ];
 
         // Only set password if login method is password or both
-        if (in_array($validated['login_method'], ['password', 'both']) && !empty($validated['password'])) {
+        if (in_array($validated['login_method'], ['password', 'both']) && ! empty($validated['password'])) {
             $userData['password'] = bcrypt($validated['password']);
         }
 
         $user = User::create($userData);
 
         // Assign roles safely (only if roles are provided)
-        if (!empty($validated['roles'])) {
+        if (! empty($validated['roles'])) {
             $user->syncRoles($validated['roles']);
         }
 
         // Update whatsapp_active based on validation result
-        if (!empty($validated['phone_number'])) {
+        if (! empty($validated['phone_number'])) {
             $rule = new \App\Rules\ValidPhoneNumber;
             $rule->validate('phone_number', $validated['phone_number'], function () {});
             $user->update(['whatsapp_active' => $rule->isRegistered ? 1 : 0]);
@@ -98,7 +97,6 @@ class UserController extends Controller
             ->route('users.index')
             ->with('success', 'User created successfully.');
     }
-
 
     /**
      * Display the specified resource.
@@ -125,7 +123,6 @@ class UserController extends Controller
         ]);
     }
 
-
     /**
      * Update the specified user in storage.
      */
@@ -135,15 +132,15 @@ class UserController extends Controller
 
         // Build update data
         $updateData = [
-            'name'         => $validated['name'],
-            'email'        => $this->emailFromNik($validated['nik']),
-            'nik'          => $validated['nik'],
+            'name' => $validated['name'],
+            'email' => $this->emailFromNik($validated['nik']),
+            'nik' => $validated['nik'],
             'phone_number' => $validated['phone_number'] ?? null,
             'login_method' => $validated['login_method'],
-            'bidang'       => $validated['bidang'] ?? null,
+            'bidang' => $validated['bidang'] ?? null,
         ];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $updateData['password'] = bcrypt($validated['password']);
         }
 
@@ -157,7 +154,7 @@ class UserController extends Controller
         }
 
         // Sync roles if provided
-        if (!empty($validated['roles'])) {
+        if (! empty($validated['roles'])) {
             $user->syncRoles($validated['roles']);
             $changesMade = true;
         }
@@ -198,7 +195,7 @@ class UserController extends Controller
             ->where('key', 'fonnte_token')
             ->value('value');
 
-        if (!$token) {
+        if (! $token) {
             return response()->json([
                 'error' => 'Fonnte token is not configured in settings.',
             ], 422);
@@ -208,7 +205,7 @@ class UserController extends Controller
         $response = Http::withHeaders([
             'Authorization' => $token,
         ])->post('https://api.fonnte.com/validate', [
-            'target'      => $phone,
+            'target' => $phone,
             'countryCode' => '62',
         ]);
 
@@ -254,9 +251,10 @@ class UserController extends Controller
                     'row_number' => $rowNumber,
                     'row' => $row,
                     'messages' => [
-                        "Row has " . count($row) . " values, expected " . count($header)
+                        'Row has '.count($row).' values, expected '.count($header),
                     ],
                 ];
+
                 continue;
             }
 
@@ -286,15 +284,15 @@ class UserController extends Controller
                     Rule::unique('users', 'email')->whereNull('deleted_at'),
                 ],
             ], [
-                'nik.unique'          => 'NIK already exists in the system.',
-                'nik.required'        => 'NIK is required.',
-                'nik.size'            => 'NIK must be exactly 16 digits.',
-                'nik.regex'           => 'NIK must contain only digits.',
-                'name.required'       => 'Name is required.',
+                'nik.unique' => 'NIK already exists in the system.',
+                'nik.required' => 'NIK is required.',
+                'nik.size' => 'NIK must be exactly 16 digits.',
+                'nik.regex' => 'NIK must contain only digits.',
+                'name.required' => 'Name is required.',
                 'phone_number.unique' => 'Phone number is already registered.',
-                'generated_email.unique'        => 'Generated email from NIK is already registered.',
-                'generated_email.required'      => 'Generated email is required.',
-                'generated_email.email'         => 'Generated email must be a valid format.',
+                'generated_email.unique' => 'Generated email from NIK is already registered.',
+                'generated_email.required' => 'Generated email is required.',
+                'generated_email.email' => 'Generated email must be a valid format.',
             ]);
 
             if ($validator->fails()) {
@@ -303,16 +301,16 @@ class UserController extends Controller
                     'row' => $row,
                     'messages' => $validator->errors()->all(),
                 ];
+
                 continue;
             }
 
-
             // Build base user data
             $userData = [
-                'nik'          => $data['nik'] ?? null,
-                'name'         => $data['name'],
+                'nik' => $data['nik'] ?? null,
+                'name' => $data['name'],
                 'phone_number' => $data['phone_number'] ?? null,
-                'email'        => $generatedEmail,
+                'email' => $generatedEmail,
                 'login_method' => 'magic_link', // default
             ];
 
@@ -320,7 +318,7 @@ class UserController extends Controller
             $user->syncRoles('Voter');
 
             // Run ValidPhoneNumber rule to update whatsapp_active
-            if (!empty($data['phone_number'])) {
+            if (! empty($data['phone_number'])) {
                 $rule = new \App\Rules\ValidPhoneNumber;
                 $rule->validate('phone_number', $data['phone_number'], function () {});
                 $user->update(['whatsapp_active' => $rule->isRegistered ? 1 : 0]);
@@ -335,15 +333,15 @@ class UserController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Imported {$imported} users successfully.",
-                'errors'  => $errors,
-                'data'    => $data
+                'errors' => $errors,
+                'data' => $data,
             ]);
         }
 
         return response()->json([
             'success' => false,
             'message' => 'No users imported.',
-            'errors'  => $errors,
+            'errors' => $errors,
         ], 422);
     }
 
@@ -354,16 +352,16 @@ class UserController extends Controller
 
     public function testingBroadcast(Request $request, $id)
     {
-        (!$id) ? abort(404) : null;
+        (! $id) ? abort(404) : null;
         // Fetch token dari settings
         $token = DB::table('settings')
             ->where('key', 'fonnte_token')
             ->value('value');
 
-        if (!$token) {
+        if (! $token) {
             return response()->json([
-                'status'  => false,
-                'message' => 'Fonnte token not found'
+                'status' => false,
+                'message' => 'Fonnte token not found',
             ], 404);
         }
 
@@ -373,12 +371,12 @@ class UserController extends Controller
             ->first();
         // ->get();
 
-        (!$userWhatsapp) ? abort(404) : null;
+        (! $userWhatsapp) ? abort(404) : null;
 
-        $message = "Hai, {name}. Terima kasih sudah registrasi.\n\n" .
-            "Silahkan gunakan link berikut untuk login:\n\n" .
-            "{var1}" . "\n\n" .
-            "Terima kasih sudah bergabung!";
+        $message = "Hai, {name}. Terima kasih sudah registrasi.\n\n".
+            "Silahkan gunakan link berikut untuk login:\n\n".
+            '{var1}'."\n\n".
+            'Terima kasih sudah bergabung!';
 
         // $result = $userWhatsapp->map(function ($user) {
         //     return $user->phone_number . "|" . $user->name . "|" . $this->generateMagicLink($user->phone_number);
@@ -387,21 +385,21 @@ class UserController extends Controller
         // Gabungkan semua target jadi satu string
         // $target = $result->implode(',');
 
-        $target = $userWhatsapp->phone_number . "|" . $userWhatsapp->name . "|" . $this->generateMagicLink($userWhatsapp->phone_number);
+        $target = $userWhatsapp->phone_number.'|'.$userWhatsapp->name.'|'.$this->generateMagicLink($userWhatsapp->phone_number);
 
         $response = Http::withHeaders([
             'Authorization' => $token,
         ])->post('https://api.fonnte.com/send', [
-            'target'    => $target,
-            'message'   => $message,
-            'delay'     => '2',
+            'target' => $target,
+            'message' => $message,
+            'delay' => '2',
         ]);
 
         return response()->json([
             'status_code' => $response->status(),
-            'success'     => $response->successful(),
-            'data'        => $response->json(), // isi JSON dari Fonnte
-            'raw'         => $response->body(), // isi mentah
+            'success' => $response->successful(),
+            'data' => $response->json(), // isi JSON dari Fonnte
+            'raw' => $response->body(), // isi mentah
         ]);
     }
 
@@ -414,7 +412,7 @@ class UserController extends Controller
         // Cari user berdasarkan nomor telepon
         $user = User::where('phone_number', $phone_number)->first();
 
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -436,9 +434,9 @@ class UserController extends Controller
 
         // Simpan magic link baru
         MagicLinks::create([
-            'user_id'    => $user->id,
-            'token'      => hash('sha256', $token),
-            'expired_at' => now()->addMinutes($expiration)
+            'user_id' => $user->id,
+            'token' => hash('sha256', $token),
+            'expired_at' => now()->addMinutes($expiration),
         ]);
 
         // Return URL magic link

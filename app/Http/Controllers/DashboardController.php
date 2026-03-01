@@ -31,13 +31,13 @@ class DashboardController extends Controller
         $electionEvents = DashboardEventResource::collection($eventModels)->resolve();
         $runningEventResource = $runningEvent ? DashboardEventResource::make($runningEvent)->resolve() : null;
         // Status counts (always across all voters, unaffected by search/status filter)
-        $rawCounts     = User::query()
-        ->selectRaw('status, count(*) as count')
+        $rawCounts = User::query()
+            ->selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
-        $statusCounts  = [
-            'total'    => $rawCounts->sum(),
-            'pending'  => $rawCounts->get('pending', 0),
+        $statusCounts = [
+            'total' => $rawCounts->sum(),
+            'pending' => $rawCounts->get('pending', 0),
             'approved' => $rawCounts->get('approved', 0),
             'rejected' => $rawCounts->get('rejected', 0),
         ];
@@ -68,7 +68,7 @@ class DashboardController extends Controller
             'voters' => $statusCounts,
             'positions' => $positionCounts,
             'activePositions' => $activePositions,
-            'userStatus' => $user->status
+            'userStatus' => $user->status,
         ]);
 
     }

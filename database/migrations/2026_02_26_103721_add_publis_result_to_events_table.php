@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::table('election_events', function (Blueprint $table) {
             $table->tinyInteger('publis_result')
                 ->default(0)
-                ->comment('0 = belum publish, 1 = sudah publish')
-                ->after('end_date'); // sesuaikan posisi kolom
+                ->comment('0 = belum publish, 1 = sudah publish');
+            // ->after('end_date'); // sesuaikan posisi kolom
         });
     }
 

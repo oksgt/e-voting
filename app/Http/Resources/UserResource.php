@@ -31,7 +31,7 @@ class UserResource extends JsonResource
 
             // Jika relasi roles dimuat, sertakan data roles
             $this->mergeWhen($this->relationLoaded('roles'), [
-                'roles' => $this->roles->map(fn($role) => [
+                'roles' => $this->roles->map(fn ($role) => [
                     'id' => $role->id,
                     'name' => $role->name,
                 ]),
