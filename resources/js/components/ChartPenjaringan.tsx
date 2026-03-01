@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
-import { Calendar, RefreshCw, TrendingUp } from "lucide-react"
-import { LabelList, Pie, PieChart } from "recharts"
+import { useEffect, useState } from "react";
+import { Calendar, RefreshCw } from "lucide-react";
+import { LabelList, Pie, PieChart } from "recharts";
 
 import {
     Card,
@@ -9,96 +9,106 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
     type ChartConfig,
-} from "@/components/ui/chart"
-import { Separator } from "radix-ui"
-import { SelectSeparator } from "@radix-ui/react-select"
+} from "@/components/ui/chart";
 
-
-export const description = "Pie chart penjaringan event 3"
+export const description = "Pie chart penjaringan event";
 
 const chartConfig = {
     value: { label: "Persentase" },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
-export function ChartPenjaringan({event_id}) {
-    const [chartData, setChartData] = useState<any[]>([])
-    const [lastUpdated, setLastUpdated] = useState<string>("")
-    const [loading, setLoading] = useState(false)
+type ChartPenjaringanProps = {
+    event_id: number;
+    value_type?: "number" | null;
+};
 
-    const formatTimestamp = (date: Date) => {
-        return new Intl.DateTimeFormat("id-ID", {
+export function ChartPenjaringan({ event_id, value_type = null }: ChartPenjaringanProps) {
+    const [chartData, setChartData] = useState<any[]>([]);
+    const [lastUpdated, setLastUpdated] = useState<string>("");
+    const [loading, setLoading] = useState(false);
+
+    const formatTimestamp = (date: Date) =>
+        new Intl.DateTimeFormat("id-ID", {
             dateStyle: "full",
             timeStyle: "medium",
-        }).format(date)
-    }
+        }).format(date);
 
+    const unit = value_type === "number" ? "Orang" : "%";
 
-    useEffect(() => {
-        fetch("/api/chart-penjaringan/" + event_id)
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.length > 0) {
-                    const item = data[0]
-                    const mapped = [
+    // Fungsi fetch data
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/chart-penjaringan/${event_id}/${value_type}`);
+            const data = await res.json();
+
+            if (data.length > 0) {
+                const item = data[0];
+                let mapped: any[] = [];
+
+                if (value_type === "number") {
+                    mapped = [
                         {
-                            name: Number(item.persentase),
-                            value: Number(item.persentase),
+                            name: Number(item.jumlah_user_ikut) + " " +unit,
+                            value: Number(item.jumlah_user_ikut),
                             fill: "#3b82f6", // Tailwind blue-500
                         },
                         {
-                            name: Number(item.sisa),
+                            name: Number(item.sisa) + " " +unit,
                             value: Number(item.sisa),
-                            fill: "#DEEDFE", // Tailwind blue-300 (lebih muda)
+                            fill: "#DEEDFE", // Tailwind blue-300
                         },
-                    ]
-                    setChartData(mapped)
-                    setLastUpdated(formatTimestamp(new Date()))
+                    ];
+                } else {
+                    mapped = [
+                        {
+                            name: Number(item.persentase) + " " +unit,
+                            value: Number(item.persentase),
+                            fill: "#3b82f6",
+                        },
+                        {
+                            name: Number(item.sisa) + " " +unit,
+                            value: Number(item.sisa),
+                            fill: "#DEEDFE",
+                        },
+                    ];
                 }
-            })
-    }, [])
 
-    const totalPersentase = chartData.length > 0 ? chartData[0].value : 0
+                setChartData(mapped);
+                setLastUpdated(formatTimestamp(new Date()));
+            }
+        } catch (err) {
+            console.error("Error fetching chart data:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Panggil loadData saat mount / dependency berubah
+    useEffect(() => {
+        loadData();
+    }, [event_id, value_type]);
 
     return (
         <Card className="flex flex-col">
             <CardHeader className="flex items-center justify-between pb-0">
                 <div className="flex flex-col">
-                    <CardTitle>Grafik Penjaringan</CardTitle>
-                    <CardDescription className="mt-2 flex">
+                    <CardTitle>
+                        {value_type === "number" ? "Jumlah Pemilih" : "Persentase"} Grafik Penjaringan
+                    </CardTitle>
+                    <CardDescription className="mt-2 flex items-center">
                         <Calendar className="mr-2 h-4 w-4" />
                         Data per: {lastUpdated || "Memuat..."}
                     </CardDescription>
                 </div>
                 <button
-                    onClick={() => {
-                        setLoading(true)
-                        fetch("/api/chart-penjaringan/3")
-                            .then((res) => res.json())
-                            .then((data) => {
-                                if (data.length > 0) {
-                                    const item = data[0]
-                                    const mapped = [
-                                        {
-                                            name: Number(item.persentase),
-                                            value: Number(item.persentase),
-                                            fill: "#3b82f6", // Tailwind blue-500
-                                        },
-                                        {
-                                            name: Number(item.sisa),
-                                            value: Number(item.sisa),
-                                            fill: "#DEEDFE", // Tailwind blue-300 (lebih muda)
-                                        },
-                                    ]
-                                    setChartData(mapped)
-                                }
-                            }).finally(() => setLoading(false))
-                    }}
+                    onClick={loadData}
                     className="rounded-full p-2 hover:bg-gray-100 transition-colors"
                     aria-label="Reload chart"
                 >
@@ -115,42 +125,37 @@ export function ChartPenjaringan({event_id}) {
                     className="[&_.recharts-text]:fill-background mx-auto aspect-square max-h-[250px]"
                 >
                     <PieChart>
-                        <ChartTooltip
-                            content={<ChartTooltipContent nameKey="value" hideLabel />}
-                        />
+                        <ChartTooltip content={<ChartTooltipContent nameKey="value" hideLabel />} />
                         <Pie data={chartData} dataKey="value">
                             <LabelList
                                 dataKey="name"
                                 stroke="none"
                                 fontSize={12}
-                                style={{ fill: "black", fontWeight: "bold" }} // hitam + bold
+                                style={{ fill: "black", fontWeight: "bold" }}
                             />
                         </Pie>
                     </PieChart>
                 </ChartContainer>
             </CardContent>
+
             <CardFooter className="flex-col gap-2 text-sm">
-                <CardFooter className="flex flex-col gap-4 text-center">
-                    {chartData.length > 0 && (
-                        <>
-                            <div className="flex justify-around w-full gap-3">
-                                <div className="flex flex-col items-center">
-                                    <span className="text-2xl font-bold text-blue-600">
-                                        {chartData[0].value}%
-                                    </span>
-                                    <span className="text-sm text-gray-900 font-semibold">Sudah memilih</span>
-                                </div>
-                                <div className="flex flex-col items-center">
-                                    <span className="text-2xl font-bold text-gray-800">
-                                        {chartData[1].value}%
-                                    </span>
-                                    <span className="text-sm text-gray-500">Belum memilih</span>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </CardFooter>
+                {chartData.length > 0 && (
+                    <div className="flex justify-around w-full gap-3">
+                        <div className="flex flex-col items-center">
+                            <span className="text-2xl font-bold text-blue-600">
+                                {chartData[0].value} {unit}
+                            </span>
+                            <span className="text-sm text-gray-900 font-semibold">Sudah memilih</span>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <span className="text-2xl font-bold text-gray-800">
+                                {chartData[1].value} {unit}
+                            </span>
+                            <span className="text-sm text-gray-500">Belum memilih</span>
+                        </div>
+                    </div>
+                )}
             </CardFooter>
         </Card>
-    )
+    );
 }

@@ -131,7 +131,7 @@ export default function Edit({ event }: EditEventProps) {
                         <form onSubmit={handleSubmit}>
                             <FieldGroup>
                                 <FieldSet>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 gap-6">
                                         {/* Kolom kiri */}
                                         <div className="space-y-4">
                                             {/* Event Name */}
@@ -143,17 +143,6 @@ export default function Edit({ event }: EditEventProps) {
                                                     onChange={(e) => setData('name', e.target.value)}
                                                 />
                                                 {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                                            </Field>
-
-                                            {/* Keyword */}
-                                            <Field>
-                                                <FieldLabel htmlFor="input-keyword">Keyword</FieldLabel>
-                                                <Input
-                                                    id="input-keyword"
-                                                    value={data.keyword}
-                                                    onChange={(e) => setData('keyword', e.target.value)}
-                                                />
-                                                {errors.keyword && <p className="text-red-500 text-sm">{errors.keyword}</p>}
                                             </Field>
 
                                             {/* Description */}

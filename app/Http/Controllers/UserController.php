@@ -23,6 +23,14 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403, 'Unauthorized');
+        }
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');

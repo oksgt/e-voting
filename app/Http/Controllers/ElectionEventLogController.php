@@ -127,7 +127,7 @@ class ElectionEventLogController extends Controller
         ], 200);
     }
 
-    public function penjaringan($eventId)
+    public function penjaringan($eventId, $value_type = null)
     {
         $excludedIds = [1]; // bisa juga []
 
@@ -174,7 +174,24 @@ class ElectionEventLogController extends Controller
             ]]);
         }
 
-        return response()->json($data);
+        // Sesuaikan output berdasarkan value_type
+        $result = $data->map(function ($row) use ($value_type) {
+            if ($value_type === 'number') {
+                return [
+                    'event_id' => $row->event_id,
+                    'jumlah_user_ikut' => $row->jumlah_user_ikut,
+                    'sisa' => $row->total_user - $row->jumlah_user_ikut,
+                ];
+            } else {
+                return [
+                    'event_id' => $row->event_id,
+                    'persentase' => $row->persentase,
+                    'sisa' => $row->sisa,
+                ];
+            }
+        });
+
+        return response()->json($result);
     }
 
     public function store_tahap2(Request $request)
@@ -240,5 +257,107 @@ class ElectionEventLogController extends Controller
             'message' => 'Data berhasil disimpan',
             'data' => $logs,
         ], 201);
+    }
+
+    public function addRejection(Request $request)
+    {
+        $request->validate([
+            'event_id'    => 'required|integer',
+            'user_id'     => 'required|integer',
+            'position_id' => 'required|integer',
+            'reason'      => 'required|string',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Simpan data ke tabel rejection
+            $rejectionId = DB::table('rejection')->insertGetId([
+                'description' => $request->reason,
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+
+            // 2. Update ElectionEventLog dengan id rejection
+            $logs = ElectionEventLog::where('event_id', $request->event_id)
+                ->where('user_id', $request->user_id)
+                ->where('position_id', $request->position_id)
+                ->get();
+
+            foreach ($logs as $log) {
+                $log->rejectionId = $rejectionId; // gunakan snake_case sesuai kolom DB
+                $log->save();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'rejection_id' => $rejectionId,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function removeRejection(Request $request)
+    {
+        $request->validate([
+            'event_id'    => 'required|integer',
+            'user_id'     => 'required|integer',
+            'position_id' => 'required|integer',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Ambil semua log yang sesuai
+            $logs = ElectionEventLog::where('event_id', $request->event_id)
+                ->where('user_id', $request->user_id)
+                ->where('position_id', $request->position_id)
+                ->get();
+
+            if ($logs->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak ada log ditemukan untuk kombinasi ini.',
+                ], 404);
+            }
+
+            // Ambil rejection_id dari salah satu log (semua seharusnya sama)
+            $rejectionId = $logs->first()->rejectionId;
+
+            // Hapus relasi di semua log
+            foreach ($logs as $log) {
+                $log->rejectionId = null;
+                $log->save();
+            }
+
+            // Hapus record dari tabel rejection
+            if ($rejectionId) {
+                DB::table('rejection')->where('id', $rejectionId)->delete();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Rejection berhasil dihapus.',
+                'rejection_id' => $rejectionId,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

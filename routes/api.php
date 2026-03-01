@@ -21,12 +21,16 @@ Route::get('/voters', [ElectionEventController::class, 'getVoterList']);
 Route::post('/election-event-logs', [ElectionEventLogController::class, 'store']);
 Route::post('/election-events/check-participation', [ElectionEventLogController::class, 'checkParticipation']);
 
-Route::get('/chart-penjaringan/{eventId}', [ElectionEventLogController::class, 'penjaringan']);
-Route::get('/top-2-per-position/{eventId}', [ElectionEventController::class, 'topTwoPerPosition']);
+Route::get('/chart-penjaringan/{eventId}/{value_type?}', [ElectionEventLogController::class, 'penjaringan']);
+Route::get('/top-2-per-position/{eventId}/{limit?}', [ElectionEventController::class, 'topTwoPerPosition']);
 
 Route::post('/election-event-logs-tahap2', [ElectionEventLogController::class, 'store_tahap2']);
 
 Route::get('/bidang', fn () => new BidangCollection(Bidang::query()->get()));
+Route::post('/election-event-log/rejection', [ElectionEventLogController::class, 'addRejection']);
+Route::post('/election-event-log/rejection/remove', [ElectionEventLogController::class, 'removeRejection']);
+
+
 
 Route::get('/anggota', function (Request $request) {
     $query = AnggotaKoperasi::query()

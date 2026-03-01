@@ -14,9 +14,13 @@ import {
     CardDescription,
     CardContent,
 } from "@/components/ui/card"
+import ToggleBerkenan from "./ToggleBerkenan"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertTriangleIcon } from "lucide-react"
 
 export function TopTwoPerPosition({ eventId }: { eventId: number }) {
     const [positions, setPositions] = useState<any[]>([])
+    const [analisa, setAnalisa] = useState<any[]>([])
     const [lastUpdated, setLastUpdated] = useState<string>("")
     const [loading, setLoading] = useState(false)
 
@@ -29,10 +33,11 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
 
     const fetchData = () => {
         setLoading(true)
-        fetch(`/api/top-2-per-position/${eventId}`)
+        fetch(`/api/top-2-per-position/${eventId}/`)
             .then((res) => res.json())
             .then((data) => {
-                setPositions(data)
+                setPositions(data.positions)
+                setAnalisa(data.Analisa)
                 setLastUpdated(formatTimestamp(new Date()))
             })
             .finally(() => setLoading(false))
@@ -61,7 +66,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
         <Card className="w-full flex flex-col">
             <CardHeader className="flex items-center justify-between pb-0">
                 <div className="flex flex-col">
-                    <CardTitle>Top 2 penjaringan per posisi</CardTitle>
+                    <CardTitle>Hasil penjaringan per posisi</CardTitle>
                     <CardDescription className="mt-2 flex">
                         <Calendar className="mr-2 h-4 w-4" />
                         Data per: {lastUpdated || "Memuat..."}
@@ -78,34 +83,111 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                     />
                 </button>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-                {positions.map((pos: { position: string; candidates: any[] }) => (
-                    <Item
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        key={pos.position}
-                    >
-                        <ItemMedia variant="icon">
-                            <Users2Icon />
-                        </ItemMedia>
-                        <ItemContent>
-                            <ItemTitle className="text-gray-900 text-lg">
-                                {pos.position}
-                            </ItemTitle>
+            <CardContent>
 
-                            <div className="text-gray-700 font-medium">
-                                <ol className="list-decimal list-inside space-y-2 text-gray-700 font-medium">
-                                    {pos.candidates.map((c: { id: number; name: string; persentase: number }) => (
-                                        <li key={c.id}>
-                                            {ucwords(c.name)} ({c.persentase}%)
-                                        </li>
-                                    ))}
-                                </ol>
-                            </div>
-                        </ItemContent>
-                    </Item>
-                ))}
+                {analisa?.length > 0 && (
+                    <Alert className="w-full border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-50 mb-4">
+                        <AlertTriangleIcon />
+                        <AlertTitle>Analisa Data</AlertTitle>
+                        <AlertDescription>
+                            <ul className="list-disc pl-5 space-y-1">
+                                {analisa.map((item, index) => (
+                                    <li key={index}>
+                                        {item.issue.description}
+                                    </li>
+                                ))}
+                            </ul>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {positions.map((pos: { position: string; candidates: any[] }) => (
+                        <Item
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            key={pos.position}
+                        >
+                            <ItemContent className="flex flex-col h-full">
+                                <div className="mb-2">
+                                    <ItemTitle className="text-gray-900 text-base font-semibold m-0">
+                                        Posisi: <strong>{pos.position}</strong>
+                                    </ItemTitle>
+                                </div>
+
+
+                                <div className="text-gray-700 font-small">
+                                    {/* <table className="table-auto w-full border-collapse border border-gray-300 text-gray-700 text-sm p-0"> */}
+                                    <table className="table-auto w-full border-collapse border border-gray-300 text-gray-700 text-sm">
+                                        <thead>
+                                            <tr className="font-semibold bg-gray-100">
+                                                <th className="border border-gray-300 px-2 py-1 text-left">No</th>
+                                                <th className="border border-gray-300 px-2 py-1 text-left">Nama</th>
+                                                <th className="border border-gray-300 px-2 py-1 text-left">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {pos.candidates.map(
+                                                (
+                                                    c: { id: number; name: string; persentase: number; total_votes: number },
+                                                    index: number
+                                                ) => (
+                                                    <tr
+                                                        key={c.id}
+                                                        className={`hover:bg-blue-100 ${index < 2 ? "bg-blue-50 font-semibold" : ""
+                                                            }`}
+                                                    >
+                                                        <td className="border border-gray-300 px-2 py-1">{index + 1}</td>
+
+                                                        {/* Kolom Nama + Persentase + Total Votes */}
+                                                        <td className="border border-gray-300 px-2 py-1">
+                                                            <div className="flex flex-col leading-tight">
+                                                                <span className="font-semibold text-gray-900">{ucwords(c.name)}</span>
+                                                                <span className="text-xs text-gray-600">
+                                                                    {c.persentase} % / {c.total_votes} pemilih
+                                                                </span>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Kolom Aksi */}
+                                                        <td className="border border-gray-300 px-2 py-1">
+                                                            <ToggleBerkenan data={c} />
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            )}
+
+                                            {/* Row akumulasi */}
+                                            <tr className="font-semibold bg-gray-100">
+                                                <td className="border border-gray-300 px-2 py-1">Total</td>
+                                                <td className="border border-gray-300 px-2 py-1">
+                                                    <div className="flex flex-col leading-tight">
+                                                        <span className="text-sm font-semibold text-gray-900">
+                                                            {Math.round(
+                                                                pos.candidates.reduce(
+                                                                    (acc: number, c: { persentase: number }) => acc + c.persentase,
+                                                                    0
+                                                                )
+                                                            )}%
+                                                        </span>
+                                                        <span className="text-xs text-gray-600">
+                                                            {pos.candidates.reduce(
+                                                                (acc: number, c: { total_votes: number }) => acc + c.total_votes,
+                                                                0
+                                                            )} pemilih
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="border border-gray-300 px-2 py-1"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </ItemContent>
+                        </Item>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     )
