@@ -109,7 +109,7 @@ export function TopTwoPerPositionTahap2({ eventId }: { eventId: number }) {
                                                         : "text-gray-700"
                                                     }`}
                                             >
-                                                <span>{ucwords(c.name)}</span>
+                                                <span>{ucwords(c.nama)}</span>
                                                 <span className="text-gray-600">
                                                     {c.total_votes} suara ({c.persentase.toFixed(2)}%)
                                                 </span>
