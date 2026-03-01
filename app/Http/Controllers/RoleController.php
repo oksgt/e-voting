@@ -35,8 +35,8 @@ class RoleController extends Controller
             ->paginate($per_page);
 
         return Inertia::render('Roles/Index', [
-            'roles'      => new RoleCollection($roles),
-            'filters'    => [
+            'roles' => new RoleCollection($roles),
+            'filters' => [
                 'search' => $search,
             ],
         ]);
@@ -67,7 +67,7 @@ class RoleController extends Controller
     public function store(RoleRequest $request)
     {
         $role = Role::create([
-            "name" => $request->name,
+            'name' => $request->name,
         ]);
 
         $role->syncPermissions($request->permissions);
@@ -95,8 +95,8 @@ class RoleController extends Controller
 
         // Get all permissions grouped by prefix (before the first dot)
         $groupedPermissions = Permission::all()
-            ->groupBy(fn($perm) => Str::before($perm->name, '.'))
-            ->map(fn($group) => $group->pluck('name')->values());
+            ->groupBy(fn ($perm) => Str::before($perm->name, '.'))
+            ->map(fn ($group) => $group->pluck('name')->values());
 
         // Get the role’s assigned permission names
         $selectedPermissions = $role->permissions->pluck('name')->toArray();
@@ -105,7 +105,7 @@ class RoleController extends Controller
             'role' => [
                 'id' => $role->id,
                 'name' => $role->name,
-                'permissions' => $role->permissions->map(fn($p) => ['name' => $p->name]),
+                'permissions' => $role->permissions->map(fn ($p) => ['name' => $p->name]),
             ],
             'groupedPermissions' => $groupedPermissions,
             'selectedPermissions' => $selectedPermissions,
@@ -120,8 +120,8 @@ class RoleController extends Controller
         $role = Role::findOrFail($id);
 
         $validated = $request->validate([
-            'name'          => 'required|string|max:255|unique:roles,name,' . $role->id,
-            'permissions'   => 'array',
+            'name' => 'required|string|max:255|unique:roles,name,'.$role->id,
+            'permissions' => 'array',
             'permissions.*' => 'string|exists:permissions,name',
         ]);
 
@@ -137,7 +137,6 @@ class RoleController extends Controller
             ->route('roles.index')
             ->with('success', 'Role updated successfully.');
     }
-
 
     /**
      * Remove the specified resource from storage.

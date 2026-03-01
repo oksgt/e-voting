@@ -33,7 +33,7 @@ class VoterController extends Controller
         $per_page       = $request->per_page ?? 10;
         $sort_by        = $request->sort_by;
         $sort_direction = $request->sort_direction;
-        $status         = $request->input('status'); // pending | approved | rejected
+        $status = $request->input('status'); // pending | approved | rejected
 
         // Base scope: only Voter-role users
         $voterScope = User::whereHas('roles', function ($q) {
@@ -41,12 +41,12 @@ class VoterController extends Controller
         });
 
         // Status counts (always across all voters, unaffected by search/status filter)
-        $rawCounts     = (clone $voterScope)->selectRaw('status, count(*) as count')
+        $rawCounts = (clone $voterScope)->selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
-        $statusCounts  = [
-            'total'    => $rawCounts->sum(),
-            'pending'  => $rawCounts->get('pending', 0),
+        $statusCounts = [
+            'total' => $rawCounts->sum(),
+            'pending' => $rawCounts->get('pending', 0),
             'approved' => $rawCounts->get('approved', 0),
             'rejected' => $rawCounts->get('rejected', 0),
         ];
@@ -62,23 +62,23 @@ class VoterController extends Controller
                         ->orWhere('phone_number', 'like', "%{$search}%");
                 });
             })
-            ->when($status, fn($q) => $q->where('status', $status))
+            ->when($status, fn ($q) => $q->where('status', $status))
             ->when(
                 $sort_by && in_array($sort_by, ['name', 'email', 'created_at', 'status', 'bidang']),
-                fn($q) => $q->orderBy($sort_by, $sort_direction ?? 'asc'),
-                fn($q) => $q->orderBy('created_at', 'desc')
+                fn ($q) => $q->orderBy($sort_by, $sort_direction ?? 'asc'),
+                fn ($q) => $q->orderBy('created_at', 'desc')
             )
             ->paginate($per_page);
 
         return Inertia::render('Voters/Index', [
-            'users'        => new UserCollection($users),
-            'authUserId'   => $request->user()->id,
+            'users' => new UserCollection($users),
+            'authUserId' => $request->user()->id,
             'statusCounts' => $statusCounts,
-            'filters'      => [
-                'per_page'       => $per_page,
-                'search'         => $search,
-                'status'         => $status,
-                'sort_by'        => $sort_by,
+            'filters' => [
+                'per_page' => $per_page,
+                'search' => $search,
+                'status' => $status,
+                'sort_by' => $sort_by,
                 'sort_direction' => $sort_direction,
             ],
             'csrfToken' => csrf_token(),
@@ -103,13 +103,13 @@ class VoterController extends Controller
     {
         // Build base user data
         $userData = [
-            'name'          => $request->name,
-            'email'         => $request->email,
-            'nik'           => $request->nik,
-            'phone_number'  => $request->phone_number,
-            'bidang'        => $request->bidang,
-            'login_method'  => $request->login_method,
-            'status'        => 'pending',
+            'name' => $request->name,
+            'email' => $request->email,
+            'nik' => $request->nik,
+            'phone_number' => $request->phone_number,
+            'bidang' => $request->bidang,
+            'login_method' => $request->login_method,
+            'status' => 'pending',
         ];
 
         // Only set password if login method is password or both
@@ -136,7 +136,6 @@ class VoterController extends Controller
             ->with('success', 'User created successfully.');
     }
 
-
     /**
      * Display the specified resource.
      */
@@ -154,12 +153,11 @@ class VoterController extends Controller
             abort(403, 'Unauthorized');
         }
         return Inertia::render('Voters/Edit', [
-            'user'      => $voter->load('roles'),
-            'roles'     => Role::pluck('name'),
+            'user' => $voter->load('roles'),
+            'roles' => Role::pluck('name'),
             'userRoles' => $voter->roles->pluck('name'),
         ]);
     }
-
 
     /**
      * Update the specified user in storage.
@@ -178,7 +176,7 @@ class VoterController extends Controller
         // ];
         $updateData = $validated;
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $updateData['password'] = bcrypt($validated['password']);
         }
 
@@ -193,7 +191,7 @@ class VoterController extends Controller
         }
 
         // Sync roles if provided
-        if (!empty($validated['roles'])) {
+        if (! empty($validated['roles'])) {
             $voter->syncRoles($validated['roles']);
             $changesMade = true;
         }
@@ -258,7 +256,7 @@ class VoterController extends Controller
             ->where('key', 'fonnte_token')
             ->value('value');
 
-        if (!$token) {
+        if (! $token) {
             return response()->json(['error' => 'Fonnte token is not configured in settings.'], 422);
         }
 
@@ -266,7 +264,7 @@ class VoterController extends Controller
         $response = Http::withHeaders([
             'Authorization' => $token,
         ])->post('https://api.fonnte.com/validate', [
-            'target'      => $phone,
+            'target' => $phone,
             'countryCode' => '62',
         ]);
 
@@ -312,9 +310,10 @@ class VoterController extends Controller
                     'row_number' => $rowNumber,
                     'row' => $row,
                     'messages' => [
-                        "Row has " . count($row) . " values, expected " . count($header)
+                        'Row has '.count($row).' values, expected '.count($header),
                     ],
                 ];
+
                 continue;
             }
 
@@ -341,12 +340,12 @@ class VoterController extends Controller
                     Rule::unique('users', 'email')->whereNull('deleted_at'),
                 ],
             ], [
-                'nik.unique'          => 'NIK already exists in the system.',
-                'name.required'       => 'Name is required.',
+                'nik.unique' => 'NIK already exists in the system.',
+                'name.required' => 'Name is required.',
                 'phone_number.unique' => 'Phone number is already registered.',
-                'email.unique'        => 'Email address is already registered.',
-                'email.required'      => 'Email is required.',
-                'email.email'         => 'Email must be a valid format.',
+                'email.unique' => 'Email address is already registered.',
+                'email.required' => 'Email is required.',
+                'email.email' => 'Email must be a valid format.',
             ]);
 
             if ($validator->fails()) {
@@ -355,15 +354,16 @@ class VoterController extends Controller
                     'row' => $row,
                     'messages' => $validator->errors()->all(),
                 ];
+
                 continue;
             }
 
             // Build base user data
             $userData = [
-                'nik'          => $data['nik'] ?? null,
-                'name'         => $data['name'],
+                'nik' => $data['nik'] ?? null,
+                'name' => $data['name'],
                 'phone_number' => $data['phone_number'] ?? null,
-                'email'        => $data['email'],
+                'email' => $data['email'],
                 'login_method' => 'magic_link', // default
             ];
 
@@ -371,7 +371,7 @@ class VoterController extends Controller
             $user->syncRoles('Voter');
 
             // Run ValidPhoneNumber rule to update whatsapp_active
-            if (!empty($data['phone_number'])) {
+            if (! empty($data['phone_number'])) {
                 $rule = new \App\Rules\ValidPhoneNumber;
                 $rule->validate('phone_number', $data['phone_number'], function () {});
                 $user->update(['whatsapp_active' => $rule->isRegistered ? 1 : 0]);
@@ -386,7 +386,7 @@ class VoterController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Imported {$imported} users successfully.",
-                'errors'  => $errors,
+                'errors' => $errors,
             ]);
         }
 

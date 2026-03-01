@@ -14,14 +14,14 @@ class RoleCollection extends ResourceCollection
      */
     public function toArray(Request $request): array
     {
-        return $this->collection->map(fn($item) => new RoleResource($item))->toArray();
+        return $this->collection->map(fn ($item) => new RoleResource($item))->toArray();
     }
 
     public function paginationInformation($request, $paginated, $default): array
     {
         return [
             'links' => $default['links'],
-            'meta'  => $default['meta'],
+            'meta' => $default['meta'],
         ];
     }
 }

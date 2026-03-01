@@ -35,5 +35,4 @@ class RoleRequest extends FormRequest
             'permissions.required' => 'At least one permission must be selected.',
         ];
     }
-
 }

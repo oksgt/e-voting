@@ -62,22 +62,22 @@ class UpdateVoterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required'         => 'Name is required.',
-            'name.max'              => 'Name may not exceed 255 characters.',
-            'email.required'        => 'Email is required.',
-            'email.email'           => 'Please enter a valid email address.',
-            'email.unique'          => 'This email is already taken by another user.',
-            'nik.size'              => 'NIK must be exactly 16 digits.',
-            'nik.regex'             => 'NIK must contain only digits.',
-            'nik.unique'            => 'This NIK is already registered to another user.',
-            'phone_number.max'      => 'Phone number may not exceed 20 characters.',
+            'name.required' => 'Name is required.',
+            'name.max' => 'Name may not exceed 255 characters.',
+            'email.required' => 'Email is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email is already taken by another user.',
+            'nik.size' => 'NIK must be exactly 16 digits.',
+            'nik.regex' => 'NIK must contain only digits.',
+            'nik.unique' => 'This NIK is already registered to another user.',
+            'phone_number.max' => 'Phone number may not exceed 20 characters.',
             'login_method.required' => 'Please select a login method.',
-            'login_method.in'       => 'Login method must be password, magic_link, or both.',
-            'password.min'          => 'Password must be at least 8 characters.',
-            'password.confirmed'    => 'Password confirmation does not match.',
-            'roles.required'        => 'At least one role must be selected.',
-            'roles.min'             => 'At least one role must be selected.',
-            'roles.*.exists'        => 'One or more selected roles do not exist.',
+            'login_method.in' => 'Login method must be password, magic_link, or both.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
+            'roles.required' => 'At least one role must be selected.',
+            'roles.min' => 'At least one role must be selected.',
+            'roles.*.exists' => 'One or more selected roles do not exist.',
         ];
     }
 }

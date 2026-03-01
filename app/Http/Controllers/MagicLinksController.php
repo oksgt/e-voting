@@ -24,7 +24,7 @@ class MagicLinksController extends Controller
         // Find the user by phone number
         $user = User::where('phone_number', $phone_number)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'message' => 'User not found.',
             ], 404);
@@ -37,9 +37,10 @@ class MagicLinksController extends Controller
 
         if ($existingLink) {
             $url = url("/magic-login/{$existingLink->token}");
+
             return response()->json([
                 'message' => 'Magic link already active.',
-                'url'     => $url,
+                'url' => $url,
             ]);
         }
 
@@ -52,19 +53,18 @@ class MagicLinksController extends Controller
 
         // Create magic link record tied to user_id
         $link = MagicLinks::create([
-            'user_id'    => $user->id,
-            'token'      => hash('sha256', $token),
-            'expired_at' => Carbon::parse('2026-03-06 23:59:59')
+            'user_id' => $user->id,
+            'token' => hash('sha256', $token),
+            'expired_at' => Carbon::parse('2026-03-06 23:59:59'),
         ]);
 
         $url = url("/magic-login/{$token}");
 
         return response()->json([
             'message' => 'Magic link generated successfully.',
-            'url'     => $url,
+            'url' => $url,
         ]);
     }
-
 
     public function verifyMagicLink($token)
     {
@@ -93,5 +93,4 @@ class MagicLinksController extends Controller
 
         return redirect('/dashboard')->with('success', 'Berhasil login tanpa password!');
     }
-
 }

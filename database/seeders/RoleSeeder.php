@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
@@ -14,9 +14,9 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         // Create roles
-        $adminRole    = Role::firstOrCreate(['name' => 'Admin']);
+        $adminRole = Role::firstOrCreate(['name' => 'Admin']);
         $candidateRole = Role::firstOrCreate(['name' => 'Candidate']);
-        $voterRole     = Role::firstOrCreate(['name' => 'Voter']);
+        $voterRole = Role::firstOrCreate(['name' => 'Voter']);
 
         // Assign all permissions to Admin
         $adminRole->syncPermissions(Permission::all());

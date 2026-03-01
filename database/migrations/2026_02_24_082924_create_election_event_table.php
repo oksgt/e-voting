@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->dateTime('start_date')->nullable(); // waktu mulai event
-            $table->integer('duration')->nullable();; // durasi dalam menit
+            $table->integer('duration')->nullable(); // durasi dalam menit
             $table->boolean('is_autorun')->default(false);
             $table->enum('status', ['pending', 'scheduled', 'running', 'finished', 'cancelled'])
                 ->default('pending');
@@ -26,7 +26,6 @@ return new class extends Migration
             $table->softDeletes(); // deleted_at
         });
     }
-
 
     /**
      * Reverse the migrations.

@@ -50,14 +50,14 @@ class EventsRequest extends FormRequest
                 Rule::unique('election_events', 'name')
                     ->ignore($this->route('event')), // safe untuk store & update
             ],
-            'keyword'     => 'required|string|max:50',
-            'started_at'  => 'required|date',
+            'keyword' => 'required|string|max:50',
+            'started_at' => 'required|date',
             'finished_at' => 'required|date|after:started_at',
-            'start_date'  => 'nullable|date',
-            'duration'    => 'nullable|integer|min:1',
-            'is_autorun'  => 'boolean',
-            'status'      => 'required|in:pending,scheduled,running,finished,cancelled',
-            'is_running'  => 'boolean',
+            'start_date' => 'nullable|date',
+            'duration' => 'nullable|integer|min:1',
+            'is_autorun' => 'boolean',
+            'status' => 'required|in:pending,scheduled,running,finished,cancelled',
+            'is_running' => 'boolean',
         ];
     }
 
@@ -68,22 +68,22 @@ class EventsRequest extends FormRequest
     {
         return [
             'name.required' => 'Nama event wajib diisi.',
-            'name.string'   => 'Nama event harus berupa teks.',
-            'name.max'      => 'Nama event maksimal 100 karakter.',
-            'name.unique'   => 'Nama event sudah digunakan, silakan pilih nama lain.',
+            'name.string' => 'Nama event harus berupa teks.',
+            'name.max' => 'Nama event maksimal 100 karakter.',
+            'name.unique' => 'Nama event sudah digunakan, silakan pilih nama lain.',
 
             'keyword.string' => 'Keyword harus berupa teks.',
-            'keyword.max'    => 'Keyword maksimal 50 karakter.',
+            'keyword.max' => 'Keyword maksimal 50 karakter.',
 
             'start_date.required' => 'Tanggal mulai wajib diisi.',
-            'start_date.date'     => 'Tanggal mulai harus berupa format tanggal yang valid.',
+            'start_date.date' => 'Tanggal mulai harus berupa format tanggal yang valid.',
 
             'duration.required' => 'Durasi wajib diisi.',
-            'duration.integer'  => 'Durasi harus berupa angka.',
-            'duration.min'      => 'Durasi minimal 1 menit.',
+            'duration.integer' => 'Durasi harus berupa angka.',
+            'duration.min' => 'Durasi minimal 1 menit.',
 
             'status.required' => 'Status event wajib diisi.',
-            'status.in'       => 'Status event harus salah satu dari: pending, scheduled, running, finished, cancelled.',
+            'status.in' => 'Status event harus salah satu dari: pending, scheduled, running, finished, cancelled.',
             'finished_at.after' => 'Waktu selesai harus setelah waktu mulai.',
         ];
     }

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -24,16 +23,15 @@ class ElectionEventLogsTesterSeeder extends Seeder
 
             foreach ($positionIds as $index => $posId) {
                 DB::table('election_event_logs')->insert([
-                    'event_id'   => $eventId,
-                    'user_id'    => $candidates[$index],
-                    'position_id'=> $posId,
-                    'voted_by'   => $voterId,
-                    'voted_at'   => Carbon::now(),
+                    'event_id' => $eventId,
+                    'user_id' => $candidates[$index],
+                    'position_id' => $posId,
+                    'voted_by' => $voterId,
+                    'voted_at' => Carbon::now(),
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]);
             }
         }
     }
-
 }

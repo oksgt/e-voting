@@ -42,13 +42,13 @@ class PositionRequest extends FormRequest
     {
         return [
             'name.required' => 'Nama posisi wajib diisi.',
-            'name.string'   => 'Nama posisi harus berupa teks.',
-            'name.max'      => 'Nama posisi maksimal 100 karakter.',
-            'name.unique'   => 'Nama posisi sudah digunakan, silakan pilih nama lain.',
+            'name.string' => 'Nama posisi harus berupa teks.',
+            'name.max' => 'Nama posisi maksimal 100 karakter.',
+            'name.unique' => 'Nama posisi sudah digunakan, silakan pilih nama lain.',
             'description.string' => 'Deskripsi harus berupa teks.',
-            'description.max'    => 'Deskripsi maksimal 500 karakter.',
-            'status.required'    => 'Status wajib dipilih.',
-            'status.in'          => 'Status tidak valid.',
+            'description.max' => 'Deskripsi maksimal 500 karakter.',
+            'status.required' => 'Status wajib dipilih.',
+            'status.in' => 'Status tidak valid.',
         ];
     }
 }
