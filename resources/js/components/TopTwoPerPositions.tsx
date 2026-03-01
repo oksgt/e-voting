@@ -33,7 +33,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
         fetch(`/api/top-2-per-position/${eventId}/`)
             .then((res) => res.json())
             .then((data) => {
-                setPositions(data)
+                setPositions(data.positions)
                 setLastUpdated(formatTimestamp(new Date()))
             })
             .finally(() => setLoading(false))
@@ -114,7 +114,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                                                 ) => (
                                                     <tr
                                                         key={c.id}
-                                                        className={`hover:bg-gray-50 ${index < 2 ? "bg-blue-50 font-semibold" : ""
+                                                        className={`hover:bg-blue-100 ${index < 2 ? "bg-blue-50 font-semibold" : ""
                                                             }`}
                                                     >
                                                         <td className="border border-gray-300 px-2 py-1">{index + 1}</td>
