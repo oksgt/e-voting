@@ -1,26 +1,70 @@
 import { Form, Head } from "@inertiajs/react";
-import { IdCard, ShieldCheck } from "lucide-react";
+import { CheckCircle2, IdCard, Loader2, ShieldCheck, XCircle } from "lucide-react";
+import { useRef } from "react";
 import InputError from "@/components/input-error";
 import TextLink from "@/components/text-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { useRegisterHook } from "@/hooks/use-register-hook";
 import AuthLayout from "@/layouts/auth-layout";
-import { BIDANG_OPTIONS } from "@/lib/constants";
 import { login } from "@/routes";
 import { store } from "@/routes/register";
 
 export default function Register() {
+    const {
+        options: bidangOptions,
+        isLoading,
+        onBidangChange,
+        onNowaChange,
+        anggotaOptions,
+        isLoadingAnggota,
+        findDetailByName,
+        phoneValidationStatus,
+        phoneValidationMessage,
+    } = useRegisterHook();
+    const nikInputRef = useRef<HTMLInputElement>(null);
+    const nowaInputRef = useRef<HTMLInputElement>(null);
+
+    const handleBidangChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
+        onBidangChange(value);
+    };
+
+    const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const name = event.target.value;
+        const anggota = findDetailByName(name);
+        let nik = "";
+        let nowa = "";
+        if (anggota) {
+            nik = anggota?.nik;
+            nowa = anggota?.nowa;
+        }
+        const nikValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+        const nowaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+        nikValueSetter?.call(nikInputRef.current, nik);
+        nowaValueSetter?.call(nowaInputRef.current, nowa);
+        nikInputRef.current?.dispatchEvent(new Event("input", { bubbles: true }));
+        nowaInputRef.current?.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+
+    const getValidationIcon = () => {
+        switch (phoneValidationStatus) {
+            case "validating":
+                return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
+            case "valid":
+                return <CheckCircle2 className="h-4 w-4 text-green-600" />;
+            case "invalid":
+            case "error":
+                return <XCircle className="h-4 w-4 text-red-600" />;
+            default:
+                return null;
+        }
+    };
+
+    const isFormValid = phoneValidationStatus === "valid";
+
     return (
         <AuthLayout title="Register Voter" description="Lengkapi data untuk membuat akun voter baru">
             <Head title="Register" />
@@ -29,17 +73,53 @@ export default function Register() {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
+                                <Label htmlFor="bidang">Bidang</Label>
+                                <Input
+                                    id="bidang"
+                                    type="search"
+                                    required
+                                    autoComplete="off"
+                                    name="bidang"
+                                    list="bidang-options"
+                                    placeholder="Cari atau pilih bidang"
+                                    onChange={handleBidangChange}
+                                />
+                                <datalist id="bidang-options">
+                                    {bidangOptions.map((option) => (
+                                        <option key={option} value={option} />
+                                    ))}
+                                </datalist>
+                                <p className="text-xs text-muted-foreground">
+                                    {isLoading
+                                        ? "Memuat daftar bidang..."
+                                        : "Ketik untuk mencari, lalu pilih salah satu bidang dari daftar."}
+                                </p>
+                                <InputError message={errors.bidang} />
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="name">Nama</Label>
                                 <Input
                                     id="name"
-                                    type="text"
+                                    type="search"
                                     required
                                     autoFocus
-                                    autoComplete="name"
+                                    autoComplete="off"
                                     name="name"
-                                    placeholder="Full name"
+                                    list="nama-options"
+                                    placeholder="Cari atau pilih nama"
+                                    onChange={handleNameChange}
                                 />
-                                <p className="text-xs text-muted-foreground">Gunakan nama lengkap sesuai identitas.</p>
+                                <datalist id="nama-options">
+                                    {anggotaOptions.map((option) => (
+                                        <option key={option} value={option} />
+                                    ))}
+                                </datalist>
+                                <p className="text-xs text-muted-foreground">
+                                    {isLoadingAnggota
+                                        ? "Memuat daftar nama..."
+                                        : "Pilih bidang terlebih dahulu, lalu cari nama dari daftar."}
+                                </p>
                                 <InputError message={errors.name} className="mt-2" />
                             </div>
 
@@ -48,6 +128,7 @@ export default function Register() {
                                 <div className="relative">
                                     <IdCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                     <Input
+                                        ref={nikInputRef}
                                         id="nik"
                                         type="text"
                                         required
@@ -64,37 +145,40 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="bidang">Bidang</Label>
-                                <Select name="bidang" required>
-                                    <SelectTrigger>
-                                        <SelectValue id="bidang" placeholder="Pilih bidang" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Bidang</SelectLabel>
-                                            {BIDANG_OPTIONS.map((option) => (
-                                                <SelectItem key={option} value={option}>
-                                                    {option}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-muted-foreground">Contoh: IT, Keuangan, Operasional, atau divisi lainnya.</p>
-                                <InputError message={errors.bidang} />
-                            </div>
-
-                            <div className="grid gap-2">
                                 <Label htmlFor="phone_number">Nomor Whatsapp</Label>
-                                <Input
-                                    id="phone_number"
-                                    type="tel"
-                                    required
-                                    autoComplete="tel"
-                                    name="phone_number"
-                                    placeholder="Contoh: 628123456789"
-                                />
-                                <p className="text-xs text-muted-foreground">Gunakan format internasional yang aktif di WhatsApp.</p>
+                                <div className="relative">
+                                    <Input
+                                        ref={nowaInputRef}
+                                        id="phone_number"
+                                        type="tel"
+                                        required
+                                        autoComplete="tel"
+                                        name="phone_number"
+                                        placeholder="Contoh: 628123456789"
+                                        onChange={onNowaChange}
+                                        className="pr-10"
+                                    />
+                                    {phoneValidationStatus !== "idle" && (
+                                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                                            {getValidationIcon()}
+                                        </div>
+                                    )}
+                                </div>
+                                {phoneValidationMessage && (
+                                    <p
+                                        className={`text-xs ${phoneValidationStatus === "valid"
+                                                ? "text-green-600"
+                                                : phoneValidationStatus === "validating"
+                                                    ? "text-blue-600"
+                                                    : "text-red-600"
+                                            }`}
+                                    >
+                                        {phoneValidationMessage}
+                                    </p>
+                                )}
+                                <p className="text-xs text-muted-foreground">
+                                    Gunakan format internasional yang aktif di WhatsApp.
+                                </p>
                                 <InputError message={errors.phone_number} />
                             </div>
 
@@ -115,7 +199,12 @@ export default function Register() {
                                 <InputError message={errors.password} />
                             </div>
 
-                            <Button type="submit" className="mt-2 w-full" data-test="register-user-button">
+                            <Button
+                                type="submit"
+                                className="mt-2 w-full"
+                                data-test="register-user-button"
+                                disabled={!isFormValid || processing}
+                            >
                                 {processing && <Spinner />}
                                 Daftar Sekarang
                             </Button>

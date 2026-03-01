@@ -2,6 +2,11 @@
 
 use App\Http\Controllers\ElectionEventController;
 use App\Http\Controllers\ElectionEventLogController;
+use App\Http\Controllers\VoterController;
+use App\Http\Resources\AnggotaKoperasiCollection;
+use App\Http\Resources\BidangCollection;
+use App\Models\AnggotaKoperasi;
+use App\Models\Bidang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,3 +25,14 @@ Route::get('/chart-penjaringan/{eventId}', [ElectionEventLogController::class, '
 Route::get('/top-2-per-position/{eventId}', [ElectionEventController::class, 'topTwoPerPosition']);
 
 Route::post('/election-event-logs-tahap2', [ElectionEventLogController::class, 'store_tahap2']);
+
+Route::get('/bidang', fn () => new BidangCollection(Bidang::query()->get()));
+
+Route::get('/anggota', function (Request $request) {
+    $query = AnggotaKoperasi::query()
+        ->when($request->query('bidang'), fn ($q, $bidang) => $q->where('bidang', $bidang));
+
+    return new AnggotaKoperasiCollection($query->get());
+});
+
+Route::post('/check-phone-number/{phone}', [VoterController::class, 'checkPhoneNumber']);
