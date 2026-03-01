@@ -79,40 +79,58 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                     />
                 </button>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-                {positions.map((pos: { position: string; candidates: any[] }) => (
-                    <Item
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        key={pos.position}
-                    >
-                        <ItemContent>
-                            <ItemTitle className="text-gray-900 text-lg">
-                                Posisi: <strong>{pos.position}</strong>
-                            </ItemTitle>
+            <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {positions.map((pos: { position: string; candidates: any[] }) => (
+                        <Item
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            key={pos.position}
+                        >
+                            <ItemContent className="flex flex-col h-full">
+                                <div className="mb-2">
+                                    <ItemTitle className="text-gray-900 text-base font-semibold m-0">
+                                        Posisi: <strong>{pos.position}</strong>
+                                    </ItemTitle>
+                                </div>
 
-                            <div className="text-gray-700 font-medium">
-                                <div className="text-gray-700 font-medium">
-                                    <table className="table-auto w-full border-collapse border border-gray-300 text-gray-700 font-medium">
+
+                                <div className="text-gray-700 font-small">
+                                    {/* <table className="table-auto w-full border-collapse border border-gray-300 text-gray-700 text-sm p-0"> */}
+                                    <table className="table-auto w-full border-collapse border border-gray-300 text-gray-700 text-sm">
                                         <thead>
-                                            <tr>
-                                                <th className="border border-gray-300 px-4 py-2 text-left">No</th>
-                                                <th className="border border-gray-300 px-4 py-2 text-left">Nama</th>
-                                                <th className="border border-gray-300 px-4 py-2 text-left">Persentase</th>
-                                                <th className="border border-gray-300 px-4 py-2 text-left">Jumlah Pemilih</th>
-                                                <th className="border border-gray-300 px-4 py-2 text-left">Aksi</th>
+                                            <tr className="font-semibold bg-gray-100">
+                                                <th className="border border-gray-300 px-2 py-1 text-left">No</th>
+                                                <th className="border border-gray-300 px-2 py-1 text-left">Nama</th>
+                                                <th className="border border-gray-300 px-2 py-1 text-left">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {pos.candidates.map(
-                                                (c: { id: number; name: string; persentase: number }, index: number) => (
-                                                    <tr key={c.id}>
-                                                        <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
-                                                        <td className="border border-gray-300 px-4 py-2">{ucwords(c.name)}</td>
-                                                        <td className="border border-gray-300 px-4 py-2">{c.persentase}%</td>
-                                                        <td className="border border-gray-300 px-4 py-2">{c.total_votes} pemilih</td>
-                                                        <td className="border border-gray-300 px-4 py-2">
+                                                (
+                                                    c: { id: number; name: string; persentase: number; total_votes: number },
+                                                    index: number
+                                                ) => (
+                                                    <tr
+                                                        key={c.id}
+                                                        className={`hover:bg-gray-50 ${index < 2 ? "bg-blue-50 font-semibold" : ""
+                                                            }`}
+                                                    >
+                                                        <td className="border border-gray-300 px-2 py-1">{index + 1}</td>
+
+                                                        {/* Kolom Nama + Persentase + Total Votes */}
+                                                        <td className="border border-gray-300 px-2 py-1">
+                                                            <div className="flex flex-col leading-tight">
+                                                                <span className="font-semibold text-gray-900">{ucwords(c.name)}</span>
+                                                                <span className="text-xs text-gray-600">
+                                                                    {c.persentase} % / {c.total_votes} pemilih
+                                                                </span>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Kolom Aksi */}
+                                                        <td className="border border-gray-300 px-2 py-1">
                                                             <ToggleBerkenan data={c} />
                                                         </td>
                                                     </tr>
@@ -121,28 +139,34 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
 
                                             {/* Row akumulasi */}
                                             <tr className="font-semibold bg-gray-100">
-                                                <td className="border border-gray-300 px-4 py-2" colSpan={2}>
-                                                    Total
+                                                <td className="border border-gray-300 px-2 py-1">Total</td>
+                                                <td className="border border-gray-300 px-2 py-1">
+                                                    <div className="flex flex-col leading-tight">
+                                                        <span className="text-sm font-semibold text-gray-900">
+                                                            {Math.round(
+                                                                pos.candidates.reduce(
+                                                                    (acc: number, c: { persentase: number }) => acc + c.persentase,
+                                                                    0
+                                                                )
+                                                            )}%
+                                                        </span>
+                                                        <span className="text-xs text-gray-600">
+                                                            {pos.candidates.reduce(
+                                                                (acc: number, c: { total_votes: number }) => acc + c.total_votes,
+                                                                0
+                                                            )} pemilih
+                                                        </span>
+                                                    </div>
                                                 </td>
-                                                <td className="border border-gray-300 px-4 py-2">
-                                                    {Math.round(
-                                                        pos.candidates.reduce(
-                                                            (acc: number, c: { persentase: number }) => acc + c.persentase,
-                                                            0
-                                                        )
-                                                    )}%
-                                                </td>
-                                                <td className="border border-gray-300 px-4 py-2">
-                                                    {pos.candidates.reduce( (acc: number, c: { persentase: number }) => acc + c.total_votes, 0 )}
-                                                </td>
+                                                <td className="border border-gray-300 px-2 py-1"></td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
-                        </ItemContent>
-                    </Item>
-                ))}
+                            </ItemContent>
+                        </Item>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     )

@@ -69,7 +69,7 @@ export function ChartPenjaringan({event_id}) {
         <Card className="flex flex-col">
             <CardHeader className="flex items-center justify-between pb-0">
                 <div className="flex flex-col">
-                    <CardTitle>Grafik Penjaringan</CardTitle>
+                    <CardTitle>Persentase Grafik Penjaringan</CardTitle>
                     <CardDescription className="mt-2 flex">
                         <Calendar className="mr-2 h-4 w-4" />
                         Data per: {lastUpdated || "Memuat..."}

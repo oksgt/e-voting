@@ -27,56 +27,62 @@ interface ToggleProps {
 }
 
 export default function ToggleBerkenan({ data }: ToggleProps) {
-    // jika filled_rejections == 0 → set awal ke false
     const [isBerkenan, setIsBerkenan] = useState(data.filled_rejections == 0);
     const [openDialog, setOpenDialog] = useState(false);
+    const [openConfirm, setOpenConfirm] = useState(false); // NEW: dialog konfirmasi
     const [reason, setReason] = useState("");
 
     useEffect(() => {
         setIsBerkenan(data.filled_rejections == 0);
     }, [data.filled_rejections]);
 
-    const handleToggle = async () => {
+    const handleToggle = () => {
         const newValue = !isBerkenan;
         setIsBerkenan(newValue);
 
         if (!newValue) {
-            // jika tidak berkenan, buka dialog
+            // jika tidak berkenan, buka dialog alasan
             setOpenDialog(true);
         } else {
-            // jika kembali ke berkenan → panggil removeRejection
-            try {
-                const response = await fetch("/api/election-event-log/rejection/remove", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                    },
-                    body: JSON.stringify({
-                        event_id: data.event_id,
-                        user_id: data.id,
-                        position_id: data.position_id,
-                    }),
-                });
+            // jika kembali ke berkenan → buka dialog konfirmasi dulu
+            setOpenConfirm(true);
+        }
+    };
 
-                if (!response.ok) {
-                    throw new Error("Gagal menghapus rejection");
-                }
+    const handleRemoveRejection = async () => {
+        try {
+            const response = await fetch("/api/election-event-log/rejection/remove", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({
+                    event_id: data.event_id,
+                    user_id: data.id,
+                    position_id: data.position_id,
+                }),
+            });
 
-                const result = await response.json();
-                console.log("API response (remove):", result);
-
-                if (result.success) {
-                    setIsBerkenan(true);
-                    toast.success("Alasan penolakan berhasil dihapus!");
-                } else {
-                    setIsBerkenan(false);
-                    toast.error("Gagal menghapus alasan penolakan!");
-                }
-            } catch (err) {
-                console.error(err);
-                setIsBerkenan(false);
+            if (!response.ok) {
+                throw new Error("Gagal menghapus rejection");
             }
+
+            const result = await response.json();
+            console.log("API response (remove):", result);
+
+            if (result.success) {
+                setIsBerkenan(true);
+                toast.success("Alasan penolakan berhasil dihapus!");
+            } else {
+                setIsBerkenan(false);
+                toast.error("Gagal menghapus alasan penolakan!");
+            }
+        } catch (err) {
+            console.error(err);
+            setIsBerkenan(false);
+        } finally {
+            setOpenConfirm(false);
         }
     };
 
@@ -136,18 +142,19 @@ export default function ToggleBerkenan({ data }: ToggleProps) {
         <div className="flex items-center space-x-2">
             <button
                 onClick={handleToggle}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-300 ease-in-out ${isBerkenan ? "bg-green-500" : "bg-gray-300"
+                className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-300 ease-in-out ${isBerkenan ? "bg-green-500" : "bg-gray-300"
                     }`}
             >
                 <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-300 ease-in-out ${isBerkenan ? "translate-x-4" : "translate-x-1"
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform duration-300 ease-in-out ${isBerkenan ? "translate-x-3.5" : "translate-x-1"
                         }`}
                 />
             </button>
-            <span className="text-gray-700 text-sm font-medium">
+            <span className="text-gray-700 text-xs font-medium">
                 {isBerkenan ? "Berkenan" : "Tidak berkenan"}
             </span>
 
+            {/* Dialog alasan */}
             <Dialog open={openDialog} onOpenChange={handleDialogChange}>
                 <DialogContent>
                     <DialogHeader>
@@ -166,6 +173,25 @@ export default function ToggleBerkenan({ data }: ToggleProps) {
                             Batal
                         </Button>
                         <Button onClick={handleSubmitReason}>Simpan</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog konfirmasi remove */}
+            <Dialog open={openConfirm} onOpenChange={setOpenConfirm}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Konfirmasi</DialogTitle>
+                        <DialogDescription>
+                            Apakah Anda yakin ingin menghapus alasan penolakan dan kembali ke
+                            status berkenan?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="secondary" onClick={() => setOpenConfirm(false)}>
+                            Batal
+                        </Button>
+                        <Button onClick={handleRemoveRejection}>Ya, hapus</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

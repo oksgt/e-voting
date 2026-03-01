@@ -112,11 +112,13 @@ export default function Edit({ event }: EditEventProps) {
                     </CardHeader>
                     <CardContent>
                         {event.id === 3 ? (
-                            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="w-full grid grid-cols-1 gap-6">
+                                {/* First row: ChartPenjaringan */}
                                 <div className="flex w-full flex-col">
                                     <ChartPenjaringan event_id={event.id} />
                                 </div>
 
+                                {/* Second row: TopTwoPerPosition */}
                                 <div className="flex w-full flex-col">
                                     <TopTwoPerPosition eventId={event.id} />
                                 </div>
