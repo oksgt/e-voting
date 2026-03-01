@@ -102,7 +102,7 @@ export default function Edit({ event }: EditEventProps) {
                     <CardHeader className="flex items-center justify-between pb-0">
                         <div className="flex flex-col">
                             <CardTitle>Summary Event: {event.name}</CardTitle>
-                            <CardDescription>Rekapitulasi data pemilihan tahap penjaringan bakal calon</CardDescription>
+                            <CardDescription className="mt-2">Rekapitulasi data pemilihan </CardDescription>
                         </div>
                         <Link href={route('events.edit', event.id)} className="inline-flex items-center px-4 py-2 bg-gray-950 text-white rounded">
                             <Edit2 className="mr-2 h-4 w-4" />
@@ -114,8 +114,9 @@ export default function Edit({ event }: EditEventProps) {
                         {event.id === 3 ? (
                             <div className="w-full grid grid-cols-1 gap-6">
                                 {/* First row: ChartPenjaringan */}
-                                <div className="flex w-full flex-col">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                                     <ChartPenjaringan event_id={event.id} />
+                                    <ChartPenjaringan event_id={event.id} value_type="number" />
                                 </div>
 
                                 {/* Second row: TopTwoPerPosition */}

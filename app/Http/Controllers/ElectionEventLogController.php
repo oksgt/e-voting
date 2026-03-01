@@ -127,7 +127,7 @@ class ElectionEventLogController extends Controller
         ], 200);
     }
 
-    public function penjaringan($eventId)
+    public function penjaringan($eventId, $value_type = null)
     {
         $excludedIds = [1]; // bisa juga []
 
@@ -173,7 +173,24 @@ class ElectionEventLogController extends Controller
             ]]);
         }
 
-        return response()->json($data);
+        // Sesuaikan output berdasarkan value_type
+        $result = $data->map(function ($row) use ($value_type) {
+            if ($value_type === 'number') {
+                return [
+                    'event_id' => $row->event_id,
+                    'jumlah_user_ikut' => $row->jumlah_user_ikut,
+                    'sisa' => $row->total_user - $row->jumlah_user_ikut,
+                ];
+            } else {
+                return [
+                    'event_id' => $row->event_id,
+                    'persentase' => $row->persentase,
+                    'sisa' => $row->sisa,
+                ];
+            }
+        });
+
+        return response()->json($result);
     }
 
     public function store_tahap2(Request $request)
@@ -343,5 +360,4 @@ class ElectionEventLogController extends Controller
             ], 500);
         }
     }
-
 }
