@@ -8,6 +8,7 @@ use App\Models\Position;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -384,25 +385,28 @@ class ElectionEventController extends Controller
     public function getVoterList(Request $request)
     {
         $search = $request->input('search');
+        $excludeNiks = ["3302251106660002", "3302120903740001"];
 
-        $excludeNiks = ["3302251106660002", "3302120903740001"]; // daftar id yang ingin dikecualikan
+        // Buat cache key unik berdasarkan parameter pencarian
+        $cacheKey = 'voter_list_' . md5($search . implode(',', $excludeNiks));
 
-        $query = DB::table('anggota_koperasi')
-            ->select('id', 'nama', 'nik', 'bidang', 'nowa', 'created_at', 'updated_at')
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($sub) use ($search) {
-                    $sub->where('nama', 'like', "%{$search}%")
-                        ->orWhere('nik', 'like', "%{$search}%")
-                        ->orWhere('bidang', 'like', "%{$search}%")
-                        ->orWhere('nowa', 'like', "%{$search}%");
-                });
-            })
-            ->when(!empty($excludeNiks), function ($q) use ($excludeNiks) {
-                $q->whereNotIn('nik', $excludeNiks);
-            })
-            ->orderBy('nama', 'asc');
-
-        $voter = $query->get();
+        $voter = Cache::rememberForever($cacheKey, function () use ($search, $excludeNiks) {
+            return DB::table('anggota_koperasi')
+                ->select('id', 'nama', 'nik', 'bidang', 'nowa', 'created_at', 'updated_at')
+                ->when($search, function ($q) use ($search) {
+                    $q->where(function ($sub) use ($search) {
+                        $sub->where('nama', 'like', "%{$search}%")
+                            ->orWhere('nik', 'like', "%{$search}%")
+                            ->orWhere('bidang', 'like', "%{$search}%")
+                            ->orWhere('nowa', 'like', "%{$search}%");
+                    });
+                })
+                ->when(!empty($excludeNiks), function ($q) use ($excludeNiks) {
+                    $q->whereNotIn('nik', $excludeNiks);
+                })
+                ->orderBy('nama', 'asc')
+                ->get();
+        });
 
         if ($voter->isEmpty()) {
             return response()->json([
