@@ -24,6 +24,8 @@ Route::post('/election-event-logs-tahap2', [ElectionEventLogController::class, '
 Route::post('/election-event-log/rejection', [ElectionEventLogController::class, 'addRejection']);
 Route::post('/election-event-log/rejection/remove', [ElectionEventLogController::class, 'removeRejection']);
 
+Route::get('/top-2-per-position-tahap-2/{eventId}/', [ElectionEventController::class, 'topTwoPerPositionTahap2']);
+
 
 
 

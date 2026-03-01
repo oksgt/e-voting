@@ -62,10 +62,10 @@ export function TopTwoPerPositionVoter({ eventId }: { eventId: number }) {
 
 
     const fetchData = () => {
-        fetch(`/api/top-2-per-position/${eventId}`)
+        fetch(`/api/top-2-per-position-tahap-2/${eventId}`)
             .then((res) => res.json())
             .then((data) => {
-                setPositions(data)
+                setPositions(data.positions)
                 const initSelected: Record<string, number | null> = {}
                 data.forEach((pos: any) => {
                     initSelected[pos.id] = null
@@ -177,8 +177,8 @@ export function TopTwoPerPositionVoter({ eventId }: { eventId: number }) {
             ) : (
                 <Card className="w-full flex flex-col">
                     <CardHeader>
-                        <CardTitle>Daftar Posisi & Kandidat</CardTitle>
-                        <CardDescription>Pilih salah satu kandidat untuk setiap posisi</CardDescription>
+                        <CardTitle>Pilih salah satu kandidat untuk setiap posisi</CardTitle>
+                        <CardDescription></CardDescription>
                     </CardHeader>
 
                     <CardContent className="flex flex-col gap-3">

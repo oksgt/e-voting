@@ -238,6 +238,149 @@ class ElectionEventController extends Controller
         ]);
     }
 
+    public function topTwoPerPositionTahap2($eventId)
+    {
+        $limit = 2;
+        $topLimit = 2; // hanya untuk ANALISA
+        $excludedIds = [1];
+
+        $positions = Position::where('status', 1)
+            ->orderBy('number', 'asc')
+            ->get();
+
+        $positionsResult = [];
+        $candidateTopMap = [];
+
+        foreach ($positions as $position) {
+
+            $query = DB::table('election_event_logs as e')
+                ->join('users as u', 'u.id', '=', 'e.user_id')
+                ->select(
+                    'u.id',
+                    'u.name',
+                    DB::raw('COUNT(e.id) as total_votes')
+                )
+                ->where('e.event_id', $eventId)
+                ->where('e.position_id', $position->id)
+                ->whereNull('e.rejectionId')
+                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                    $query->whereNotIn('u.id', $excludedIds);
+                })
+                ->groupBy('u.id', 'u.name')
+                ->orderByDesc('total_votes');
+
+            // Limit hasil sesuai parameter asli (BUKAN topLimit)
+            if (!is_null($limit)) {
+                $query->limit($limit);
+            }
+
+            $candidates = $query->get();
+
+            // dump($candidates);
+
+            // Total suara per posisi
+            $totalVotes = DB::table('election_event_logs')
+                ->where('event_id', $eventId)
+                ->where('position_id', $position->id)
+                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                    $query->whereNotIn('user_id', $excludedIds);
+                })
+                ->count();
+
+            // Tambahkan ranking manual + persentase
+            $rank = 1;
+
+            $candidates = $candidates->map(function ($c) use (
+                $totalVotes,
+                $position,
+                $eventId,
+                &$candidateTopMap,
+                &$rank,
+                $topLimit
+            ) {
+
+                $c->persentase = $totalVotes > 0
+                    ? round(($c->total_votes / $totalVotes) * 100, 4)
+                    : 0;
+
+                $c->position_id = $position->id;
+                $c->position_name = $position->name;
+                $c->event_id = (int) $eventId;
+                $c->rank = $rank;
+
+                /*
+            |--------------------------------------------------------------------------
+            | HANYA kandidat dengan rank <= topLimit
+            | yang dipakai untuk ANALISA
+            |--------------------------------------------------------------------------
+            */
+                if ($rank <= $topLimit) {
+
+                    if (!isset($candidateTopMap[$c->id])) {
+                        $candidateTopMap[$c->id] = [
+                            'id' => $c->id,
+                            'name' => $c->name,
+                            'positions' => []
+                        ];
+                    }
+
+                    $candidateTopMap[$c->id]['positions'][] = [
+                        'position_id' => $position->id,
+                        'position_name' => $position->name,
+                        'rank' => $rank,
+                        'total_votes' => (int) $c->total_votes,
+                        'persentase' => $c->persentase
+                    ];
+                }
+
+                $rank++;
+
+                return $c;
+            });
+
+            $positionsResult[] = [
+                'id' => $position->id,
+                'position' => $position->name,
+                'total_votes' => $totalVotes,
+                'candidates' => $candidates,
+            ];
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | ANALISA
+    | Kandidat masuk TOP 2 di lebih dari satu posisi
+    |--------------------------------------------------------------------------
+    */
+        $analysis = [];
+
+        foreach ($candidateTopMap as $candidate) {
+
+            if (count($candidate['positions']) > 1) {
+
+                $positionsText = collect($candidate['positions'])
+                    ->pluck('position_name')
+                    ->implode(', ');
+
+                $analysis[] = [
+                    'candidate_id' => $candidate['id'],
+                    'candidate_name' => $candidate['name'],
+                    'issue' => [
+                        'type' => 'multiple_positions_same_candidate',
+                        'description' =>
+                        "Kandidat {$candidate['name']} masuk Top {$topLimit} di lebih dari satu posisi: {$positionsText}."
+                    ],
+                    'positions' => $candidate['positions']
+                ];
+            }
+        }
+
+        return response()->json([
+            'positions' => $positionsResult,
+            'Analisa' => $analysis
+        ]);
+    }
+
     public function getVoterList(Request $request)
     {
 

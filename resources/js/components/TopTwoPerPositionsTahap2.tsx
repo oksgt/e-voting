@@ -32,7 +32,7 @@ export function TopTwoPerPositionTahap2({ eventId }: { eventId: number }) {
         fetch(`/api/top-2-per-position/${eventId}`)
             .then((res) => res.json())
             .then((data) => {
-                setPositions(data)
+                setPositions(data.positions)
                 setLastUpdated(formatTimestamp(new Date()))
             })
             .finally(() => setLoading(false))
