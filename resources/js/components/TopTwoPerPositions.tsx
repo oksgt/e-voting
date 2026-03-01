@@ -143,7 +143,7 @@ export function TopTwoPerPosition({ eventId }: { eventId: number }) {
                                                         {/* Kolom Nama + Persentase + Total Votes */}
                                                         <td className="border border-gray-300 px-2 py-1">
                                                             <div className="flex flex-col leading-tight">
-                                                                <span className="font-semibold text-gray-900">{ucwords(c.name)}</span>
+                                                                <span className="font-semibold text-gray-900">{ucwords(c.nama)}</span>
                                                                 <span className="text-xs text-gray-600">
                                                                     {c.persentase} % / {c.total_votes} pemilih
                                                                 </span>

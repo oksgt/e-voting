@@ -19,7 +19,7 @@ class ElectionEventLogController extends Controller
                 'voted_by' => 'required|integer|exists:users,id',
                 'positions' => 'required|array',
                 'positions.*.position_id' => 'required|integer|exists:positions,id',
-                'positions.*.user_id' => 'required|integer|exists:users,id',
+                'positions.*.user_id' => 'required|integer|exists:anggota_koperasi,id',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Override default 422 → kirim 200 dengan payload error
@@ -111,7 +111,7 @@ class ElectionEventLogController extends Controller
 
         // Hitung posisi yang sudah diisi user
         $submittedCount = ElectionEventLog::where('event_id', $validated['event_id'])
-            ->where('user_id', $validated['user_id'])
+            ->where('voted_by', $validated['user_id'])
             ->count();
 
         $participatedFully = $submittedCount >= $totalPositions;
@@ -129,7 +129,7 @@ class ElectionEventLogController extends Controller
 
     public function penjaringan($eventId, $value_type = null)
     {
-        $excludedIds = [1]; // bisa juga []
+        $excludedIds = []; // bisa juga []
 
         $query = DB::table('election_event_logs as e')
             ->selectRaw('
@@ -140,11 +140,11 @@ class ElectionEventLogController extends Controller
         ')
             ->where('e.event_id', $eventId);
 
-        if (! empty($excludedIds)) {
-            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u WHERE u.id NOT IN ('.implode(',', $excludedIds).')) t'))
+        if (!empty($excludedIds)) {
+            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM anggota_koperasi u WHERE u.id NOT IN ('.implode(',', $excludedIds).')) t'))
                 ->whereNotIn('e.user_id', $excludedIds);
         } else {
-            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM users u) t'));
+            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM anggota_koperasi u) t'));
         }
 
         $data = $query
@@ -159,7 +159,7 @@ class ElectionEventLogController extends Controller
 
         // Jika tidak ada data di election_event_logs
         if ($data->isEmpty()) {
-            $totalUserQuery = DB::table('users');
+            $totalUserQuery = DB::table('anggota_koperasi');
             if (! empty($excludedIds)) {
                 $totalUserQuery->whereNotIn('id', $excludedIds);
             }

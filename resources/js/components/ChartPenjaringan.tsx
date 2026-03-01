@@ -55,12 +55,12 @@ export function ChartPenjaringan({ event_id, value_type = null }: ChartPenjaring
                 if (value_type === "number") {
                     mapped = [
                         {
-                            name: Number(item.jumlah_user_ikut) + " " +unit,
+                            name: Number(item.jumlah_user_ikut) + " " + unit,
                             value: Number(item.jumlah_user_ikut),
                             fill: "#3b82f6", // Tailwind blue-500
                         },
                         {
-                            name: Number(item.sisa) + " " +unit,
+                            name: Number(item.sisa) + " " + unit,
                             value: Number(item.sisa),
                             fill: "#DEEDFE", // Tailwind blue-300
                         },
@@ -68,12 +68,12 @@ export function ChartPenjaringan({ event_id, value_type = null }: ChartPenjaring
                 } else {
                     mapped = [
                         {
-                            name: Number(item.persentase) + " " +unit,
+                            name: Number(item.persentase) + " " + unit,
                             value: Number(item.persentase),
                             fill: "#3b82f6",
                         },
                         {
-                            name: Number(item.sisa) + " " +unit,
+                            name: Number(item.sisa) + " " + unit,
                             value: Number(item.sisa),
                             fill: "#DEEDFE",
                         },
@@ -153,6 +153,14 @@ export function ChartPenjaringan({ event_id, value_type = null }: ChartPenjaring
                             </span>
                             <span className="text-sm text-gray-500">Belum memilih</span>
                         </div>
+                        {value_type === "number" && (
+                            <div className="flex flex-col items-center">
+                                <span className="text-2xl font-bold text-gray-800">
+                                    {chartData[1].value + chartData[0].value} {unit}
+                                </span>
+                                <span className="text-sm text-gray-500">Total Anggota Koperasi</span>
+                            </div>
+                        )}
                     </div>
                 )}
             </CardFooter>

@@ -110,10 +110,10 @@ class ElectionEventController extends Controller
         foreach ($positions as $position) {
 
             $query = DB::table('election_event_logs as e')
-                ->join('users as u', 'u.id', '=', 'e.user_id')
+                ->join('anggota_koperasi as u', 'u.id', '=', 'e.user_id')
                 ->select(
                     'u.id',
-                    'u.name',
+                    'u.nama',
                     DB::raw('COUNT(e.id) as total_votes'),
                     DB::raw('COUNT(e.rejectionId) as filled_rejections'),
                     DB::raw('SUM(CASE WHEN e.rejectionId IS NULL THEN 1 ELSE 0 END) as null_rejections')
@@ -123,7 +123,7 @@ class ElectionEventController extends Controller
                 ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
                     $query->whereNotIn('u.id', $excludedIds);
                 })
-                ->groupBy('u.id', 'u.name')
+                ->groupBy('u.id', 'u.nama')
                 ->orderByDesc('total_votes');
 
             // Limit hasil sesuai parameter asli (BUKAN topLimit)
@@ -174,7 +174,7 @@ class ElectionEventController extends Controller
                     if (!isset($candidateTopMap[$c->id])) {
                         $candidateTopMap[$c->id] = [
                             'id' => $c->id,
-                            'name' => $c->name,
+                            'name' => $c->nama  ,
                             'positions' => []
                         ];
                     }
@@ -381,23 +381,28 @@ class ElectionEventController extends Controller
 
     public function getVoterList(Request $request)
     {
-
         $search = $request->input('search');
 
-        $voter = User::with('roles')
-            ->whereHas('roles', function ($q) {
-                $q->where('name', 'Voter');
-            })
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
+        $excludeNiks = ["3302251106660002", "3302120903740001"]; // daftar id yang ingin dikecualikan
+
+        $query = DB::table('anggota_koperasi')
+            ->select('id', 'nama', 'nik', 'bidang', 'nowa', 'created_at', 'updated_at')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('nama', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%")
+                        ->orWhere('bidang', 'like', "%{$search}%")
+                        ->orWhere('nowa', 'like', "%{$search}%");
                 });
             })
-            ->where('status', 'approved')
-            ->orderBy('name', 'asc')
-            ->get();
+            ->when(!empty($excludeNiks), function ($q) use ($excludeNiks) {
+                $q->whereNotIn('nik', $excludeNiks);
+            })
+            ->orderBy('nama', 'asc');
 
-        if (! $voter) {
+        $voter = $query->get();
+
+        if ($voter->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak ada data',
@@ -407,10 +412,11 @@ class ElectionEventController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'List Data Voter',
+            'message' => 'List Data Anggota Koperasi',
             'data' => $voter,
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

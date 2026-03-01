@@ -202,7 +202,7 @@ export function FormTahap1({ event }: any) {
 
     return (
         <>
-            <div className="flex w-full max-w-md flex-col gap-6">
+            <div className="flex w-full flex-col gap-6">
                 {!participation && positions.length > 0 ? (
                     positions.map((pos) => (
                         <Item key={pos.id} variant="outline" size="sm" className="bg-neutral-50 dark:bg-neutral-900">
@@ -218,7 +218,7 @@ export function FormTahap1({ event }: any) {
 
                                     <Combobox
                                         items={(voterMap[pos.id] || []).map((v) => ({
-                                            label: ucwords(v.name),
+                                            label: ucwords(v.nama),
                                             value: v.id,
                                         }))}
                                         onValueChange={(val) => {
@@ -232,7 +232,7 @@ export function FormTahap1({ event }: any) {
                                                 if (alreadyChosen) {
                                                     setAlertMessage(
                                                         <span>
-                                                            Anggota <strong>{voter.name}</strong> sudah dicalonkan di posisi lain!
+                                                            Anggota <strong>{voter.nama}</strong> sudah dicalonkan di posisi lain!
                                                         </span>,
                                                     );
                                                     setAlertOpen(true);
@@ -286,7 +286,7 @@ export function FormTahap1({ event }: any) {
 
                                     {selectedVoter[pos.id] && (
                                         <p className="mt-2 text-sm text-blue-600">
-                                            Pilihan Anda: <strong>{ucwords(selectedVoter[pos.id].name)}</strong>
+                                            Pilihan Anda: <strong>{ucwords(selectedVoter[pos.id].nama)}</strong>
                                         </p>
                                     )}
                                 </div>
@@ -296,7 +296,7 @@ export function FormTahap1({ event }: any) {
                 ) : (
                     <>
                         {participation ? (
-                            <Alert className="max-w-md border border-green-400 bg-green-50 text-green-700">
+                            <Alert className="w-full border border-green-400 bg-green-50 text-green-700">
                                 <CheckCircle2Icon className="h-5 w-5 text-green-500" />
                                 <AlertTitle className="font-semibold">Terima kasih</AlertTitle>
                                 <AlertDescription>Anda telah berpartisipasi dalam tahap ini</AlertDescription>

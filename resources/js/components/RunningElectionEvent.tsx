@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FormTahap1 } from "./FormTahap1";
 import { TopTwoPerPosition } from "./TopTwoPerPositions";
 import { TopTwoPerPositionVoter } from "./TopTwoPerPositionsVoter";
+import { ChartPenjaringan } from "./ChartPenjaringan";
 
 export default function RunningElectionEvent() {
     const [events, setEvents] = useState([]);
@@ -85,9 +86,17 @@ export default function RunningElectionEvent() {
                             </div>
                         </div>
 
+
+
                     </div>
                 )}
             </div>
+
+            {events?.data?.id === 3 && (
+                <div className="overflow-hidden mt-4">
+                    <ChartPenjaringan event_id={events.data.id} value_type="number" />
+                </div>
+            )}
 
             {events?.data?.id === 3 && (
                 <div className="overflow-hidden mt-4">
