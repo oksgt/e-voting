@@ -55,6 +55,7 @@ export function StepDataPribadi({
                         id="nik"
                         type="text"
                         required
+                        autoFocus
                         autoComplete="off"
                         name="nik"
                         placeholder="16 digit NIK"
@@ -94,13 +95,12 @@ export function StepDataPribadi({
                 </div>
                 {phoneValidationMessage && (
                     <p
-                        className={`text-xs ${
-                            phoneValidationStatus === "valid"
+                        className={`text-xs ${phoneValidationStatus === "valid"
                                 ? "text-green-600"
                                 : phoneValidationStatus === "validating"
                                     ? "text-blue-600"
                                     : "text-red-600"
-                        }`}
+                            }`}
                     >
                         {phoneValidationMessage}
                     </p>

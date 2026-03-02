@@ -98,7 +98,7 @@ export default function Register() {
         <AuthLayout
             title="Register Voter"
             description="Lengkapi data untuk membuat akun voter baru"
-            containerClassName="max-w-md"
+            containerClassName="max-w-sm sm:max-w-md"
         >
             <Head title="Register" />
 
