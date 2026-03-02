@@ -52,21 +52,18 @@ export default function Register() {
     } = useRegisterHook();
     const nikInputRef = useRef<HTMLInputElement>(null);
     const nowaInputRef = useRef<HTMLInputElement>(null);
-    const bidangRef = useRef<HTMLInputElement>(null);
-    const nameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
 
     const isFormValid = phoneValidationStatus === "valid";
 
-    const handleBidangChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setBidangValue(event.target.value);
-        onBidangChange(event.target.value);
+    const handleBidangChange = (value: string) => {
+        setBidangValue(value);
+        onBidangChange(value);
     };
 
-    const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const name = event.target.value;
-        setNameValue(name);
-        const anggota = findDetailByName(name);
+    const handleNameChange = (value: string) => {
+        setNameValue(value);
+        const anggota = findDetailByName(value);
         let nik = "";
         let nowa = "";
         if (anggota) {
@@ -140,8 +137,6 @@ export default function Register() {
                             <div className="grid gap-6">
                                 <StepKoperasi
                                     visible={step === 1}
-                                    bidangRef={bidangRef}
-                                    nameRef={nameRef}
                                     bidangOptions={bidangOptions}
                                     anggotaOptions={anggotaOptions}
                                     isLoading={isLoading}

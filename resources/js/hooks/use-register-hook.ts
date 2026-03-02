@@ -147,7 +147,7 @@ export function useRegisterHook() {
 				// setPhoneValidationStatus("error");
 				// setPhoneValidationMessage(errorData.error || "Gagal memvalidasi nomor");
 
-                setPhoneValidationStatus("valid");
+				setPhoneValidationStatus("valid");
 				return;
 			}
 
