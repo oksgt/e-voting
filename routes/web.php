@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AnggotaKoperasiController;
+use App\Http\Controllers\BidangController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ElectionEventController;
 use App\Http\Controllers\ElectionEventLogController;
@@ -54,6 +56,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/voters/{voter}/reject', [VoterController::class, 'reject'])->name('voters.reject');
 
     Route::resource('positions', PositionController::class);
+
+    Route::resource('bidang', BidangController::class);
+
+    Route::resource('anggota-koperasi', AnggotaKoperasiController::class);
 
     Route::resource('events', ElectionEventController::class);
 

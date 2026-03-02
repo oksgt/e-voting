@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import { BookOpenCheck, LayoutGrid, Notebook, Tags, UsersRound } from "lucide-react";
+import { BookOpenCheck, Building, LayoutGrid, Notebook, Tags, UserCheck, UsersRound } from "lucide-react";
 import { route } from "ziggy-js";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -41,6 +41,16 @@ const mainNavItems: NavItem[] = [
         title: "Posisi",
         href: route("positions.index"),
         icon: Tags,
+    },
+    {
+        title: "Bidang",
+        href: route("bidang.index"),
+        icon: Building,
+    },
+    {
+        title: "Anggota Koperasi",
+        href: route("anggota-koperasi.index"),
+        icon: UserCheck,
     },
     {
         title: "User Roles",
