@@ -38,6 +38,7 @@ export function StepKoperasi({
                     id="bidang"
                     type="search"
                     required
+                    autoFocus
                     autoComplete="off"
                     name="bidang"
                     list="bidang-options"
@@ -62,7 +63,7 @@ export function StepKoperasi({
                     id="name"
                     type="search"
                     required
-                    autoFocus
+
                     autoComplete="off"
                     name="name"
                     list="nama-options"
