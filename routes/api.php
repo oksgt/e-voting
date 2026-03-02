@@ -36,7 +36,8 @@ Route::get('/top-2-per-position-tahap-2/{eventId}/', [ElectionEventController::c
 
 Route::get('/anggota', function (Request $request) {
     $query = AnggotaKoperasi::query()
-        ->when($request->query('bidang'), fn ($q, $bidang) => $q->where('bidang', $bidang));
+        ->when($request->query('bidang'), fn ($q, $bidang) => $q->where('bidang', $bidang))
+        ->where('user_id', null);
 
     return new AnggotaKoperasiCollection($query->get());
 });
