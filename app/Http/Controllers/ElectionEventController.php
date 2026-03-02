@@ -8,6 +8,7 @@ use App\Models\Position;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -98,6 +99,150 @@ class ElectionEventController extends Controller
     public function topTwoPerPosition($eventId, $limit = null)
     {
         $topLimit = 2; // hanya untuk ANALISA
+        $excludedIds = [];
+
+        $positions = Position::where('status', 1)
+            ->orderBy('number', 'asc')
+            ->get();
+
+        $positionsResult = [];
+        $candidateTopMap = [];
+
+        foreach ($positions as $position) {
+
+            $query = DB::table('anggota_koperasi as u')
+                ->leftJoin('election_event_logs as e', function ($join) use ($eventId, $position) {
+                    $join->on('u.id', '=', 'e.user_id')
+                        ->where('e.event_id', $eventId)
+                        ->where('e.position_id', $position->id);
+                })
+                ->select(
+                    'u.id',
+                    'u.nama',
+                    DB::raw('COUNT(e.id) as total_votes'),
+                    DB::raw('COUNT(e.rejectionId) as filled_rejections'),
+                    DB::raw('SUM(CASE WHEN e.rejectionId IS NULL AND e.id IS NOT NULL THEN 1 ELSE 0 END) as null_rejections')
+                )
+                ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
+                    $query->whereNotIn('u.id', $excludedIds);
+                })
+                ->groupBy('u.id', 'u.nama')
+                ->orderByDesc('total_votes');
+
+            // Limit hasil sesuai parameter asli (BUKAN topLimit)
+            if (!is_null($limit)) {
+                $query->limit($limit);
+            }
+
+            $candidates = $query->get();
+
+            // Total suara per posisi
+            $totalVotes = DB::table('election_event_logs')
+                ->where('event_id', $eventId)
+                ->where('position_id', $position->id)
+                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                    $query->whereNotIn('user_id', $excludedIds);
+                })
+                ->count();
+
+            // Tambahkan ranking manual + persentase
+            $rank = 1;
+
+            $candidates = $candidates->map(function ($c) use (
+                $totalVotes,
+                $position,
+                $eventId,
+                &$candidateTopMap,
+                &$rank,
+                $topLimit
+            ) {
+
+                $c->persentase = $totalVotes > 0
+                    ? round(($c->total_votes / $totalVotes) * 100, 4)
+                    : 0;
+
+                $c->position_id = $position->id;
+                $c->position_name = $position->name;
+                $c->event_id = (int) $eventId;
+                $c->rank = $rank;
+
+                /*
+            |--------------------------------------------------------------------------
+            | HANYA kandidat dengan rank <= topLimit
+            | yang dipakai untuk ANALISA
+            |--------------------------------------------------------------------------
+            */
+                if ($rank <= $topLimit) {
+
+                    if (!isset($candidateTopMap[$c->id])) {
+                        $candidateTopMap[$c->id] = [
+                            'id' => $c->id,
+                            'name' => $c->nama,
+                            'positions' => []
+                        ];
+                    }
+
+                    $candidateTopMap[$c->id]['positions'][] = [
+                        'position_id' => $position->id,
+                        'position_name' => $position->name,
+                        'rank' => $rank,
+                        'total_votes' => (int) $c->total_votes,
+                        'persentase' => $c->persentase
+                    ];
+                }
+
+                $rank++;
+
+                return $c;
+            });
+
+            $positionsResult[] = [
+                'id' => $position->id,
+                'position' => $position->name,
+                'total_votes' => $totalVotes,
+                'candidates' => $candidates,
+            ];
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | ANALISA
+    | Kandidat masuk TOP 2 di lebih dari satu posisi
+    |--------------------------------------------------------------------------
+    */
+        $analysis = [];
+
+        foreach ($candidateTopMap as $candidate) {
+
+            if (count($candidate['positions']) > 1) {
+
+                $positionsText = collect($candidate['positions'])
+                    ->pluck('position_name')
+                    ->implode(', ');
+
+                $analysis[] = [
+                    'candidate_id' => $candidate['id'],
+                    'candidate_name' => $candidate['name'],
+                    'issue' => [
+                        'type' => 'multiple_positions_same_candidate',
+                        'description' =>
+                        "Kandidat {$candidate['name']} masuk Top {$topLimit} di lebih dari satu posisi: {$positionsText}."
+                    ],
+                    'positions' => $candidate['positions']
+                ];
+            }
+        }
+
+        return response()->json([
+            'positions' => $positionsResult,
+            'Analisa' => $analysis
+        ]);
+    }
+
+    public function topTwoPerPositionTahap2($eventId)
+    {
+        $limit = 2;
+        $topLimit = 2; // hanya untuk ANALISA
         $excludedIds = [1];
 
         $positions = Position::where('status', 1)
@@ -114,13 +259,12 @@ class ElectionEventController extends Controller
                 ->select(
                     'u.id',
                     'u.name',
-                    DB::raw('COUNT(e.id) as total_votes'),
-                    DB::raw('COUNT(e.rejectionId) as filled_rejections'),
-                    DB::raw('SUM(CASE WHEN e.rejectionId IS NULL THEN 1 ELSE 0 END) as null_rejections')
+                    DB::raw('COUNT(e.id) as total_votes')
                 )
                 ->where('e.event_id', $eventId)
                 ->where('e.position_id', $position->id)
-                ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
+                ->whereNull('e.rejectionId')
+                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
                     $query->whereNotIn('u.id', $excludedIds);
                 })
                 ->groupBy('u.id', 'u.name')
@@ -132,6 +276,8 @@ class ElectionEventController extends Controller
             }
 
             $candidates = $query->get();
+
+            // dump($candidates);
 
             // Total suara per posisi
             $totalVotes = DB::table('election_event_logs')
@@ -238,23 +384,31 @@ class ElectionEventController extends Controller
 
     public function getVoterList(Request $request)
     {
-
         $search = $request->input('search');
+        $excludeNiks = ["3302251106660002", "3302120903740001"];
 
-        $voter = User::with('roles')
-            ->whereHas('roles', function ($q) {
-                $q->where('name', 'Voter');
-            })
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
-                });
-            })
-            ->where('status', 'approved')
-            ->orderBy('name', 'asc')
-            ->get();
+        // Buat cache key unik berdasarkan parameter pencarian
+        $cacheKey = 'voter_list_' . md5($search . implode(',', $excludeNiks));
 
-        if (! $voter) {
+        $voter = Cache::rememberForever($cacheKey, function () use ($search, $excludeNiks) {
+            return DB::table('anggota_koperasi')
+                ->select('id', 'nama', 'nik', 'bidang', 'nowa', 'created_at', 'updated_at')
+                ->when($search, function ($q) use ($search) {
+                    $q->where(function ($sub) use ($search) {
+                        $sub->where('nama', 'like', "%{$search}%")
+                            ->orWhere('nik', 'like', "%{$search}%")
+                            ->orWhere('bidang', 'like', "%{$search}%")
+                            ->orWhere('nowa', 'like', "%{$search}%");
+                    });
+                })
+                ->when(!empty($excludeNiks), function ($q) use ($excludeNiks) {
+                    $q->whereNotIn('nik', $excludeNiks);
+                })
+                ->orderBy('nama', 'asc')
+                ->get();
+        });
+
+        if ($voter->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Tidak ada data',
@@ -264,10 +418,11 @@ class ElectionEventController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'List Data Voter',
+            'message' => 'List Data Anggota Koperasi',
             'data' => $voter,
         ]);
     }
+
 
     /**
      * Show the form for creating a new resource.

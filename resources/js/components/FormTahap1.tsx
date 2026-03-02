@@ -41,6 +41,7 @@ export function FormTahap1({ event }: any) {
     const [openAlertSubmit, setOpenAlertSubmit] = useState(false);
     const [dialogContent, setDialogContent] = useState(null);
     const [participation, setParticipation] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const checkParticipation = async () => {
@@ -166,6 +167,7 @@ export function FormTahap1({ event }: any) {
         }
 
         try {
+            setLoading(true);
             const res = await axios.post("/api/election-event-logs", payload);
             if (res.data.success) {
                 setDialogContent({
@@ -182,6 +184,7 @@ export function FormTahap1({ event }: any) {
                     message: res.data.message,
                 });
                 setOpenAlertSubmit(true);
+                setLoading(false);
             }
         } catch (err) {
             console.error("Error kirim payload:", err);
@@ -191,6 +194,7 @@ export function FormTahap1({ event }: any) {
                 message: "Terjadi kesalahan saat mengirim data. " + err,
             });
             setOpenAlertSubmit(true);
+            setLoading(false);
         }
     };
 
@@ -202,7 +206,7 @@ export function FormTahap1({ event }: any) {
 
     return (
         <>
-            <div className="flex w-full max-w-md flex-col gap-6">
+            <div className="flex w-full flex-col gap-6">
                 {!participation && positions.length > 0 ? (
                     positions.map((pos) => (
                         <Item key={pos.id} variant="outline" size="sm" className="bg-neutral-50 dark:bg-neutral-900">
@@ -218,7 +222,7 @@ export function FormTahap1({ event }: any) {
 
                                     <Combobox
                                         items={(voterMap[pos.id] || []).map((v) => ({
-                                            label: ucwords(v.name),
+                                            label: ucwords(v.nama),
                                             value: v.id,
                                         }))}
                                         onValueChange={(val) => {
@@ -232,7 +236,7 @@ export function FormTahap1({ event }: any) {
                                                 if (alreadyChosen) {
                                                     setAlertMessage(
                                                         <span>
-                                                            Anggota <strong>{voter.name}</strong> sudah dicalonkan di posisi lain!
+                                                            Anggota <strong>{voter.nama}</strong> sudah dicalonkan di posisi lain!
                                                         </span>,
                                                     );
                                                     setAlertOpen(true);
@@ -286,7 +290,7 @@ export function FormTahap1({ event }: any) {
 
                                     {selectedVoter[pos.id] && (
                                         <p className="mt-2 text-sm text-blue-600">
-                                            Pilihan Anda: <strong>{ucwords(selectedVoter[pos.id].name)}</strong>
+                                            Pilihan Anda: <strong>{ucwords(selectedVoter[pos.id].nama)}</strong>
                                         </p>
                                     )}
                                 </div>
@@ -296,7 +300,7 @@ export function FormTahap1({ event }: any) {
                 ) : (
                     <>
                         {participation ? (
-                            <Alert className="max-w-md border border-green-400 bg-green-50 text-green-700">
+                            <Alert className="w-full border border-green-400 bg-green-50 text-green-700">
                                 <CheckCircle2Icon className="h-5 w-5 text-green-500" />
                                 <AlertTitle className="font-semibold">Terima kasih</AlertTitle>
                                 <AlertDescription>Anda telah berpartisipasi dalam tahap ini</AlertDescription>
@@ -323,16 +327,22 @@ export function FormTahap1({ event }: any) {
                 <div className="mt-4 flex justify-center mb-4">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button size="lg">Kirim Pilihan</Button>
+                            <Button size="lg" disabled={loading}>
+                                {loading ? "Sedang mengirim data" : "Kirim Pilihan"}
+                            </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Konfirmasi</AlertDialogTitle>
-                                <AlertDialogDescription>Apakah Anda yakin ingin mengirim pilihan ini?</AlertDialogDescription>
+                                <AlertDialogDescription>
+                                    Apakah Anda yakin ingin mengirim pilihan ini?
+                                </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleSubmit}>OK</AlertDialogAction>
+                                <AlertDialogCancel disabled={loading}>Batal</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleSubmit} disabled={loading}>
+                                    OK
+                                </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>

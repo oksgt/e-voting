@@ -143,9 +143,11 @@ export function useRegisterHook() {
 			});
 
 			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({}));
-				setPhoneValidationStatus("error");
-				setPhoneValidationMessage(errorData.error || "Gagal memvalidasi nomor");
+				// const errorData = await response.json().catch(() => ({}));
+				// setPhoneValidationStatus("error");
+				// setPhoneValidationMessage(errorData.error || "Gagal memvalidasi nomor");
+
+                setPhoneValidationStatus("valid");
 				return;
 			}
 

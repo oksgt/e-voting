@@ -32,7 +32,7 @@ export function TopTwoPerPositionTahap2({ eventId }: { eventId: number }) {
         fetch(`/api/top-2-per-position/${eventId}`)
             .then((res) => res.json())
             .then((data) => {
-                setPositions(data)
+                setPositions(data.positions)
                 setLastUpdated(formatTimestamp(new Date()))
             })
             .finally(() => setLoading(false))
@@ -109,7 +109,7 @@ export function TopTwoPerPositionTahap2({ eventId }: { eventId: number }) {
                                                         : "text-gray-700"
                                                     }`}
                                             >
-                                                <span>{ucwords(c.name)}</span>
+                                                <span>{ucwords(c.nama)}</span>
                                                 <span className="text-gray-600">
                                                     {c.total_votes} suara ({c.persentase.toFixed(2)}%)
                                                 </span>

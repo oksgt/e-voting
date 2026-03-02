@@ -30,6 +30,8 @@ Route::get('/bidang', fn () => new BidangCollection(Bidang::query()->get()));
 Route::post('/election-event-log/rejection', [ElectionEventLogController::class, 'addRejection']);
 Route::post('/election-event-log/rejection/remove', [ElectionEventLogController::class, 'removeRejection']);
 
+Route::get('/top-2-per-position-tahap-2/{eventId}/', [ElectionEventController::class, 'topTwoPerPositionTahap2']);
+
 
 
 Route::get('/anggota', function (Request $request) {
