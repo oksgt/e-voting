@@ -15,3 +15,13 @@ export const sentenceCaseWithTitle = (str: string) => {
 	}
 	return slited.join(",");
 };
+
+export const formatNowa = (value: string): string => {
+	const sanitized = value.trim();
+
+	if (sanitized.startsWith("0")) {
+		return `62${sanitized.slice(1)}`;
+	}
+
+	return sanitized;
+};

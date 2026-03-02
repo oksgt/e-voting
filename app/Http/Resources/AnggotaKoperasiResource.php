@@ -17,7 +17,7 @@ class AnggotaKoperasiResource extends JsonResource
         return [
             'id' => $this->id,
             'nama' => $this->nama,
-            'nik' => $this->encryptNik($this->nik),
+            'nik' => $request->is('api/*') ? $this->encryptNik($this->nik) : $this->nik,
             'bidang' => $this->bidang,
             'nowa' => $this->nowa,
             'created_at' => $this->created_at?->toIso8601String(),

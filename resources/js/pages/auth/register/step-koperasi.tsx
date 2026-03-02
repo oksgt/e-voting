@@ -33,7 +33,7 @@ export function StepKoperasi({
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Bidang" autoFocus />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="item-aligned">
                         <SelectGroup>
                             {bidangOptions.map((option) => (
                                 <SelectItem key={option} value={option}>
@@ -55,7 +55,7 @@ export function StepKoperasi({
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Nama" autoFocus />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="item-aligned">
                         <SelectGroup>
                             {anggotaOptions.map((option) => (
                                 <SelectItem key={option} value={String(option)}>

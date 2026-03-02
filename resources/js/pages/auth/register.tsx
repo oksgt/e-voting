@@ -1,5 +1,5 @@
 import { Form, Head } from "@inertiajs/react";
-import { type ChangeEvent, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import TextLink from "@/components/text-link";
 import { Button } from "@/components/ui/button";

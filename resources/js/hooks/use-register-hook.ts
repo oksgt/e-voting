@@ -1,6 +1,7 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { decryptNik } from "@/lib/crypto";
+import { formatNowa } from "@/lib/string";
 import type { AnggotaKoperasi } from "@/types/anggota-koperasi";
 import type { Bidang } from "@/types/bidang";
 
@@ -107,16 +108,6 @@ export function useRegisterHook() {
 	const findDetailByName = (name: string): AnggotaKoperasi | undefined => {
 		const anggota = anggotaList.find((item) => item.nama?.trim() === name.trim());
 		return anggota;
-	};
-
-	const formatNowa = (value: string): string => {
-		const sanitized = value.trim();
-
-		if (sanitized.startsWith("0")) {
-			return `62${sanitized.slice(1)}`;
-		}
-
-		return sanitized;
 	};
 
 	const validatePhoneNumber = async (phone: string) => {
