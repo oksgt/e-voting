@@ -5,13 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-type PhoneValidationStatus = "idle" | "validating" | "valid" | "invalid" | "error";
+type ValidationStatus = "idle" | "validating" | "valid" | "invalid" | "error";
 
 interface StepDataPribadiProps {
     visible: boolean;
     nikInputRef: RefObject<HTMLInputElement | null>;
     nowaInputRef: RefObject<HTMLInputElement | null>;
-    phoneValidationStatus: PhoneValidationStatus;
+    nikValidationStatus: ValidationStatus;
+    nikValidationMessage: string;
+    phoneValidationStatus: ValidationStatus;
     phoneValidationMessage: string;
     onNikInput: (value: string) => void;
     onNowaChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -19,7 +21,7 @@ interface StepDataPribadiProps {
     errors: Record<string, string>;
 }
 
-function PhoneValidationIcon({ status }: { status: PhoneValidationStatus }) {
+function ValidationIcon({ status }: { status: ValidationStatus }) {
     switch (status) {
         case "validating":
             return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
@@ -37,6 +39,8 @@ export function StepDataPribadi({
     visible,
     nikInputRef,
     nowaInputRef,
+    nikValidationStatus,
+    nikValidationMessage,
     phoneValidationStatus,
     phoneValidationMessage,
     onNikInput,
@@ -61,11 +65,28 @@ export function StepDataPribadi({
                         placeholder="16 digit NIK"
                         maxLength={16}
                         inputMode="numeric"
-                        className="pl-9"
+                        className="pl-9 pr-10"
                         onInput={(e) => onNikInput((e.target as HTMLInputElement).value)}
                     />
+                    {nikValidationStatus !== "idle" && (
+                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                            <ValidationIcon status={nikValidationStatus} />
+                        </div>
+                    )}
                 </div>
-                <p className="text-xs text-muted-foreground">NIK harus 16 digit angka dan unik.</p>
+                {nikValidationMessage && (
+                    <p
+                        className={`text-xs ${nikValidationStatus === "valid"
+                                ? "text-green-600"
+                                : nikValidationStatus === "validating"
+                                    ? "text-blue-600"
+                                    : "text-red-600"
+                            }`}
+                    >
+                        {nikValidationMessage}
+                    </p>
+                )}
+                <p className="text-xs text-muted-foreground">NIK harus 16 digit angka dan sesuai data anggota.</p>
                 <InputError message={errors.nik} />
             </div>
 
@@ -89,7 +110,7 @@ export function StepDataPribadi({
                     />
                     {phoneValidationStatus !== "idle" && (
                         <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                            <PhoneValidationIcon status={phoneValidationStatus} />
+                            <ValidationIcon status={phoneValidationStatus} />
                         </div>
                     )}
                 </div>

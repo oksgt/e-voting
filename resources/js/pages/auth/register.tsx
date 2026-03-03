@@ -43,10 +43,12 @@ export default function Register() {
         options: bidangOptions,
         isLoading,
         onBidangChange,
+        onNikChange,
         onNowaChange,
         anggotaOptions,
         isLoadingAnggota,
-        findDetailByName,
+        nikValidationStatus,
+        nikValidationMessage,
         phoneValidationStatus,
         phoneValidationMessage,
     } = useRegisterHook();
@@ -54,28 +56,11 @@ export default function Register() {
     const nowaInputRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
 
-    const isFormValid = phoneValidationStatus === "valid";
+    const isFormValid = nikValidationStatus === "valid" && phoneValidationStatus === "valid";
 
     const handleBidangChange = (value: string) => {
         setBidangValue(value);
         onBidangChange(value);
-    };
-
-    const handleNameChange = (value: string) => {
-        setNameValue(value);
-        const anggota = findDetailByName(value);
-        let nik = "";
-        let nowa = "";
-        if (anggota) {
-            nik = anggota?.nik;
-            nowa = anggota?.nowa;
-        }
-        const nikValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
-        const nowaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
-        nikValueSetter?.call(nikInputRef.current, nik);
-        nowaValueSetter?.call(nowaInputRef.current, nowa);
-        nikInputRef.current?.dispatchEvent(new Event("input", { bubbles: true }));
-        nowaInputRef.current?.dispatchEvent(new Event("input", { bubbles: true }));
     };
 
     const validateStep = (currentStep: number): boolean => {
@@ -83,7 +68,7 @@ export default function Register() {
             return !!bidangValue.trim() && !!nameValue.trim();
         }
         if (currentStep === 2) {
-            return !!nikValue.trim() && !!nowaValue.trim() && phoneValidationStatus === "valid";
+            return !!nikValue.trim() && !!nowaValue.trim() && nikValidationStatus === "valid" && phoneValidationStatus === "valid";
         }
         if (currentStep === 3) {
             return isPasswordValid;
@@ -142,7 +127,7 @@ export default function Register() {
                                     isLoading={isLoading}
                                     isLoadingAnggota={isLoadingAnggota}
                                     onBidangChange={handleBidangChange}
-                                    onNameChange={handleNameChange}
+                                    setNameValue={setNameValue}
                                     errors={errors}
                                 />
 
@@ -150,9 +135,14 @@ export default function Register() {
                                     visible={step === 2}
                                     nikInputRef={nikInputRef}
                                     nowaInputRef={nowaInputRef}
+                                    nikValidationStatus={nikValidationStatus}
+                                    nikValidationMessage={nikValidationMessage}
                                     phoneValidationStatus={phoneValidationStatus}
                                     phoneValidationMessage={phoneValidationMessage}
-                                    onNikInput={setNikValue}
+                                    onNikInput={(value) => {
+                                        setNikValue(value);
+                                        onNikChange(value);
+                                    }}
                                     onNowaChange={onNowaChange}
                                     onNowaInput={setNowaValue}
                                     errors={errors}

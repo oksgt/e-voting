@@ -5,7 +5,8 @@ import { formatNowa } from "@/lib/string";
 import type { AnggotaKoperasi } from "@/types/anggota-koperasi";
 import type { Bidang } from "@/types/bidang";
 
-type PhoneValidationStatus = "idle" | "validating" | "valid" | "invalid" | "error";
+type ValidationStatus = "idle" | "validating" | "valid" | "invalid" | "error";
+type PhoneValidationStatus = ValidationStatus;
 
 export function useRegisterHook() {
 	const [options, setOptions] = useState<string[]>([]);
@@ -15,6 +16,9 @@ export function useRegisterHook() {
 	const [anggotaList, setAnggotaList] = useState<AnggotaKoperasi[]>([]);
 	const [isLoadingAnggota, setIsLoadingAnggota] = useState(false);
 	const anggotaControllerRef = useRef<AbortController | null>(null);
+
+	const [nikValidationStatus, setNikValidationStatus] = useState<ValidationStatus>("idle");
+	const [nikValidationMessage, setNikValidationMessage] = useState<string>("");
 
 	const [phoneValidationStatus, setPhoneValidationStatus] = useState<PhoneValidationStatus>("idle");
 	const [phoneValidationMessage, setPhoneValidationMessage] = useState<string>("");
@@ -105,9 +109,46 @@ export function useRegisterHook() {
 		};
 	}, []);
 
-	const findDetailByName = (name: string): AnggotaKoperasi | undefined => {
-		const anggota = anggotaList.find((item) => item.nama?.trim() === name.trim());
-		return anggota;
+	const findDetailByNik = (nik: string): AnggotaKoperasi | undefined => {
+		return anggotaList.find((item) => item.nik === nik);
+	};
+
+	const validateNik = (nik: string): void => {
+		const trimmed = nik.trim();
+
+		if (!trimmed) {
+			setNikValidationStatus("idle");
+			setNikValidationMessage("");
+			return;
+		}
+
+		if (!/^\d+$/.test(trimmed)) {
+			setNikValidationStatus("invalid");
+			setNikValidationMessage("NIK harus berupa angka");
+			return;
+		}
+
+		if (trimmed.length < 16) {
+			setNikValidationStatus("invalid");
+			setNikValidationMessage(`NIK harus 16 digit (${trimmed.length}/16)`);
+			return;
+		}
+
+		const anggota = findDetailByNik(trimmed);
+		if (anggota) {
+			setNikValidationStatus("valid");
+			setNikValidationMessage("NIK ditemukan dalam data anggota");
+		} else {
+			setNikValidationStatus("invalid");
+			setNikValidationMessage("NIK tidak ditemukan dalam data anggota");
+		}
+	};
+
+	const debouncedValidateNik = useDebouncedCallback(validateNik, 400);
+
+	const onNikChange = (value: string): void => {
+		const numericOnly = value.replace(/\D/g, "").slice(0, 16);
+		debouncedValidateNik(numericOnly);
 	};
 
 	const validatePhoneNumber = async (phone: string) => {
@@ -185,10 +226,12 @@ export function useRegisterHook() {
 		options: uniqueOptions,
 		isLoading,
 		onBidangChange,
+		onNikChange,
 		onNowaChange,
 		anggotaOptions,
 		isLoadingAnggota,
-		findDetailByName,
+		nikValidationStatus,
+		nikValidationMessage,
 		phoneValidationStatus,
 		phoneValidationMessage,
 	};
