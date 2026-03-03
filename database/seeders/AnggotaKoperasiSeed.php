@@ -443,8 +443,8 @@ class AnggotaKoperasiSeed extends Seeder
                     'updated_at' => now(),
                 ])
                 ->all(),
-                ['nama','nik'],
-                ['bidang','nowa','updated_at']
+            ['nama', 'nik'],
+            ['bidang', 'nowa', 'updated_at']
         );
     }
 }

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EventsRequest;
 use App\Models\ElectionEvent;
 use App\Models\Position;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -31,7 +30,7 @@ class ElectionEventController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -130,7 +129,7 @@ class ElectionEventController extends Controller
                 ->orderByDesc('total_votes');
 
             // Limit hasil sesuai parameter asli (BUKAN topLimit)
-            if (!is_null($limit)) {
+            if (! is_null($limit)) {
                 $query->limit($limit);
             }
 
@@ -140,7 +139,7 @@ class ElectionEventController extends Controller
             $totalVotes = DB::table('election_event_logs')
                 ->where('event_id', $eventId)
                 ->where('position_id', $position->id)
-                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
                     $query->whereNotIn('user_id', $excludedIds);
                 })
                 ->count();
@@ -174,11 +173,11 @@ class ElectionEventController extends Controller
             */
                 if ($rank <= $topLimit) {
 
-                    if (!isset($candidateTopMap[$c->id])) {
+                    if (! isset($candidateTopMap[$c->id])) {
                         $candidateTopMap[$c->id] = [
                             'id' => $c->id,
                             'name' => $c->nama,
-                            'positions' => []
+                            'positions' => [],
                         ];
                     }
 
@@ -187,7 +186,7 @@ class ElectionEventController extends Controller
                         'position_name' => $position->name,
                         'rank' => $rank,
                         'total_votes' => (int) $c->total_votes,
-                        'persentase' => $c->persentase
+                        'persentase' => $c->persentase,
                     ];
                 }
 
@@ -225,17 +224,16 @@ class ElectionEventController extends Controller
                     'candidate_name' => $candidate['name'],
                     'issue' => [
                         'type' => 'multiple_positions_same_candidate',
-                        'description' =>
-                        "Kandidat {$candidate['name']} masuk Top {$topLimit} di lebih dari satu posisi: {$positionsText}."
+                        'description' => "Kandidat {$candidate['name']} masuk Top {$topLimit} di lebih dari satu posisi: {$positionsText}.",
                     ],
-                    'positions' => $candidate['positions']
+                    'positions' => $candidate['positions'],
                 ];
             }
         }
 
         return response()->json([
             'positions' => $positionsResult,
-            'Analisa' => $analysis
+            'Analisa' => $analysis,
         ]);
     }
 
@@ -264,14 +262,14 @@ class ElectionEventController extends Controller
                 ->where('e.event_id', $eventId)
                 ->where('e.position_id', $position->id)
                 ->whereNull('e.rejectionId')
-                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
                     $query->whereNotIn('u.id', $excludedIds);
                 })
                 ->groupBy('u.id', 'u.name')
                 ->orderByDesc('total_votes');
 
             // Limit hasil sesuai parameter asli (BUKAN topLimit)
-            if (!is_null($limit)) {
+            if (! is_null($limit)) {
                 $query->limit($limit);
             }
 
@@ -283,7 +281,7 @@ class ElectionEventController extends Controller
             $totalVotes = DB::table('election_event_logs')
                 ->where('event_id', $eventId)
                 ->where('position_id', $position->id)
-                ->when(!empty($excludedIds), function ($query) use ($excludedIds) {
+                ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
                     $query->whereNotIn('user_id', $excludedIds);
                 })
                 ->count();
@@ -317,11 +315,11 @@ class ElectionEventController extends Controller
             */
                 if ($rank <= $topLimit) {
 
-                    if (!isset($candidateTopMap[$c->id])) {
+                    if (! isset($candidateTopMap[$c->id])) {
                         $candidateTopMap[$c->id] = [
                             'id' => $c->id,
                             'name' => $c->name,
-                            'positions' => []
+                            'positions' => [],
                         ];
                     }
 
@@ -330,7 +328,7 @@ class ElectionEventController extends Controller
                         'position_name' => $position->name,
                         'rank' => $rank,
                         'total_votes' => (int) $c->total_votes,
-                        'persentase' => $c->persentase
+                        'persentase' => $c->persentase,
                     ];
                 }
 
@@ -368,27 +366,26 @@ class ElectionEventController extends Controller
                     'candidate_name' => $candidate['name'],
                     'issue' => [
                         'type' => 'multiple_positions_same_candidate',
-                        'description' =>
-                        "Kandidat {$candidate['name']} masuk Top {$topLimit} di lebih dari satu posisi: {$positionsText}."
+                        'description' => "Kandidat {$candidate['name']} masuk Top {$topLimit} di lebih dari satu posisi: {$positionsText}.",
                     ],
-                    'positions' => $candidate['positions']
+                    'positions' => $candidate['positions'],
                 ];
             }
         }
 
         return response()->json([
             'positions' => $positionsResult,
-            'Analisa' => $analysis
+            'Analisa' => $analysis,
         ]);
     }
 
     public function getVoterList(Request $request)
     {
         $search = $request->input('search');
-        $excludeNiks = ["3302251106660002", "3302120903740001"];
+        $excludeNiks = ['3302251106660002', '3302120903740001'];
 
         // Buat cache key unik berdasarkan parameter pencarian
-        $cacheKey = 'voter_list_' . md5($search . implode(',', $excludeNiks));
+        $cacheKey = 'voter_list_'.md5($search.implode(',', $excludeNiks));
 
         $voter = Cache::rememberForever($cacheKey, function () use ($search, $excludeNiks) {
             return DB::table('anggota_koperasi')
@@ -401,7 +398,7 @@ class ElectionEventController extends Controller
                             ->orWhere('nowa', 'like', "%{$search}%");
                     });
                 })
-                ->when(!empty($excludeNiks), function ($q) use ($excludeNiks) {
+                ->when(! empty($excludeNiks), function ($q) use ($excludeNiks) {
                     $q->whereNotIn('nik', $excludeNiks);
                 })
                 ->orderBy('nama', 'asc')
@@ -422,7 +419,6 @@ class ElectionEventController extends Controller
             'data' => $voter,
         ]);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -460,7 +456,7 @@ class ElectionEventController extends Controller
      */
     public function show(ElectionEvent $event)
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -474,9 +470,10 @@ class ElectionEventController extends Controller
      */
     public function edit(ElectionEvent $event)
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
+
         // Kirim data event ke view inertia/react edit form
         return Inertia::render('Events/Edit', [
             'event' => $event,

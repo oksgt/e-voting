@@ -23,10 +23,9 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-
     public function __construct()
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
     }

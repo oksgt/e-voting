@@ -140,7 +140,7 @@ class ElectionEventLogController extends Controller
         ')
             ->where('e.event_id', $eventId);
 
-        if (!empty($excludedIds)) {
+        if (! empty($excludedIds)) {
             $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM anggota_koperasi u WHERE u.id NOT IN ('.implode(',', $excludedIds).')) t'))
                 ->whereNotIn('e.user_id', $excludedIds);
         } else {
@@ -262,10 +262,10 @@ class ElectionEventLogController extends Controller
     public function addRejection(Request $request)
     {
         $request->validate([
-            'event_id'    => 'required|integer',
-            'user_id'     => 'required|integer',
+            'event_id' => 'required|integer',
+            'user_id' => 'required|integer',
             'position_id' => 'required|integer',
-            'reason'      => 'required|string',
+            'reason' => 'required|string',
         ]);
 
         try {
@@ -274,8 +274,8 @@ class ElectionEventLogController extends Controller
             // 1. Simpan data ke tabel rejection
             $rejectionId = DB::table('rejection')->insertGetId([
                 'description' => $request->reason,
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             // 2. Update ElectionEventLog dengan id rejection
@@ -308,8 +308,8 @@ class ElectionEventLogController extends Controller
     public function removeRejection(Request $request)
     {
         $request->validate([
-            'event_id'    => 'required|integer',
-            'user_id'     => 'required|integer',
+            'event_id' => 'required|integer',
+            'user_id' => 'required|integer',
             'position_id' => 'required|integer',
         ]);
 
@@ -324,6 +324,7 @@ class ElectionEventLogController extends Controller
 
             if ($logs->isEmpty()) {
                 DB::rollBack();
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak ada log ditemukan untuk kombinasi ini.',

@@ -15,13 +15,13 @@ class PositionController extends Controller
      */
     public function index(Request $request)
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
 
-        $search         = $request->input('search');
-        $per_page       = $request->integer('per_page', 10);
-        $sort_by        = $request->input('sort_by');
+        $search = $request->input('search');
+        $per_page = $request->integer('per_page', 10);
+        $sort_by = $request->input('sort_by');
         $sort_direction = $request->input('sort_direction');
 
         $positions = Position::query()
@@ -54,9 +54,10 @@ class PositionController extends Controller
      */
     public function create()
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
+
         return Inertia::render('Positions/Create');
     }
 
@@ -91,9 +92,10 @@ class PositionController extends Controller
      */
     public function edit(Position $position)
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
+
         return Inertia::render('Positions/Edit', [
             'position' => $position,
         ]);
