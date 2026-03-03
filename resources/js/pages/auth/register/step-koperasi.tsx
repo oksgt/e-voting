@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import InputError from "@/components/input-error";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,7 +12,7 @@ interface StepKoperasiProps {
     isLoading: boolean;
     isLoadingAnggota: boolean;
     onBidangChange: (value: string) => void;
-    onNameChange: (value: string) => void;
+    setNameValue: Dispatch<SetStateAction<string>>;
     errors: Record<string, string>;
 }
 
@@ -22,7 +23,7 @@ export function StepKoperasi({
     isLoading,
     isLoadingAnggota,
     onBidangChange,
-    onNameChange,
+    setNameValue,
     errors,
 }: StepKoperasiProps) {
     return (
@@ -51,7 +52,7 @@ export function StepKoperasi({
 
             <div className="grid gap-2">
                 <Label htmlFor="name">Nama</Label>
-                <Select onValueChange={onNameChange} name="name" required>
+                <Select onValueChange={setNameValue} name="name" required>
                     <SelectTrigger className="w-full">
                         <SelectValue placeholder="Nama" autoFocus />
                     </SelectTrigger>
