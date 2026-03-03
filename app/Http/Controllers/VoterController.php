@@ -25,13 +25,13 @@ class VoterController extends Controller
     public function index(Request $request)
     {
 
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
 
-        $search         = $request->input('search');
-        $per_page       = $request->per_page ?? 10;
-        $sort_by        = $request->sort_by;
+        $search = $request->input('search');
+        $per_page = $request->per_page ?? 10;
+        $sort_by = $request->sort_by;
         $sort_direction = $request->sort_direction;
         $status = $request->input('status'); // pending | approved | rejected
 
@@ -87,7 +87,7 @@ class VoterController extends Controller
 
     public function create()
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -149,9 +149,10 @@ class VoterController extends Controller
      */
     public function edit(User $voter)
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
+
         return Inertia::render('Voters/Edit', [
             'user' => $voter->load('roles'),
             'roles' => Role::pluck('name'),
@@ -210,7 +211,7 @@ class VoterController extends Controller
      */
     public function destroy(DestroyVoterRequest $request, User $voter)
     {
-        if (!auth()->user()->hasRole('Admin')) {
+        if (! auth()->user()->hasRole('Admin')) {
             abort(403, 'Unauthorized');
         }
 
@@ -393,7 +394,7 @@ class VoterController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'No users imported.',
-            'errors'  => $errors,
+            'errors' => $errors,
         ], 422);
     }
 }

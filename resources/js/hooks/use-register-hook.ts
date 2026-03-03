@@ -6,7 +6,6 @@ import type { AnggotaKoperasi } from "@/types/anggota-koperasi";
 import type { Bidang } from "@/types/bidang";
 
 type ValidationStatus = "idle" | "validating" | "valid" | "invalid" | "error";
-type PhoneValidationStatus = ValidationStatus;
 
 export function useRegisterHook() {
 	const [options, setOptions] = useState<string[]>([]);
@@ -20,9 +19,8 @@ export function useRegisterHook() {
 	const [nikValidationStatus, setNikValidationStatus] = useState<ValidationStatus>("idle");
 	const [nikValidationMessage, setNikValidationMessage] = useState<string>("");
 
-	const [phoneValidationStatus, setPhoneValidationStatus] = useState<PhoneValidationStatus>("idle");
+	const [phoneValidationStatus, setPhoneValidationStatus] = useState<ValidationStatus>("idle");
 	const [phoneValidationMessage, setPhoneValidationMessage] = useState<string>("");
-	const phoneControllerRef = useRef<AbortController | null>(null);
 
 	useEffect(() => {
 		const controller = new AbortController();
@@ -151,55 +149,33 @@ export function useRegisterHook() {
 		debouncedValidateNik(numericOnly);
 	};
 
-	const validatePhoneNumber = async (phone: string) => {
-		phoneControllerRef.current?.abort();
+	const validatePhoneNumber = (phone: string): void => {
+		const trimmed = phone.trim();
 
-		if (!phone.trim() || phone.length < 10) {
+		if (!trimmed) {
 			setPhoneValidationStatus("idle");
 			setPhoneValidationMessage("");
 			return;
 		}
 
-		const controller = new AbortController();
-		phoneControllerRef.current = controller;
-		setPhoneValidationStatus("validating");
-		setPhoneValidationMessage("Memvalidasi nomor...");
-
-		try {
-			const response = await fetch(`/api/check-phone-number/${encodeURIComponent(phone)}`, {
-				method: "POST",
-				signal: controller.signal,
-				headers: {
-					"Content-Type": "application/json",
-				},
-			});
-
-			if (!response.ok) {
-				// const errorData = await response.json().catch(() => ({}));
-				// setPhoneValidationStatus("error");
-				// setPhoneValidationMessage(errorData.error || "Gagal memvalidasi nomor");
-
-				setPhoneValidationStatus("valid");
-				return;
-			}
-
-			const data = await response.json();
-
-			if (data.registered === true) {
-				setPhoneValidationStatus("valid");
-				setPhoneValidationMessage("Nomor terdaftar di WhatsApp");
-			} else {
-				setPhoneValidationStatus("valid");
-				setPhoneValidationMessage("Nomor terdaftar di WhatsApp");
-				// setPhoneValidationStatus("invalid");
-				// setPhoneValidationMessage("Nomor tidak terdaftar di WhatsApp");
-			}
-		} catch (error) {
-			if ((error as Error).name !== "AbortError") {
-				setPhoneValidationStatus("error");
-				setPhoneValidationMessage("Terjadi kesalahan saat memvalidasi");
-			}
+		if (!/^\d+$/.test(trimmed)) {
+			setPhoneValidationStatus("invalid");
+			setPhoneValidationMessage("Nomor harus berupa angka");
+			return;
 		}
+
+		// Format Indonesia: 08xx (10-13 digit) atau 628xx (11-15 digit)
+		const isLocal = /^08\d{8,11}$/.test(trimmed);
+		const isInternational = /^628\d{8,11}$/.test(trimmed);
+
+		if (!isLocal && !isInternational) {
+			setPhoneValidationStatus("invalid");
+			setPhoneValidationMessage("Format nomor HP Indonesia tidak valid (08xx atau 628xx)");
+			return;
+		}
+
+		setPhoneValidationStatus("valid");
+		setPhoneValidationMessage("Format nomor valid");
 	};
 
 	const debouncedValidatePhone = useDebouncedCallback(validatePhoneNumber, 800);
@@ -215,12 +191,6 @@ export function useRegisterHook() {
 
 		debouncedValidatePhone(formattedValue);
 	};
-
-	useEffect(() => {
-		return () => {
-			phoneControllerRef.current?.abort();
-		};
-	}, []);
 
 	return {
 		options: uniqueOptions,

@@ -1,48 +1,34 @@
-import { Button } from '@/components/ui/button';
+import { Head, Link } from "@inertiajs/react";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { route } from 'ziggy-js';
-
-import { Badge } from '@/components/ui/badge';
-import { ButtonGroup } from '@/components/ui/button-group';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { can } from "@/lib/can";
-import {
+    type ColumnDef,
     flexRender,
     getCoreRowModel,
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import { Calendar, CheckCircle, Clock, Edit3, Gauge, PlayCircle, PlusCircle, RotateCw, XCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Edit3, Gauge, RotateCw, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
+import { route } from "ziggy-js";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import AppLayout from "@/layouts/app-layout";
+import { can } from "@/lib/can";
+import type { BreadcrumbItem } from "@/types";
+import type { ElectionEvent } from "@/types/election_event";
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Events', href: route('events.index') },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: "Events", href: route("events.index") }];
 
-export default function User({ events, authUserId, csrfToken }) {
-
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
+interface EventPageProps {
+    events: { data: ElectionEvent[] };
+}
+export default function EventPage({ events }: EventPageProps) {
     const [sorting, setSorting] = useState([]);
     const [pagination, setPagination] = useState({
         pageIndex: 0,
@@ -58,18 +44,14 @@ export default function User({ events, authUserId, csrfToken }) {
 
         return list.filter((u) => {
             const name = (u.name ?? "").toLowerCase();
-            const description = (u.description ?? "").toLowerCase();
+            const keyword = (u.keyword ?? "").toLowerCase();
 
-            return (
-                name.includes(search.toLowerCase()) ||
-                description.includes(search.toLowerCase())
-            );
+            return name.includes(search.toLowerCase()) || keyword.includes(search.toLowerCase());
         });
     }, [events, search]);
 
-
     // Define columns
-    const columns = useMemo(
+    const columns: ColumnDef<ElectionEvent>[] = useMemo(
         () => [
             {
                 header: "No",
@@ -81,7 +63,6 @@ export default function User({ events, authUserId, csrfToken }) {
                     const user = row.original;
                     return (
                         <ButtonGroup>
-
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -97,7 +78,7 @@ export default function User({ events, authUserId, csrfToken }) {
                                 </Tooltip>
                             </TooltipProvider>
 
-                            {can("elections.update") &&
+                            {can("elections.update") && (
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -112,8 +93,7 @@ export default function User({ events, authUserId, csrfToken }) {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                            }
-
+                            )}
                         </ButtonGroup>
                     );
                 },
@@ -123,41 +103,41 @@ export default function User({ events, authUserId, csrfToken }) {
                 header: "Event",
                 accessorKey: "name", // pakai salah satu accessor
                 cell: ({ row }) => {
-                    const status = row.original.status
-                    const name = row.getValue("name")
+                    const status = row.original.status;
+                    const name = row.original.name;
 
-                    let classes = "flex items-center gap-1 px-2 py-1"
-                    let icon = null
-                    let label = ""
+                    let classes = "flex items-center gap-1 px-2 py-1";
+                    let icon = null;
+                    let label = "";
 
                     switch (status) {
                         case "pending":
-                            classes += " bg-gray-100 text-gray-700 border border-gray-300"
-                            icon = <RotateCw className="h-4 w-4" />
-                            label = "Stop"
-                            break
+                            classes += " bg-gray-100 text-gray-700 border border-gray-300";
+                            icon = <RotateCw className="h-4 w-4" />;
+                            label = "Stop";
+                            break;
                         case "scheduled":
-                            classes += " bg-blue-100 text-blue-700 border border-blue-300"
-                            icon = <Calendar className="h-4 w-4" />
-                            label = "Scheduled"
-                            break
+                            classes += " bg-blue-100 text-blue-700 border border-blue-300";
+                            icon = <Calendar className="h-4 w-4" />;
+                            label = "Scheduled";
+                            break;
                         case "running":
-                            classes += " bg-green-100 text-green-700 border border-green-300"
-                            icon = <RotateCw className="h-4 w-4 animate-spin" />
-                            label = "Running"
-                            break
+                            classes += " bg-green-100 text-green-700 border border-green-300";
+                            icon = <RotateCw className="h-4 w-4 animate-spin" />;
+                            label = "Running";
+                            break;
                         case "finished":
-                            classes += " bg-purple-100 text-purple-700 border border-purple-300"
-                            icon = <CheckCircle className="h-4 w-4" />
-                            label = "Finished"
-                            break
+                            classes += " bg-purple-100 text-purple-700 border border-purple-300";
+                            icon = <CheckCircle className="h-4 w-4" />;
+                            label = "Finished";
+                            break;
                         case "cancelled":
-                            classes += " bg-red-100 text-red-700 border border-red-300"
-                            icon = <XCircle className="h-4 w-4" />
-                            label = "Cancelled"
-                            break
+                            classes += " bg-red-100 text-red-700 border border-red-300";
+                            icon = <XCircle className="h-4 w-4" />;
+                            label = "Cancelled";
+                            break;
                         default:
-                            label = status
+                            label = status ?? "";
                     }
 
                     return (
@@ -168,39 +148,43 @@ export default function User({ events, authUserId, csrfToken }) {
                                 {label}
                             </Badge>
                         </div>
-                    )
+                    );
                 },
             },
             {
                 header: "Period",
                 accessorKey: "started_at", // tetap pakai salah satu accessor
                 cell: ({ row }) => {
-                    const started = row.getValue("started_at")
-                    const finished = row.original.finished_at
+                    const started = row.original.started_at;
+                    const finished = row.original.finished_at;
 
                     // console.log(row);
 
                     const formatDate = (value: string | null) => {
-                        if (!value) return "-"
+                        if (!value) return "-";
                         return new Date(value).toLocaleString("id-ID", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
                             hour: "2-digit",
                             minute: "2-digit",
-                        })
-                    }
+                        });
+                    };
 
                     return (
                         <div className="flex flex-col">
-                            <span>Start: <strong>{formatDate(started)}</strong></span>
-                            <span>Finish: <strong>{formatDate(finished)}</strong></span>
+                            <span>
+                                Start: <strong>{formatDate(started)}</strong>
+                            </span>
+                            <span>
+                                Finish: <strong>{formatDate(finished)}</strong>
+                            </span>
                         </div>
-                    )
+                    );
                 },
-            }
+            },
         ],
-        [pagination.pageIndex, pagination.pageSize]
+        [pagination.pageIndex, pagination.pageSize],
     );
 
     // Create table instance
@@ -223,11 +207,9 @@ export default function User({ events, authUserId, csrfToken }) {
                     <CardHeader className="flex items-center justify-between">
                         <div>
                             <CardTitle>Data Events</CardTitle>
-                            <CardDescription className="mt-2">
-                                List of events
-                            </CardDescription>
+                            <CardDescription className="mt-2">List of events</CardDescription>
                         </div>
-                        {can("elections.create") &&
+                        {can("elections.create") && (
                             <div className="flex gap-2">
                                 {/* <Button variant="default" size="sm" asChild>
                                     <Link
@@ -239,8 +221,7 @@ export default function User({ events, authUserId, csrfToken }) {
                                     </Link>
                                 </Button> */}
                             </div>
-
-                        }
+                        )}
                     </CardHeader>
 
                     <CardContent>
@@ -275,7 +256,6 @@ export default function User({ events, authUserId, csrfToken }) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-
                             </div>
                         </div>
 
@@ -289,10 +269,7 @@ export default function User({ events, authUserId, csrfToken }) {
                                                 onClick={header.column.getToggleSortingHandler?.()}
                                                 className="cursor-pointer select-none"
                                             >
-                                                {flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
                                                 {{
                                                     asc: " 🔼",
                                                     desc: " 🔽",
@@ -306,9 +283,7 @@ export default function User({ events, authUserId, csrfToken }) {
                                 {table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id}>
                                         {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
+                                            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                                         ))}
                                     </TableRow>
                                 ))}
@@ -317,22 +292,13 @@ export default function User({ events, authUserId, csrfToken }) {
 
                         {/* Pagination Controls */}
                         <div className="flex items-center justify-between mt-4">
-                            <Button
-                                variant="outline"
-                                onClick={() => table.previousPage()}
-                                disabled={!table.getCanPreviousPage()}
-                            >
+                            <Button variant="outline" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
                                 Previous
                             </Button>
                             <span>
-                                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                                {table.getPageCount()}
+                                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
                             </span>
-                            <Button
-                                variant="outline"
-                                onClick={() => table.nextPage()}
-                                disabled={!table.getCanNextPage()}
-                            >
+                            <Button variant="outline" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
                                 Next
                             </Button>
                         </div>
@@ -341,5 +307,4 @@ export default function User({ events, authUserId, csrfToken }) {
             </div>
         </AppLayout>
     );
-
 }

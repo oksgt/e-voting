@@ -11,19 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-interface Candidate {
-    id: number;
-    name: string;
-    persentase: number;
-    total_votes: number;
-    event_id: number;
-    position_id: number;
-    filled_rejections?: number;
-}
+import type { TopCandidate } from "@/types/top-two-per-position";
 
 interface ToggleProps {
-    data: Candidate;
-    apiUrl: string;
+    data: TopCandidate;
 }
 
 export default function ToggleBerkenan({ data }: ToggleProps) {
@@ -139,10 +130,10 @@ export default function ToggleBerkenan({ data }: ToggleProps) {
     };
 
     return (
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col items-start gap-1">
             <button
                 onClick={handleToggle}
-                className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-300 ease-in-out ${isBerkenan ? "bg-green-500" : "bg-gray-300"
+                className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors duration-300 ease-in-out ${isBerkenan ? "bg-green-500" : "bg-gray-300"
                     }`}
             >
                 <span
@@ -150,8 +141,8 @@ export default function ToggleBerkenan({ data }: ToggleProps) {
                         }`}
                 />
             </button>
-            <span className="text-gray-700 text-xs font-medium">
-                {isBerkenan ? "Berkenan" : "Tidak berkenan"}
+            <span className={`text-[10px] leading-tight font-medium ${isBerkenan ? "text-green-700" : "text-red-600"}`}>
+                {isBerkenan ? "Berkenan" : "Tidak"}
             </span>
 
             {/* Dialog alasan */}
