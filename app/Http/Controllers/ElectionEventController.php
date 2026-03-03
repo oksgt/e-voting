@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EventsRequest;
+use App\Http\Resources\ElectionEventCollection;
 use App\Models\ElectionEvent;
 use App\Models\Position;
 use Carbon\Carbon;
@@ -35,12 +36,10 @@ class ElectionEventController extends Controller
         }
 
         return Inertia::render('Events/Index', [
-            'events' => $electionEvent,
-            'authUserId' => auth()->id(),
+            'events' => new ElectionEventCollection($electionEvent),
             'filters' => [
                 'search' => $search,
             ],
-            'csrfToken' => csrf_token(),
         ]);
     }
 

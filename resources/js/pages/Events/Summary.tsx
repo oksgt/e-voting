@@ -1,55 +1,14 @@
-import { Head, Link, useForm } from "@inertiajs/react";
-import { Edit2, LoaderCircle, Users2Icon } from "lucide-react";
-import { toast } from "sonner";
+import { Head, Link } from "@inertiajs/react";
+import { Edit2 } from "lucide-react";
 import { route } from "ziggy-js";
-
-import DateTime24Picker, { toIsoDateTime24 } from "@/components/commons/date-time-24-picker";
-import { DateTimePicker } from "@/components/DateTimePicker";
-import { ChartPenjaringan, Chartpenjaringan } from "@/components/ChartPenjaringan";
+import { ChartPenjaringan } from "@/components/ChartPenjaringan";
+import { ChartPenjaringanTahap2 } from "@/components/ChartPenjaringanTahap2";
 import { TopTwoPerPosition } from "@/components/TopTwoPerPositions";
+import { TopTwoPerPositionTahap2 } from "@/components/TopTwoPerPositionsTahap2";
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AppLayout from "@/layouts/app-layout";
 import type { BreadcrumbItem } from "@/types";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-
-import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-
-import {
-    Field,
-    FieldGroup,
-    FieldLabel,
-    FieldLegend,
-    FieldSet,
-} from "@/components/ui/field";
-
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-
-import {
-    Item,
-    ItemContent,
-    ItemDescription,
-    ItemMedia,
-    ItemTitle,
-} from "@/components/ui/item";
-import { ChartPenjaringanTahap2 } from "@/components/ChartPenjaringanTahap2";
-import { TopTwoPerPositionTahap2 } from "@/components/TopTwoPerPositionsTahap2";
 
 type EditEventProps = {
     event: {
@@ -73,26 +32,25 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const toDatetimeLocal = (value: string | null | undefined) => {
-    if (!value) return "";
+// const toDatetimeLocal = (value: string | null | undefined) => {
+//     if (!value) return "";
 
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "";
+//     const date = new Date(value);
+//     if (Number.isNaN(date.getTime())) return "";
 
-    const pad = (num: number) => String(num).padStart(2, "0");
+//     const pad = (num: number) => String(num).padStart(2, "0");
 
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1);
-    const day = pad(date.getDate());
-    const hour = pad(date.getHours());
-    const minute = pad(date.getMinutes());
+//     const year = date.getFullYear();
+//     const month = pad(date.getMonth() + 1);
+//     const day = pad(date.getDate());
+//     const hour = pad(date.getHours());
+//     const minute = pad(date.getMinutes());
 
-    return `${year}-${month}-${day}T${hour}:${minute}`;
-};
+//     return `${year}-${month}-${day}T${hour}:${minute}`;
+// };
 
 export default function Edit({ event }: EditEventProps) {
-
-    console.log('ss', event)
+    console.log("ss", event);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -104,11 +62,13 @@ export default function Edit({ event }: EditEventProps) {
                             <CardTitle>Summary Event: {event.name}</CardTitle>
                             <CardDescription className="mt-2">Rekapitulasi data pemilihan </CardDescription>
                         </div>
-                        <Link href={route('events.edit', event.id)} className="inline-flex items-center px-4 py-2 bg-gray-950 text-white rounded">
+                        <Link
+                            href={route("events.edit", event.id)}
+                            className="inline-flex items-center px-4 py-2 bg-gray-950 text-white rounded"
+                        >
                             <Edit2 className="mr-2 h-4 w-4" />
                             Edit data events
                         </Link>
-
                     </CardHeader>
                     <CardContent>
                         {event.id === 3 ? (
@@ -137,10 +97,8 @@ export default function Edit({ event }: EditEventProps) {
                                 </div>
                             </div>
                         )}
-
                     </CardContent>
                 </Card>
-
             </div>
         </AppLayout>
     );
