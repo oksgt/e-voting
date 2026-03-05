@@ -42,6 +42,8 @@ Route::get('/magic-links/generate/{phone_number}', [MagicLinksController::class,
 
 Route::get('/magic-login/{token}', [MagicLinksController::class, 'verifyMagicLink'])->name('magic.verify');
 
+Route::get('/voter-log/{eventId?}', [ElectionEventLogController::class, 'getVoterLog']);
+
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

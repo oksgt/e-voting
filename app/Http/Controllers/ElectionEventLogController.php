@@ -65,17 +65,13 @@ class ElectionEventLogController extends Controller
         // Jika lolos validasi, simpan log
         $logs = [];
         foreach ($validated['positions'] as $pos) {
-            $log = ElectionEventLog::updateOrCreate(
-                [
-                    'event_id' => $validated['event_id'],
-                    'user_id' => $pos['user_id'],
-                    'position_id' => $pos['position_id'],
-                ],
-                [
-                    'voted_by' => $validated['voted_by'],
-                    'voted_at' => Carbon::now(),
-                ]
-            );
+            $log = ElectionEventLog::create([
+                'event_id'    => $validated['event_id'],
+                'user_id'     => $pos['user_id'],
+                'position_id' => $pos['position_id'],
+                'voted_by'    => $validated['voted_by'],
+                'voted_at'    => Carbon::now(),
+            ]);
 
             $logs[] = $log;
         }
@@ -114,7 +110,8 @@ class ElectionEventLogController extends Controller
             ->where('voted_by', $validated['user_id'])
             ->count();
 
-        $participatedFully = $submittedCount >= $totalPositions;
+        // $participatedFully = $submittedCount >= $totalPositions;
+        $participatedFully = $submittedCount >= 1; //$totalPositions;
 
         return response()->json([
             'success' => true,
@@ -141,7 +138,7 @@ class ElectionEventLogController extends Controller
             ->where('e.event_id', $eventId);
 
         if (! empty($excludedIds)) {
-            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM anggota_koperasi u WHERE u.id NOT IN ('.implode(',', $excludedIds).')) t'))
+            $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM anggota_koperasi u WHERE u.id NOT IN (' . implode(',', $excludedIds) . ')) t'))
                 ->whereNotIn('e.user_id', $excludedIds);
         } else {
             $query->crossJoin(DB::raw('(SELECT COUNT(*) AS total_user FROM anggota_koperasi u) t'));
@@ -192,6 +189,32 @@ class ElectionEventLogController extends Controller
         });
 
         return response()->json($result);
+    }
+
+    function getVoterLog($eventId = 4)
+    {
+
+        $event = ElectionEvent::findOrFail($eventId);
+
+        $event_name = $event->name;
+
+        $results = DB::table('election_event_logs as eel')
+            ->join('users as u', 'u.id', '=', 'eel.voted_by')
+            ->select(
+                'eel.voted_by',
+                'u.name as user_name',
+                'u.nik as nik',
+                'u.phone_number',
+                DB::raw('COUNT(eel.voted_by) as total_votes'),
+                DB::raw('MAX(eel.voted_at) as waktu_voting')
+            )
+            ->where('eel.event_id', $eventId)
+            ->groupBy('eel.voted_by', 'u.name', 'u.phone_number')
+            ->orderBy('waktu_voting', 'desc')
+            ->get();
+
+        // return response()->json($results);
+        return view('voter-log', compact('results', 'event_name'));
     }
 
     public function store_tahap2(Request $request)

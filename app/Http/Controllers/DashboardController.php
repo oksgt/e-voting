@@ -57,7 +57,12 @@ class DashboardController extends Controller
         $view = 'dashboard';
 
         if ($user_role === 'Voter') {
-            $view = 'dashboard-voter';
+            $allowedLogin = [190, 126];
+            if (in_array($user->id, $allowedLogin)) {
+                $view = 'dashboard-voter';
+            } else {
+                return view('sibuk');
+            }
         }
 
         return Inertia::render($view, [
@@ -70,7 +75,6 @@ class DashboardController extends Controller
             'activePositions' => $activePositions,
             'userStatus' => $user->status,
         ]);
-
     }
 
     public function getRunningEvent(Request $request)
