@@ -29,7 +29,7 @@ export function TopTwoPerPositionTahap2({ eventId }: { eventId: number }) {
 
     const fetchData = () => {
         setLoading(true)
-        fetch(`/api/top-2-per-position/${eventId}`)
+        fetch(`/api/ranking-tahap-2/${eventId}`)
             .then((res) => res.json())
             .then((data) => {
                 setPositions(data.positions)

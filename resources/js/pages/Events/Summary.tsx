@@ -85,10 +85,14 @@ export default function Edit({ event }: EditEventProps) {
                                 </div>
                             </div>
                         ) : (
-                            <div className="w-full grid grid-cols-1 md:grid-cols-2  gap-6">
+                            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2">
                                 {/* 30% */}
                                 <div className="flex w-full flex-col">
-                                    <ChartPenjaringanTahap2 event_id={event.id} />
+                                    <ChartPenjaringan event_id={event.id} />
+                                </div>
+
+                                <div className="flex w-full flex-col">
+                                    <ChartPenjaringan event_id={event.id} value_type={'number'} />
                                 </div>
 
                                 {/* 70% */}

@@ -32,6 +32,8 @@ Route::post('/election-event-log/rejection/remove', [ElectionEventLogController:
 
 Route::get('/top-2-per-position-tahap-2/{eventId}/', [ElectionEventController::class, 'topTwoPerPositionTahap2']);
 
+Route::get('/ranking-tahap-2/{eventId}/', [ElectionEventController::class, 'rankingTahap2']);
+
 Route::get('/anggota', function (Request $request) {
     $query = AnggotaKoperasi::query()
         ->when($request->query('bidang'), fn ($q, $bidang) => $q->where('bidang', $bidang))

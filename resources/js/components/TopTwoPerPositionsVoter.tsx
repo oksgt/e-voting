@@ -175,13 +175,15 @@ export function TopTwoPerPositionVoter({ eventId }: { eventId: number }) {
                     </div>
                 </Alert>
             ) : (
-                <Card className="w-full flex flex-col">
+                <Card className="w-full flex flex-col border-0">
                     <CardHeader>
-                        <CardTitle>Pilih salah satu kandidat untuk setiap posisi</CardTitle>
-                        <CardDescription></CardDescription>
+                        <CardTitle className="text-center">Pilih salah satu kandidat untuk setiap posisi</CardTitle>
+                        <CardDescription>
+                            Jika tidak ada calon yang dikehendaki, silahkan pilih "Tidak Ada"
+                        </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="flex flex-col gap-3">
+                    <CardContent className="flex flex-col gap-3 p-0">
                         {positions.map((pos: any) => (
                             <Card key={pos.id} className="flex flex-col rounded-2xl shadow-md bg-white/80 border">
                                 <CardHeader className="flex justify-center items-center pb-0">
@@ -195,21 +197,23 @@ export function TopTwoPerPositionVoter({ eventId }: { eventId: number }) {
                                             const isSelected = selected[pos.id] === c.id
                                             return (
                                                 <div
-                                                    key={c.id}
-                                                    onClick={() => handleSelect(pos.id, c.id)}
-                                                    className={`relative flex flex-col items-center gap-2 rounded-lg px-4 py-2 shadow-sm cursor-pointer transition
-                        ${idx === 0 ? "bg-blue-50" : idx === 1 ? "bg-green-50" : "bg-gray-50"}
-                        ${isSelected ? "ring-2 ring-blue-500" : ""}
-                      `}
-                                                >
-                                                    {isSelected && (
-                                                        <div className="absolute -top-2 -right-2 rounded-full border-2 border-blue-500 p-0.5 bg-blue-500">
-                                                            <Check className="h-4 w-4 text-white" />
-                                                        </div>
-                                                    )}
-                                                    <UserCircle className="h-10 w-10 text-gray-600" />
-                                                    <span className="text-lg font-semibold text-gray-900">{ucwords(c.name)}</span>
-                                                </div>
+                                                        key={c.id}
+                                                        onClick={() => handleSelect(pos.id, c.id)}
+                                                        className={`relative flex flex-col items-center gap-2 rounded-lg px-4 py-2 shadow-sm cursor-pointer transition
+        ${idx === 0 ? "bg-blue-50" : idx === 1 ? "bg-green-50" : "bg-gray-50"}
+        ${isSelected ? "ring-2 ring-blue-500" : ""}
+    `}
+                                                    >
+                                                        {isSelected && (
+                                                            <div className="absolute -top-2 -right-2 rounded-full border-2 border-blue-500 p-0.5 bg-blue-500">
+                                                                <Check className="h-4 w-4 text-white" />
+                                                            </div>
+                                                        )}
+                                                        <UserCircle className="h-10 w-10 text-gray-600" />
+                                                        <span className="text-md font-semibold text-gray-900 text-center">
+                                                            {ucwords(c.nama)}
+                                                        </span>
+                                                    </div>
                                             )
                                         })}
                                     </div>

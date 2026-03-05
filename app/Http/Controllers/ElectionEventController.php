@@ -202,12 +202,6 @@ class ElectionEventController extends Controller
             ];
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | ANALISA
-    | Kandidat masuk TOP 2 di lebih dari satu posisi
-    |--------------------------------------------------------------------------
-    */
         $analysis = [];
 
         foreach ($candidateTopMap as $candidate) {
@@ -252,10 +246,10 @@ class ElectionEventController extends Controller
         foreach ($positions as $position) {
 
             $query = DB::table('election_event_logs as e')
-                ->join('users as u', 'u.id', '=', 'e.user_id')
+                ->join('anggota_koperasi as u', 'u.id', '=', 'e.user_id')
                 ->select(
                     'u.id',
-                    'u.name',
+                    'u.nama',
                     DB::raw('COUNT(e.id) as total_votes')
                 )
                 ->where('e.event_id', $eventId)
@@ -264,7 +258,7 @@ class ElectionEventController extends Controller
                 ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
                     $query->whereNotIn('u.id', $excludedIds);
                 })
-                ->groupBy('u.id', 'u.name')
+                ->groupBy('u.id', 'u.nama')
                 ->orderByDesc('total_votes');
 
             // Limit hasil sesuai parameter asli (BUKAN topLimit)
@@ -273,8 +267,6 @@ class ElectionEventController extends Controller
             }
 
             $candidates = $query->get();
-
-            // dump($candidates);
 
             // Total suara per posisi
             $totalVotes = DB::table('election_event_logs')
@@ -296,7 +288,6 @@ class ElectionEventController extends Controller
                 &$rank,
                 $topLimit
             ) {
-
                 $c->persentase = $totalVotes > 0
                     ? round(($c->total_votes / $totalVotes) * 100, 4)
                     : 0;
@@ -306,18 +297,11 @@ class ElectionEventController extends Controller
                 $c->event_id = (int) $eventId;
                 $c->rank = $rank;
 
-                /*
-            |--------------------------------------------------------------------------
-            | HANYA kandidat dengan rank <= topLimit
-            | yang dipakai untuk ANALISA
-            |--------------------------------------------------------------------------
-            */
                 if ($rank <= $topLimit) {
-
                     if (! isset($candidateTopMap[$c->id])) {
                         $candidateTopMap[$c->id] = [
                             'id' => $c->id,
-                            'name' => $c->name,
+                            'name' => $c->nama,
                             'positions' => [],
                         ];
                     }
@@ -332,9 +316,20 @@ class ElectionEventController extends Controller
                 }
 
                 $rank++;
-
                 return $c;
             });
+
+            // Tambahkan kandidat dummy "Tidak ada" di rank 3
+            $candidates->push((object)[
+                'id' => 99999,
+                'nama' => 'Tidak ada',
+                'total_votes' => 0,
+                'persentase' => 0,
+                'position_id' => $position->id,
+                'position_name' => $position->name,
+                'event_id' => (int) $eventId,
+                'rank' => 3,
+            ]);
 
             $positionsResult[] = [
                 'id' => $position->id,
@@ -344,37 +339,122 @@ class ElectionEventController extends Controller
             ];
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | ANALISA
-    | Kandidat masuk TOP 2 di lebih dari satu posisi
-    |--------------------------------------------------------------------------
-    */
-        $analysis = [];
+        return response()->json([
+            'positions' => $positionsResult,
+        ]);
+    }
 
-        foreach ($candidateTopMap as $candidate) {
+    public function rankingTahap2($eventId)
+    {
+        $limit = 2;
+        $topLimit = 2; // hanya untuk ANALISA
+        $excludedIds = [1];
 
-            if (count($candidate['positions']) > 1) {
+        $positions = Position::where('status', 1)
+            ->orderBy('number', 'asc')
+            ->get();
 
-                $positionsText = collect($candidate['positions'])
-                    ->pluck('position_name')
-                    ->implode(', ');
+        $positionsResult = [];
+        $candidateTopMap = [];
 
-                $analysis[] = [
-                    'candidate_id' => $candidate['id'],
-                    'candidate_name' => $candidate['name'],
-                    'issue' => [
-                        'type' => 'multiple_positions_same_candidate',
-                        'description' => "Kandidat {$candidate['name']} masuk Top {$topLimit} di lebih dari satu posisi: {$positionsText}.",
-                    ],
-                    'positions' => $candidate['positions'],
-                ];
+        foreach ($positions as $position) {
+
+            $query = DB::table('election_event_logs as e')
+                ->leftJoin('anggota_koperasi as u', 'u.id', '=', 'e.user_id')
+                ->select(
+                    'u.id',
+                    'u.nama',
+                    DB::raw('COUNT(e.id) as total_votes')
+                )
+                ->where('e.event_id', $eventId)
+                ->where('e.position_id', $position->id)
+                ->whereNull('e.rejectionId')
+                ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
+                    $query->whereNotIn('u.id', $excludedIds);
+                })
+                ->groupBy('u.id', 'u.nama')
+                ->orderByDesc('total_votes');
+
+            // Limit hasil sesuai parameter asli (BUKAN topLimit)
+            if (! is_null($limit)) {
+                $query->limit($limit);
             }
+
+            $candidates = $query->get();
+
+            // Total suara per posisi
+            $totalVotes = DB::table('election_event_logs')
+                ->where('event_id', $eventId)
+                ->where('position_id', $position->id)
+                ->when(! empty($excludedIds), function ($query) use ($excludedIds) {
+                    $query->whereNotIn('user_id', $excludedIds);
+                })
+                ->count();
+
+            // Tambahkan ranking manual + persentase
+            $rank = 1;
+
+            $candidates = $candidates->map(function ($c) use (
+                $totalVotes,
+                $position,
+                $eventId,
+                &$candidateTopMap,
+                &$rank,
+                $topLimit
+            ) {
+                $c->persentase = $totalVotes > 0
+                    ? round(($c->total_votes / $totalVotes) * 100, 4)
+                    : 0;
+
+                $c->position_id = $position->id;
+                $c->position_name = $position->name;
+                $c->event_id = (int) $eventId;
+                $c->rank = $rank;
+
+                if ($rank <= $topLimit) {
+                    if (! isset($candidateTopMap[$c->id])) {
+                        $candidateTopMap[$c->id] = [
+                            'id' => $c->id,
+                            'name' => $c->nama,
+                            'positions' => [],
+                        ];
+                    }
+
+                    $candidateTopMap[$c->id]['positions'][] = [
+                        'position_id' => $position->id,
+                        'position_name' => $position->name,
+                        'rank' => $rank,
+                        'total_votes' => (int) $c->total_votes,
+                        'persentase' => $c->persentase,
+                    ];
+                }
+
+                $rank++;
+                return $c;
+            });
+
+            // Tambahkan kandidat dummy "Tidak ada" di rank 3
+            $candidates->push((object)[
+                'id' => 99999,
+                'nama' => 'Tidak ada',
+                'total_votes' => 0,
+                'persentase' => 0,
+                'position_id' => $position->id,
+                'position_name' => $position->name,
+                'event_id' => (int) $eventId,
+                'rank' => 3,
+            ]);
+
+            $positionsResult[] = [
+                'id' => $position->id,
+                'position' => $position->name,
+                'total_votes' => $totalVotes,
+                'candidates' => $candidates,
+            ];
         }
 
         return response()->json([
             'positions' => $positionsResult,
-            'Analisa' => $analysis,
         ]);
     }
 

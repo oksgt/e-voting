@@ -129,7 +129,7 @@ class ElectionEventLogController extends Controller
 
     public function penjaringan($eventId, $value_type = null)
     {
-        $excludedIds = []; // bisa juga []
+        $excludedIds = [99999]; // bisa juga []
 
         $query = DB::table('election_event_logs as e')
             ->selectRaw('
@@ -243,9 +243,9 @@ class ElectionEventLogController extends Controller
         foreach ($validated['selections'] as $selection) {
             $log = ElectionEventLog::create([
                 'event_id' => $validated['event_id'],
-                'user_id' => $validated['user_id'],
+                'user_id' => $selection['kandidatId'],
                 'position_id' => $selection['posId'],
-                'voted_by' => $selection['kandidatId'],
+                'voted_by' => $validated['user_id'],
                 'voted_at' => $now,
             ]);
 
