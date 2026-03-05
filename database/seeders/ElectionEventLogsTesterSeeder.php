@@ -11,25 +11,29 @@ class ElectionEventLogsTesterSeeder extends Seeder
     public function run()
     {
         $eventId = 3; // id event
-        $userIds = range(37, 57); // total 51 user
         $positionIds = range(1, 6); // 6 posisi
 
-        foreach ($userIds as $voterId) {
-            // ambil kandidat acak untuk 6 posisi, pastikan berbeda
-            $candidates = collect($userIds)
-                ->shuffle()
-                ->take(count($positionIds))
-                ->values();
+        // Ambil semua user id kecuali id = 1
+        $userIds = DB::table('users')
+            ->where('id', '!=', 1)
+            ->pluck('id');
 
-            foreach ($positionIds as $index => $posId) {
+        foreach ($userIds as $voterId) {
+
+            foreach ($positionIds as $posId) {
+
+                $candidateId = $userIds
+                    ->where('id', '!=', $voterId) // tidak pilih diri sendiri
+                    ->random(); // random tunggal per posisi
+
                 DB::table('election_event_logs')->insert([
                     'event_id' => $eventId,
-                    'user_id' => $candidates[$index],
+                    'user_id' => $candidateId,
                     'position_id' => $posId,
                     'voted_by' => $voterId,
-                    'voted_at' => Carbon::now(),
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'voted_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }

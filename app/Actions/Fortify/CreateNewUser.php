@@ -48,7 +48,7 @@ class CreateNewUser implements CreatesNewUsers
             'phone_number' => $input['phone_number'],
             'email' => $generatedEmail,
             'password' => $input['password'],
-            'status' => 'pending',
+            'status' => 'approved',
             'login_method' => 'password',
             'whatsapp_active' => false,
         ]);
